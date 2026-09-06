@@ -19,6 +19,18 @@ const smokeColor = '#514046';
 const burningEffectId = 'module:ember-field:burning';
 const stats = { radius: 68 } as const;
 const EMBER_FIELD_DASH: number[] = [2, 6];
+const deployParticleColor = (progress: number): string => {
+	if (progress < 0.26) {
+		return '#ffffff';
+	}
+	return progress < 0.68 ? brightColor : statusColor;
+};
+const pulseParticleColor = (progress: number, index: number): string => {
+	if (progress >= 0.5) {
+		return statusColor;
+	}
+	return index % 3 === 0 ? '#ffffff' : brightColor;
+};
 const effects: readonly EffectDefinition[] = [
 	statusOrbs({ id: burningEffectId, size: 3.5, hotColor: brightColor, bloom: 0.76 }),
 	{
@@ -46,7 +58,7 @@ const effects: readonly EffectDefinition[] = [
 				const travel = 5 + frame.easeOut(3) * frame.random(index + 20, 27, 67);
 				const x = frame.x + Math.cos(angle) * travel;
 				const y = frame.y + Math.sin(angle) * travel;
-				const particleColor = frame.fin < 0.26 ? '#ffffff' : frame.fin < 0.68 ? brightColor : statusColor;
+				const particleColor = deployParticleColor(frame.fin);
 				painter.lineAngle(x, y, angle, 4 + 14 * frame.fout, 2.2 * frame.fout + 0.25, particleColor, frame.fout);
 			}
 			painter.circle(frame.x, frame.y, 8 * flash, '#ffffff', flash);
@@ -80,11 +92,12 @@ const effects: readonly EffectDefinition[] = [
 				const travel = 8 + frame.easeOut(3) * frame.random(index + 20, 31, 61);
 				const x = frame.x + Math.cos(angle) * travel;
 				const y = frame.y + Math.sin(angle) * travel - frame.fin * frame.random(index + 40, 0, 8);
+				const particleColor = pulseParticleColor(frame.fin, index);
 				painter.circle(
 					x,
 					y,
 					0.8 + frame.slope * frame.random(index + 60, 2.5, 5),
-					frame.fin < 0.5 ? (index % 3 === 0 ? '#ffffff' : brightColor) : statusColor,
+					particleColor,
 					frame.fout * 0.75,
 				);
 			}

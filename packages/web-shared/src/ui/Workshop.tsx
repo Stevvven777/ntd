@@ -2,6 +2,7 @@ import { UiIcon } from './UiIcon';
 import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
 import type { GameViewSnapshot, ModuleId, Tower } from '@prism-bastion/game-core/game/types';
 import { decodeOrchestration, encodeOrchestration } from '@prism-bastion/game-core/game/orchestration-codec';
@@ -17,6 +18,21 @@ import { Tag } from './Tag';
 import { thoughtRegistry } from '../thoughts';
 import { useTouchModuleDrag } from './useTouchModuleDrag';
 import './Workshop.css';
+
+const moduleInventoryLabel = (
+	t: TFunction,
+	limited: boolean,
+	exhausted: boolean,
+	available: number,
+	total: number,
+): string | undefined => {
+	if (!limited) {
+		return undefined;
+	}
+	return exhausted
+		? t('workshop.inventoryExhausted', { total })
+		: t('workshop.inventoryAvailable', { available, total });
+};
 
 export function Workshop({
 	engine,
@@ -274,7 +290,9 @@ export function Workshop({
 								const counts = view.moduleInventory[definition.id];
 								const available = counts?.available ?? 0;
 								const total = counts?.total ?? 0;
-								const exhausted = engine.rules.inventory === 'limited' && available === 0;
+								const limited = engine.rules.inventory === 'limited';
+								const exhausted = limited && available === 0;
+								const inventoryLabel = moduleInventoryLabel(t, limited, exhausted, available, total);
 								return (
 									<ModuleCard
 										key={definition.id}
@@ -282,13 +300,7 @@ export function Workshop({
 										tutorialId={definition.id}
 										selected={definition.id === selectedModule}
 										exhausted={exhausted}
-										inventoryLabel={
-											engine.rules.inventory === 'limited'
-												? exhausted
-													? t('workshop.inventoryExhausted', { total })
-													: t('workshop.inventoryAvailable', { available, total })
-												: undefined
-										}
+										inventoryLabel={inventoryLabel}
 										onSelect={() => setSelectedModule(definition.id)}
 										onQuickInstall={() => quickInstall(definition.id)}
 									/>

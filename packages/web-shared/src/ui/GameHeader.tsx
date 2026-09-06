@@ -4,8 +4,35 @@ import { getKeybindings, matchesKeybinding, shouldIgnoreGameShortcut, useKeybind
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
 import type { GameSnapshot } from '@prism-bastion/game-core/game/types';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { SettingsPanel } from './SettingsPanel';
 import './GameHeader.css';
+
+const getLaunchLabels = (
+	t: TFunction,
+	snapshot: GameSnapshot,
+	launchReady: boolean,
+	launchReadyLabel?: string,
+	launchCancelLabel?: string,
+): { launchLabel: string; launchWave: string } => {
+	if (launchReady) {
+		return {
+			launchLabel: launchReadyLabel ?? t('header.launch'),
+			launchWave: launchCancelLabel ?? t('header.complete'),
+		};
+	}
+	const defaultWave = t('header.waveNumber', { wave: String(snapshot.wave + 1).padStart(2, '0') });
+	if (snapshot.status === 'wave') {
+		return {
+			launchLabel: t('header.signals', { count: snapshot.signalsAlive + snapshot.waveQueue }),
+			launchWave: snapshot.wave >= snapshot.maxWaves ? t('header.complete') : defaultWave,
+		};
+	}
+	return {
+		launchLabel: snapshot.status === 'reward' ? t('header.awaitingDraft') : t('header.launch'),
+		launchWave: snapshot.wave >= snapshot.maxWaves ? t('header.complete') : defaultWave,
+	};
+};
 
 export function GameHeader({
 	engine,
@@ -32,18 +59,7 @@ export function GameHeader({
 	const bindings = useKeybindings();
 	const drafting = Boolean(snapshot.draft);
 	const waveDisabled = snapshot.status !== 'planning' || drafting;
-	const launchLabel = launchReady
-		? (launchReadyLabel ?? t('header.launch'))
-		: snapshot.status === 'wave'
-			? t('header.signals', { count: snapshot.signalsAlive + snapshot.waveQueue })
-			: snapshot.status === 'reward'
-				? t('header.awaitingDraft')
-				: t('header.launch');
-	const launchWave = launchReady
-		? (launchCancelLabel ?? t('header.complete'))
-		: snapshot.wave >= snapshot.maxWaves
-			? t('header.complete')
-			: t('header.waveNumber', { wave: String(snapshot.wave + 1).padStart(2, '0') });
+	const { launchLabel, launchWave } = getLaunchLabels(t, snapshot, launchReady, launchReadyLabel, launchCancelLabel);
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent): void => {

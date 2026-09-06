@@ -122,6 +122,43 @@ export function SinglePlayerApp({ homeActions }: SinglePlayerAppProps = {}) {
 		setTutorialOfferOpen(false);
 		start(tutorialSelection());
 	};
+	const renderContent = (): ReactNode => {
+		if (defenseArchiveOpen) {
+			return <DefenseArchive repository={defenseArchiveRepository} onBack={() => setDefenseArchiveOpen(false)} />;
+		}
+		if (archiveType) {
+			return (
+				<SignalArchive
+					initialType={archiveType}
+					onBack={closeSignalArchive}
+					backToBattlefield={Boolean(engine)}
+				/>
+			);
+		}
+		if (engine) {
+			return (
+				<GameSession
+					engine={engine}
+					suspended={Boolean(thoughtOpen)}
+					defenseArchive={defenseArchiveRepository}
+					onExit={() => setEngine(null)}
+					onOpenArchive={openSignalArchive}
+					onOpenThought={openThought}
+					onTutorialResolved={rememberTutorialOfferResolution}
+				/>
+			);
+		}
+		return (
+			<LevelSelect
+				homeActions={homeActions}
+				onStart={start}
+				onOpenArchive={() => setArchiveType(DEFAULT_SIGNAL_ID)}
+				onOpenDefenseArchive={() => setDefenseArchiveOpen(true)}
+				onOpenThought={() => openThought()}
+			/>
+		);
+	};
+	const content = renderContent();
 	return (
 		<>
 			<div
@@ -129,33 +166,7 @@ export function SinglePlayerApp({ homeActions }: SinglePlayerAppProps = {}) {
 				inert={Boolean(thoughtOpen)}
 				aria-hidden={thoughtOpen ? true : undefined}
 			>
-				{defenseArchiveOpen ? (
-					<DefenseArchive repository={defenseArchiveRepository} onBack={() => setDefenseArchiveOpen(false)} />
-				) : archiveType ? (
-					<SignalArchive
-						initialType={archiveType}
-						onBack={closeSignalArchive}
-						backToBattlefield={Boolean(engine)}
-					/>
-				) : engine ? (
-					<GameSession
-						engine={engine}
-						suspended={Boolean(thoughtOpen)}
-						defenseArchive={defenseArchiveRepository}
-						onExit={() => setEngine(null)}
-						onOpenArchive={openSignalArchive}
-						onOpenThought={openThought}
-						onTutorialResolved={rememberTutorialOfferResolution}
-					/>
-				) : (
-					<LevelSelect
-						homeActions={homeActions}
-						onStart={start}
-						onOpenArchive={() => setArchiveType(DEFAULT_SIGNAL_ID)}
-						onOpenDefenseArchive={() => setDefenseArchiveOpen(true)}
-						onOpenThought={() => openThought()}
-					/>
-				)}
+				{content}
 				{tutorialOfferOpen && !engine && !archiveType && !defenseArchiveOpen ? (
 					<TutorialOffer onAccept={acceptTutorial} onDecline={declineTutorial} />
 				) : null}

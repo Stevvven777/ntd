@@ -20,6 +20,18 @@ const brightColor = '#ffd166';
 const darkColor = '#9a3412';
 const smokeColor = '#554047';
 const burningEffectId = 'module:ember-coating:burning';
+const igniteParticleColor = (progress: number): string => {
+	if (progress < 0.18) {
+		return brightColor;
+	}
+	return progress < 0.58 ? color : darkColor;
+};
+const cinderParticleColor = (hot: number, index: number): string => {
+	if (hot <= 0) {
+		return smokeColor;
+	}
+	return index % 3 === 0 ? color : darkColor;
+};
 const effects: readonly EffectDefinition[] = [
 	statusOrbs({ id: burningEffectId, size: 3.2, hotColor: brightColor, bloom: 0.72 }),
 	{
@@ -39,7 +51,7 @@ const effects: readonly EffectDefinition[] = [
 				const angle = frame.random(index, 0, Math.PI * 2);
 				const speed = frame.random(index + 20, 0.62, 1);
 				const travel = 4 + frame.easeOut(3) * 43 * speed;
-				const particleColor = frame.fin < 0.18 ? brightColor : frame.fin < 0.58 ? color : darkColor;
+				const particleColor = igniteParticleColor(frame.fin);
 				painter.circle(
 					frame.x + Math.cos(angle) * travel,
 					frame.y + Math.sin(angle) * travel,
@@ -72,11 +84,12 @@ const effects: readonly EffectDefinition[] = [
 				const travel = 5 + frame.easeOut(2) * frame.random(index + 20, 13, 31);
 				const lift = frame.fin * frame.random(index + 40, 5, 13);
 				const hot = Math.max(0, 1 - frame.fin / 0.62);
+				const particleColor = cinderParticleColor(hot, index);
 				painter.circle(
 					frame.x + Math.cos(angle) * travel,
 					frame.y + Math.sin(angle) * travel - lift,
 					1.5 + frame.slope * frame.random(index + 60, 3, 5.8),
-					hot > 0 ? (index % 3 === 0 ? color : darkColor) : smokeColor,
+					particleColor,
 					frame.fout * (0.58 + hot * 0.35),
 				);
 			}

@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './GameSession.module.css';
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
-import type { SignalId } from '@prism-bastion/game-core/game/types';
+import type { GameEvent, SignalId } from '@prism-bastion/game-core/game/types';
 import { GameHeader } from '@prism-bastion/web-shared/ui/GameHeader';
 import { Battlefield, type BattlefieldUtilityPanel } from '@prism-bastion/web-shared/ui/Battlefield';
 import { useGameState, type ToastState } from '@prism-bastion/web-shared/ui/useGameState';
@@ -12,6 +12,23 @@ import { Toast } from '@prism-bastion/web-shared/ui/Toast';
 import { RewardDraft } from './RewardDraft';
 import { TutorialGuide } from './TutorialGuide';
 import type { DefenseArchiveRepository } from './defense-archive';
+
+const archiveOperationFor = (
+	event: GameEvent,
+	defenseArchive: DefenseArchiveRepository,
+	engine: GameEngine,
+): Promise<string[]> | null => {
+	if (event.type === 'defense-archive-fact') {
+		return defenseArchive.recordFact(event.fact, {
+			standard: engine.rules.archive === 'standard',
+			tutorial: engine.tutorialEnabled,
+		});
+	}
+	if (event.type === 'defense-completed') {
+		return defenseArchive.recordDefense(event.report);
+	}
+	return null;
+};
 
 export function GameSession({
 	engine,
@@ -64,15 +81,7 @@ export function GameSession({
 	useEffect(
 		() =>
 			engine.subscribe((event) => {
-				const operation =
-					event.type === 'defense-archive-fact'
-						? defenseArchive.recordFact(event.fact, {
-								standard: engine.rules.archive === 'standard',
-								tutorial: engine.tutorialEnabled,
-							})
-						: event.type === 'defense-completed'
-							? defenseArchive.recordDefense(event.report)
-							: null;
+				const operation = archiveOperationFor(event, defenseArchive, engine);
 				if (!operation) {
 					return;
 				}

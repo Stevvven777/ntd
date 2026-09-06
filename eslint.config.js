@@ -30,7 +30,7 @@ export default tseslint.config(
 			'@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
 			'@typescript-eslint/no-explicit-any': 'error',
 			'no-console': 'error',
-			'react-hooks/exhaustive-deps': 'warn',
+			'react-hooks/exhaustive-deps': 'error',
 			'react-hooks/rules-of-hooks': 'error',
 		},
 	},
@@ -39,7 +39,7 @@ export default tseslint.config(
 		rules: {
 			complexity: ['warn', 20],
 			'max-lines-per-function': ['warn', { max: 180, skipBlankLines: true, skipComments: true }],
-			'no-nested-ternary': 'warn',
+			'no-nested-ternary': 'error',
 		},
 	},
 	{

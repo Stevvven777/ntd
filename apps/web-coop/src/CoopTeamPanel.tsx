@@ -1,6 +1,7 @@
 import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { CoopPlayerId, CoopPlayerSnapshot, CoopRoomSnapshot } from '@prism-bastion/coop/types';
 import styles from './CoopTeamPanel.module.css';
 
@@ -17,6 +18,19 @@ interface CoopTeamPanelProps {
 	onViewPlayer: (playerId: CoopPlayerId) => void;
 	onTransferShards: (amount: number) => void;
 }
+
+const playerStatus = (t: TFunction, player: CoopPlayerSnapshot): string => {
+	if (player.eliminated) {
+		return t('coop.eliminated');
+	}
+	if (player.combatSubmitted) {
+		return t('coop.defenseDone');
+	}
+	if (player.ready) {
+		return t('coop.ready');
+	}
+	return player.connected ? t('coop.connected') : t('coop.reconnecting');
+};
 
 export function CoopTeamPanel({
 	room,
@@ -48,42 +62,35 @@ export function CoopTeamPanel({
 				</button>
 			</header>
 			<div className={styles.teamRoster}>
-				{room.players.map((player) => (
-					<section
-						className={player.id === playerId ? styles.localPlayer : styles.peerPlayer}
-						key={player.id}
-					>
-						<div className={styles.playerName}>
-							<span>{player.id === playerId ? t('coop.you') : t('coop.friend')}</span>
-							<strong>{player.name}</strong>
-						</div>
-						<div className={styles.playerStats}>
-							<b>
-								<small>{t('coop.core')}</small>
-								<span>
-									<UiIcon name="heart" /> {player.plan.core}/{player.plan.maxCore}
-								</span>
-							</b>
-							<b>
-								<small>{t('coop.shards')}</small>
-								<span>
-									<UiIcon name="diamond" /> {player.plan.shards}
-								</span>
-							</b>
-						</div>
-						<p>
-							{player.eliminated
-								? t('coop.eliminated')
-								: player.combatSubmitted
-									? t('coop.defenseDone')
-									: player.ready
-										? t('coop.ready')
-										: player.connected
-											? t('coop.connected')
-											: t('coop.reconnecting')}
-						</p>
-					</section>
-				))}
+				{room.players.map((player) => {
+					const status = playerStatus(t, player);
+					return (
+						<section
+							className={player.id === playerId ? styles.localPlayer : styles.peerPlayer}
+							key={player.id}
+						>
+							<div className={styles.playerName}>
+								<span>{player.id === playerId ? t('coop.you') : t('coop.friend')}</span>
+								<strong>{player.name}</strong>
+							</div>
+							<div className={styles.playerStats}>
+								<b>
+									<small>{t('coop.core')}</small>
+									<span>
+										<UiIcon name="heart" /> {player.plan.core}/{player.plan.maxCore}
+									</span>
+								</b>
+								<b>
+									<small>{t('coop.shards')}</small>
+									<span>
+										<UiIcon name="diamond" /> {player.plan.shards}
+									</span>
+								</b>
+							</div>
+							<p>{status}</p>
+						</section>
+					);
+				})}
 			</div>
 			{peer && viewedPlayer ? (
 				<div className={styles.viewSwitch} data-peer={viewingPeer}>

@@ -8,8 +8,22 @@ import { difficultyName, levelDescription, levelName } from '@prism-bastion/web-
 import { LevelMap } from '@prism-bastion/web-shared/ui/LevelMap';
 import { SignalLedger } from '@prism-bastion/web-shared/ui/SignalLedger';
 import './SectorArchive.css';
+import type { TFunction } from 'i18next';
 
 const percent = (value: number): string => `${Math.round(value * 100)}%`;
+
+const waveSummary = (t: TFunction, weakest: SectorStats['waves'][number] | null): string => {
+	if (!weakest) {
+		return t('defenseArchive.sectors.noWaveData');
+	}
+	if (weakest.clearRate === 1) {
+		return t('defenseArchive.sectors.allWavesCleared');
+	}
+	return t('defenseArchive.sectors.weakestWave', {
+		wave: weakest.wave,
+		rate: percent(weakest.clearRate),
+	});
+};
 
 const WaveAnalysis = ({ sector }: { sector: SectorStats }) => {
 	const { t } = useTranslation();
@@ -18,6 +32,7 @@ const WaveAnalysis = ({ sector }: { sector: SectorStats }) => {
 		(current, wave) => (!current || wave.clearRate < current.clearRate ? wave : current),
 		null,
 	);
+	const summary = waveSummary(t, weakest);
 	return (
 		<section className="sector-wave-analysis">
 			<header>
@@ -25,16 +40,7 @@ const WaveAnalysis = ({ sector }: { sector: SectorStats }) => {
 					<h3>{t('defenseArchive.sectors.waveAnalysis')}</h3>
 					<p>{t('defenseArchive.sectors.waveAnalysisDetail')}</p>
 				</div>
-				<span>
-					{weakest
-						? weakest.clearRate === 1
-							? t('defenseArchive.sectors.allWavesCleared')
-							: t('defenseArchive.sectors.weakestWave', {
-									wave: weakest.wave,
-									rate: percent(weakest.clearRate),
-								})
-						: t('defenseArchive.sectors.noWaveData')}
-				</span>
+				<span>{summary}</span>
 			</header>
 			<div className="wave-pulse" role="list" aria-label={t('defenseArchive.sectors.wavePulseAria')}>
 				{sector.waves.map((wave) => (

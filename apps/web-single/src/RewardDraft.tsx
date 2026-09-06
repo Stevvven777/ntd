@@ -8,6 +8,13 @@ import { DraftProgress } from '@prism-bastion/web-shared/ui/DraftProgress';
 import { ModuleDraftCard } from '@prism-bastion/web-shared/ui/ModuleDraftCard';
 import './RewardDraft.css';
 
+const skipUnavailableKey = (skipsRemaining: number, hasFutureOffer: boolean): string => {
+	if (skipsRemaining === 0) {
+		return 'reward.skipUnavailableEmpty';
+	}
+	return hasFutureOffer ? 'reward.skipUnavailableConsecutive' : 'reward.skipUnavailableFinal';
+};
+
 export function RewardDraft({
 	engine,
 	snapshot,
@@ -38,12 +45,7 @@ export function RewardDraft({
 	}
 	const isInitialDraft = snapshot.wave === 0;
 	const hasFutureOffer = draft.round < draft.totalRounds || snapshot.wave < snapshot.maxWaves - 1;
-	const skipUnavailable =
-		draft.skipsRemaining === 0
-			? t('reward.skipUnavailableEmpty')
-			: !hasFutureOffer
-				? t('reward.skipUnavailableFinal')
-				: t('reward.skipUnavailableConsecutive');
+	const skipUnavailable = t(skipUnavailableKey(draft.skipsRemaining, hasFutureOffer));
 	const skipTitle = draft.canSkip ? t('reward.skipHint') : skipUnavailable;
 	const quality = (value: number): string => value.toFixed(2);
 	const compactWeight = (value: number): string => value.toFixed(2).replace(/^0\./, '.').replace(/\.00$/, '');

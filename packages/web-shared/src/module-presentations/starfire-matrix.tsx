@@ -22,6 +22,18 @@ const StarfireMatrixIcon = createModuleIcon(
 	</>,
 );
 const burningEffectId = 'module:starfire-matrix:burning';
+const matrixPolygonColor = (index: number, fallback: string): string => {
+	if (index === 1) {
+		return accent;
+	}
+	return index === 0 ? plasmaColor : fallback;
+};
+const matrixRayColor = (index: number): string => {
+	if (index % 3 === 0) {
+		return plasmaColor;
+	}
+	return index % 2 === 0 ? color : accent;
+};
 const effects: readonly EffectDefinition[] = [
 	statusOrbs({ id: burningEffectId, lifetime: 0.58, size: 4.8, hotColor: accent, bloom: 1 }),
 	{
@@ -38,26 +50,28 @@ const effects: readonly EffectDefinition[] = [
 			for (const [index, sideCount] of sides.entries()) {
 				const radius = 9 + (58 - index * 9) * (1 - frame.easeOut(3));
 				const rotation = frame.rotation + frame.fin * (index % 2 === 0 ? 1.1 : -1.25);
+				const polygonColor = matrixPolygonColor(index, frame.color);
 				painter.polygon(
 					frame.x,
 					frame.y,
 					radius,
 					sideCount,
 					rotation,
-					index === 1 ? accent : index === 0 ? plasmaColor : frame.color,
+					polygonColor,
 					frame.fout * (0.94 - index * 0.1),
 					(3.8 - index * 0.6) * frame.fout + 0.35,
 				);
 			}
 			for (let index = 0; index < 6; index += 1) {
 				const angle = frame.rotation + (index * Math.PI) / 3;
+				const rayColor = matrixRayColor(index);
 				painter.triangle(
 					frame.x + Math.cos(angle) * (14 + frame.easeOut(3) * 28),
 					frame.y + Math.sin(angle) * (14 + frame.easeOut(3) * 28),
 					8 * frame.fout + 0.5,
 					(24 + flash * 44) * frame.fout,
 					angle,
-					index % 3 === 0 ? plasmaColor : index % 2 === 0 ? color : accent,
+					rayColor,
 					frame.fout * 0.94,
 				);
 			}

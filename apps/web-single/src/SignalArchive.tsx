@@ -76,21 +76,28 @@ export function SignalArchive({
 			};
 
 	const archiveStyle = { '--signal-accent': definition.visual.color } as CSSProperties;
-	const name = showingSuppressedTower
-		? t(demoMode!.text.nameKey)
-		: showingFragments
-			? t(demoMode!.text.nameKey)
-			: signalName(t, selectedType);
-	const role = showingSuppressedTower
-		? t(demoMode!.text.roleKey)
-		: showingFragments
-			? t(demoMode!.text.roleKey, { count: split?.count ?? 0 })
-			: t(definition.text.roleKey);
-	const description = showingSuppressedTower
-		? t(demoMode!.text.descriptionKey)
-		: showingFragments
-			? t(demoMode!.text.descriptionKey)
-			: t(definition.text.descriptionKey);
+	const getArchiveCopy = (): { name: string; role: string; description: string } => {
+		if (showingSuppressedTower) {
+			return {
+				name: t(demoMode!.text.nameKey),
+				role: t(demoMode!.text.roleKey),
+				description: t(demoMode!.text.descriptionKey),
+			};
+		}
+		if (showingFragments) {
+			return {
+				name: t(demoMode!.text.nameKey),
+				role: t(demoMode!.text.roleKey, { count: split?.count ?? 0 }),
+				description: t(demoMode!.text.descriptionKey),
+			};
+		}
+		return {
+			name: signalName(t, selectedType),
+			role: t(definition.text.roleKey),
+			description: t(definition.text.descriptionKey),
+		};
+	};
+	const { name, role, description } = getArchiveCopy();
 	const formatValue = (value: number): string =>
 		Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
 	const stats = [

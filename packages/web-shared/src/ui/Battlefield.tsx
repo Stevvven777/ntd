@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { WORLD } from '@prism-bastion/game-core/game/config';
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
-import type { SignalId, GameViewSnapshot } from '@prism-bastion/game-core/game/types';
+import type { SignalId, GameSnapshot, GameViewSnapshot } from '@prism-bastion/game-core/game/types';
 import { difficultyName, levelName } from '../i18n/presentation';
 import { GameCanvas } from './GameCanvas';
 import { SignalPreview } from './SignalPreview';
@@ -16,6 +17,32 @@ export interface BattlefieldUtilityPanel {
 	label: string;
 	render: (onClose: () => void) => ReactNode;
 }
+
+const battlefieldPhase = (t: TFunction, snapshot: GameSnapshot): string => {
+	if (snapshot.status === 'won') {
+		return t('battlefield.won');
+	}
+	if (snapshot.status === 'lost') {
+		return t('battlefield.lost');
+	}
+	if (snapshot.manuallyPaused) {
+		return t('battlefield.paused');
+	}
+	if (snapshot.paused) {
+		return t('battlefield.autoPaused');
+	}
+	if (snapshot.status === 'wave') {
+		return t('battlefield.contact');
+	}
+	return snapshot.status === 'reward' ? t('battlefield.intercepting') : t('battlefield.planning');
+};
+
+const incomingWaveLabel = (terminal: boolean, waveInProgress: boolean): string => {
+	if (terminal) {
+		return 'battlefield.noSignals';
+	}
+	return waveInProgress ? 'battlefield.currentWave' : 'battlefield.nextWave';
+};
 
 export function Battlefield({
 	className,
@@ -70,20 +97,7 @@ export function Battlefield({
 		return () => document.removeEventListener('pointerdown', closeOnOutsidePointer, true);
 	}, [creativePanelOpen, utilityPanelOpen]);
 	const { game: snapshot } = view;
-	const phase =
-		snapshot.status === 'won'
-			? t('battlefield.won')
-			: snapshot.status === 'lost'
-				? t('battlefield.lost')
-				: snapshot.manuallyPaused
-					? t('battlefield.paused')
-					: snapshot.paused
-						? t('battlefield.autoPaused')
-						: snapshot.status === 'wave'
-							? t('battlefield.contact')
-							: snapshot.status === 'reward'
-								? t('battlefield.intercepting')
-								: t('battlefield.planning');
+	const phase = battlefieldPhase(t, snapshot);
 	const terminal = snapshot.status === 'won' || snapshot.status === 'lost';
 	const runIndicator =
 		snapshot.mode === 'creative' ? t('battlefield.creativeIndicator') : difficultyName(t, engine.difficulty.id);
@@ -93,6 +107,7 @@ export function Battlefield({
 		(entrance) => engine.routeFor(entrance).pointAtDistance(44).position,
 	);
 	const core = engine.getCorePosition();
+	const incomingLabel = incomingWaveLabel(terminal, waveInProgress);
 	return (
 		<section
 			className={[styles.root, className].filter(Boolean).join(' ')}
@@ -113,15 +128,7 @@ export function Battlefield({
 					</div>
 					<div className={styles.incoming}>
 						<div className={styles.incomingTitle}>
-							<small>
-								{t(
-									terminal
-										? 'battlefield.noSignals'
-										: waveInProgress
-											? 'battlefield.currentWave'
-											: 'battlefield.nextWave',
-								)}
-							</small>
+							<small>{t(incomingLabel)}</small>
 							{engine.rules.scenarioControls === 'creative' ? (
 								<button
 									ref={creativeToggleRef}

@@ -1,11 +1,19 @@
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
 import type { TowerProgram } from '@prism-bastion/game-core/game/types';
 import { Trans, useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { moduleShortName } from '../i18n/presentation';
 import { TriggerNode } from './TriggerNode';
 import { EnergyBolt } from './EnergyBolt';
 import { thoughtRegistry } from '../thoughts';
 import './ProgramReadout.css';
+
+const programStatusLabel = (t: TFunction, wraps: number, hasTrigger: boolean): string => {
+	if (wraps > 0) {
+		return t('program.wrapped');
+	}
+	return hasTrigger ? t('program.triggered') : t('program.valid');
+};
 
 export function ProgramReadout({
 	program,
@@ -33,6 +41,7 @@ export function ProgramReadout({
 		: capacityWarning;
 	const diagnosticThought = diagnostic ? thoughtRegistry.forDiagnostic(diagnostic.code) : undefined;
 	const hasTrigger = program.shots.some((shot) => shot.trigger);
+	const programStatus = programStatusLabel(t, program.wraps, hasTrigger);
 	const summary =
 		program.shots.length === 0 ? (
 			t('program.empty')
@@ -54,14 +63,7 @@ export function ProgramReadout({
 			<div className={`program-readout ${warning ? 'warning' : ''}`}>
 				<div>
 					<strong>{summary}</strong>
-					<small>
-						{warning ??
-							(program.wraps > 0
-								? t('program.wrapped')
-								: hasTrigger
-									? t('program.triggered')
-									: t('program.valid'))}
-					</small>
+					<small>{warning ?? programStatus}</small>
 				</div>
 				{diagnosticThought && onOpenThought ? (
 					<button className="program-thought-link" onClick={() => onOpenThought(diagnosticThought.id)}>

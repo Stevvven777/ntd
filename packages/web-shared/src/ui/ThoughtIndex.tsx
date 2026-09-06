@@ -16,6 +16,20 @@ import './ThoughtIndex.css';
 
 const CHAPTERS: readonly ThoughtChapter[] = ['projectile', 'modifier', 'logic', 'trail', 'static'];
 
+const playbackLabelKey = (status: string): string => {
+	if (status === 'playing') {
+		return 'thoughtIndex.pause';
+	}
+	return status === 'completed' ? 'thoughtIndex.replay' : 'thoughtIndex.play';
+};
+
+const progressClassName = (index: number, currentIndex: number): string => {
+	if (index < currentIndex) {
+		return 'complete';
+	}
+	return index === currentIndex ? 'current' : '';
+};
+
 export function ThoughtIndex({
 	initialThoughtId,
 	onBack,
@@ -120,6 +134,7 @@ export function ThoughtIndex({
 
 	const languageTag = i18n.resolvedLanguage ?? i18n.language;
 	const visible = definitions.filter((candidate) => matchesThoughtSearch(candidate, query, languageTag, t));
+	const playbackLabel = playbackLabelKey(snapshot.status);
 
 	return (
 		<main
@@ -235,13 +250,7 @@ export function ThoughtIndex({
 								{t('thoughtIndex.previous')}
 							</button>
 							<button className="thought-play" onClick={() => director.togglePlayback()}>
-								{t(
-									snapshot.status === 'playing'
-										? 'thoughtIndex.pause'
-										: snapshot.status === 'completed'
-											? 'thoughtIndex.replay'
-											: 'thoughtIndex.play',
-								)}
+								{t(playbackLabel)}
 							</button>
 							<button onClick={() => director.next()} disabled={snapshot.status === 'completed'}>
 								{t('thoughtIndex.next')}
@@ -249,25 +258,22 @@ export function ThoughtIndex({
 						</div>
 						<nav ref={progressRef} className="thought-progress" aria-label={t('thoughtIndex.progress')}>
 							<i aria-hidden="true" />
-							{definition.beats.map((beat, index) => (
-								<button
-									key={beat.id}
-									className={
-										index < snapshot.beatIndex
-											? 'complete'
-											: index === snapshot.beatIndex
-												? 'current'
-												: ''
-									}
-									style={{ flexGrow: beat.timelineDuration }}
-									aria-current={index === snapshot.beatIndex ? 'step' : undefined}
-									aria-label={t('thoughtIndex.step', {
-										current: index + 1,
-										total: definition.beats.length,
-									})}
-									onClick={() => director.goTo(index)}
-								/>
-							))}
+							{definition.beats.map((beat, index) => {
+								const progressClass = progressClassName(index, snapshot.beatIndex);
+								return (
+									<button
+										key={beat.id}
+										className={progressClass}
+										style={{ flexGrow: beat.timelineDuration }}
+										aria-current={index === snapshot.beatIndex ? 'step' : undefined}
+										aria-label={t('thoughtIndex.step', {
+											current: index + 1,
+											total: definition.beats.length,
+										})}
+										onClick={() => director.goTo(index)}
+									/>
+								);
+							})}
 							{timelineWaitMarkers.map((marker) => (
 								<span
 									key={marker.id}

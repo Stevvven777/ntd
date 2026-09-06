@@ -14,6 +14,18 @@ const brightColor = '#ffcc55';
 const darkColor = '#8f1d00';
 const smokeColor = '#4a3033';
 const burningEffectId = 'module:searing-sigil:burning';
+const brandRayColor = (index: number): string => {
+	if (index % 3 === 0) {
+		return brightColor;
+	}
+	return index % 2 === 0 ? color : darkColor;
+};
+const flareParticleColor = (progress: number): string => {
+	if (progress < 0.16) {
+		return brightColor;
+	}
+	return progress < 0.6 ? color : darkColor;
+};
 const effects: readonly EffectDefinition[] = [
 	statusOrbs({ id: burningEffectId, lifetime: 0.52, size: 4.1, hotColor: brightColor, bloom: 0.88 }),
 	{
@@ -39,13 +51,14 @@ const effects: readonly EffectDefinition[] = [
 			for (let index = 0; index < 8; index += 1) {
 				const angle = frame.rotation + (index * Math.PI) / 4;
 				const rayLength = 17 + 34 * flash;
+				const rayColor = brandRayColor(index);
 				painter.triangle(
 					frame.x + Math.cos(angle) * (10 + frame.easeOut(3) * 19),
 					frame.y + Math.sin(angle) * (10 + frame.easeOut(3) * 19),
 					5 * frame.fout + 0.5,
 					rayLength * frame.fout,
 					angle,
-					index % 3 === 0 ? brightColor : index % 2 === 0 ? color : darkColor,
+					rayColor,
 					frame.fout * 0.92,
 				);
 			}
@@ -74,7 +87,7 @@ const effects: readonly EffectDefinition[] = [
 						frame.fout * 0.74,
 					);
 				} else {
-					const particleColor = frame.fin < 0.16 ? brightColor : frame.fin < 0.6 ? color : darkColor;
+					const particleColor = flareParticleColor(frame.fin);
 					painter.lineAngle(
 						x,
 						y,
