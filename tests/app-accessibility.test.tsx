@@ -10,7 +10,6 @@ import { LEVEL_SELECTION_STORAGE_KEY } from '@prism-bastion/web-single/LevelSele
 import { AUTO_PAUSE_STORAGE_KEY } from '@prism-bastion/web-shared/ui/preferences';
 import { LEVELS } from '@prism-bastion/game-core/game/config';
 import { levelName } from '@prism-bastion/web-shared/i18n/presentation';
-import { SignalArchive } from '@prism-bastion/web-single/SignalArchive';
 
 beforeEach(() => {
 	try {
@@ -45,10 +44,10 @@ describe('level selection accessibility', () => {
 		await user.click(screen.getByRole('button', { name: 'Open signal compendium' }));
 		const signals = Array.from(document.querySelectorAll<HTMLButtonElement>('.signal-archive-index-list button'));
 		await user.keyboard('{ArrowRight}');
-		expect(document.activeElement).toBe(signals[1]);
+		expect(signals[0]?.getAttribute('aria-current')).toBe('true');
 		(document.activeElement as HTMLElement).blur();
 		await user.keyboard('{ArrowRight}');
-		expect(document.activeElement).toBe(signals[2]);
+		expect(signals[0]?.getAttribute('aria-current')).toBe('true');
 		await user.click(screen.getByRole('button', { name: 'Back to sector selection' }));
 		await user.keyboard('{ArrowLeft}');
 		expect(selectedLevel()).toContain('White Prism');
@@ -63,25 +62,6 @@ describe('level selection accessibility', () => {
 		await user.click(screen.getByRole('button', { name: 'Settings' }));
 		await user.keyboard('{ArrowRight}');
 		expect(selectedLevel()).toContain('Rose Circuit');
-	});
-
-	it('navigates signal records continuously in both directions', async () => {
-		const user = userEvent.setup();
-		render(<SignalArchive onBack={vi.fn()} />);
-		const records = Array.from(document.querySelectorAll<HTMLButtonElement>('.signal-archive-index-list button'));
-		await user.click(records[0]!);
-		for (let step = 1; step <= records.length; step += 1) {
-			await user.keyboard('{ArrowRight}');
-			const selected = records[step % records.length]!;
-			expect(document.activeElement).toBe(selected);
-			expect(selected.getAttribute('aria-current')).toBe('true');
-		}
-		await user.keyboard('{ArrowLeft}');
-		expect(document.activeElement).toBe(records.at(-1));
-		await user.keyboard('{Home}{ArrowDown}{ArrowUp}');
-		expect(document.activeElement).toBe(records[0]);
-		await user.keyboard('{End}');
-		expect(document.activeElement).toBe(records.at(-1));
 	});
 
 	it.each([false, true])(

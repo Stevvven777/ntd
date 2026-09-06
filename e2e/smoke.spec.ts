@@ -247,11 +247,33 @@ test('compact landscape hides home metadata and contains the signal compendium',
 	const indexHeading = page.locator('.signal-archive-index-head');
 	const indexList = page.locator('.signal-archive-index-list');
 	const headingTop = await indexHeading.evaluate((element) => element.getBoundingClientRect().top);
-	await indexList.evaluate((element) => {
-		element.scrollTop = 160;
-	});
-	expect(await indexList.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+	const selected = await indexList.locator('[aria-current="true"]').textContent();
+	await page.keyboard.press('ArrowDown');
+	await expect.poll(() => indexList.evaluate((element) => element.scrollTop)).toBe(72);
+	await page.keyboard.press('ArrowDown');
+	await expect.poll(() => indexList.evaluate((element) => element.scrollTop)).toBe(144);
+	await page.keyboard.press('ArrowUp');
+	await expect.poll(() => indexList.evaluate((element) => element.scrollTop)).toBe(72);
+	expect(await indexList.locator('[aria-current="true"]').textContent()).toBe(selected);
+	await indexList.getByRole('button').first().click();
+	const afterClick = await indexList.evaluate((element) => element.scrollTop);
+	await page.keyboard.press('ArrowDown');
+	await expect.poll(() => indexList.evaluate((element) => element.scrollTop)).toBe(afterClick + 72);
+	expect(await indexList.locator('[aria-current="true"]').textContent()).toBe(selected);
+	const beforeHorizontal = await indexList.evaluate((element) => element.scrollTop);
+	await page.keyboard.press('ArrowRight');
+	await page.keyboard.press('ArrowLeft');
+	expect(await indexList.evaluate((element) => element.scrollTop)).toBe(beforeHorizontal);
+	await expect(indexList.getByRole('button').first()).toHaveAttribute('aria-current', 'true');
+	await expect(indexList.getByRole('button').first()).toBeFocused();
+	await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
+	const beforeBlurredScroll = await indexList.evaluate((element) => element.scrollTop);
+	await page.keyboard.press('ArrowDown');
+	await expect.poll(() => indexList.evaluate((element) => element.scrollTop)).toBe(beforeBlurredScroll + 72);
+	await page.keyboard.press('Alt+ArrowDown');
+	expect(await indexList.evaluate((element) => element.scrollTop)).toBe(beforeBlurredScroll + 72);
 	expect(await indexHeading.evaluate((element) => element.getBoundingClientRect().top)).toBe(headingTop);
+	expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
 });
 
 test('compact landscape gives workshop module cards readable widths', async ({ page }) => {
