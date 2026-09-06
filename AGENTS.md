@@ -47,9 +47,7 @@ Project skills:
 
 ### UI design
 
-For UI changes, follow [UI style](docs/guides/ui-style.md), especially its selection-block and settings-category rules. Use flat, square, shared-edge option cells with a pale selection tint and a solid bottom accent strip. Peer settings categories fill their row equally. Do not add elevation or offset shadows, or an extra focus rectangle when arrow keys select a settings category. Keep settings headers and category navigation outside the scrolling content region. Preference changes save silently; put reserved-key instructions before the binding list and avoid function keys in defaults.
-
-All pages must fit the viewport without document or whole-page scrolling. Use bounded internal scroll regions and keep headers and primary actions visible. The home page is stricter: none of its modules may scroll; fit controls through responsive layout and use carousel paging for levels. Frame dimensions must remain stable across mode, tab, and content changes; only viewport-responsive layout should resize them.
+For UI changes, follow [UI style](docs/guides/ui-style.md).
 
 ### Internationalization
 
