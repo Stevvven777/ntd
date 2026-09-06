@@ -1,7 +1,8 @@
 import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
+import { usePageArrowNavigation } from '@prism-bastion/web-shared/ui/usePageArrowNavigation';
 import { SIGNAL_IDS, signalRegistry } from '@prism-bastion/game-core/signals';
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LEVEL_ID, getLevel, LEVELS } from '@prism-bastion/game-core/game/config';
 import { DEFAULT_DIFFICULTY_ID, DIFFICULTIES, getDifficulty } from '@prism-bastion/game-core/game/difficulty';
@@ -95,6 +96,20 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
     return Math.min(Math.max(0, selectedIndex - Math.floor(visibleLevelCount / 2)), Math.max(0, LEVELS.length - visibleLevelCount));
   });
   const [carouselDirection, setCarouselDirection] = useState<'next' | 'previous' | null>(null);
+  const pageRef = usePageArrowNavigation((direction) => {
+    const index = LEVELS.findIndex((level) => level.id === levelId);
+    const next = LEVELS[(index + direction + LEVELS.length) % LEVELS.length];
+    if (!next) return;
+    focusLevelAfterNavigation.current = true;
+    selectLevel(next.id);
+  });
+  const levelGroupRef = useRef<HTMLElement>(null);
+  const focusLevelAfterNavigation = useRef(false);
+  useLayoutEffect(() => {
+    if (!focusLevelAfterNavigation.current) return;
+    focusLevelAfterNavigation.current = false;
+    levelGroupRef.current?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
+  }, [levelId, carouselStart]);
   const selectedLevel = getLevel(levelId);
   const selectedDifficulty = getDifficulty(difficultyId);
   useEffect(() => {
@@ -119,16 +134,14 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
     mediaQuery.addEventListener('change', updateVisibleLevelCount);
     return () => mediaQuery.removeEventListener('change', updateVisibleLevelCount);
   }, [levelId]);
-  const selectLevel = (nextLevelId: string, center = true): void => {
+  const selectLevel = (nextLevelId: string, reveal = true): void => {
     setLevelId(nextLevelId);
     setCreative((current) => ({ ...current, waveCount: getLevel(nextLevelId).waves.length }));
-    if (!center) return;
+    if (!reveal) return;
     const nextIndex = LEVELS.findIndex((level) => level.id === nextLevelId);
     if (nextIndex < 0) return;
-    const centeredStart = visibleLevelCount === COMPACT_VISIBLE_LEVEL_COUNT
-      ? nextIndex
-      : nextIndex - Math.floor(visibleLevelCount / 2);
-    const nextStart = Math.max(0, Math.min(maximumCarouselStart, centeredStart));
+    const nextStart = Math.max(0, Math.min(maximumCarouselStart,
+      nextIndex < carouselStart ? nextIndex : Math.max(carouselStart, nextIndex - visibleLevelCount + 1)));
     if (nextStart === carouselStart) return;
     setCarouselDirection(nextStart > carouselStart ? 'next' : 'previous');
     setCarouselStart(nextStart);
@@ -157,8 +170,8 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
     event.preventDefault();
     const next = LEVELS[(index + offset + LEVELS.length) % LEVELS.length];
     if (!next) return;
+    focusLevelAfterNavigation.current = true;
     selectLevel(next.id);
-    focusSelectedOption(event.currentTarget);
   };
   const moveCarousel = (offset: number): void => {
     const nextStart = Math.max(0, Math.min(maximumCarouselStart, carouselStart + offset));
@@ -173,7 +186,7 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
   };
 
   return (
-    <main className="level-select-shell">
+    <main ref={pageRef} tabIndex={-1} className="level-select-shell">
       <div className="level-select-frame">
       <header className="level-select-head">
         <section className="level-select-intro">
@@ -278,7 +291,7 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
         </header>
         <div className="level-carousel">
         <button className="level-carousel-arrow previous" onClick={() => moveCarousel(-1)} disabled={carouselStart === 0} aria-label={t('levelSelect.previousLevels')} />
-        <section key={carouselStart} className={`level-grid ${carouselDirection ? `slide-${carouselDirection}` : ''}`} role="radiogroup" aria-label={t('levelSelect.chooseLevel')}>
+        <section key={carouselStart} ref={levelGroupRef} className={`level-grid ${carouselDirection ? `slide-${carouselDirection}` : ''}`} role="radiogroup" aria-label={t('levelSelect.chooseLevel')}>
         {visibleLevels.map((level, visibleIndex) => {
           const index = carouselStart + visibleIndex;
           return (
@@ -290,7 +303,7 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
             aria-checked={level.id === levelId}
             tabIndex={level.id === levelId ? 0 : -1}
             onKeyDown={(event) => cycleLevel(event, index)}
-            onClick={() => selectLevel(level.id)}
+            onClick={() => selectLevel(level.id, false)}
           >
             <div className="level-map-wrap"><LevelMap level={level} /><Tag className="level-sector-tag" tone="accent" monospace>{level.sector.replace('SECTOR ', '')}</Tag></div>
             <div className="level-card-copy">

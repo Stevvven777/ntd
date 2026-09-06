@@ -1206,10 +1206,11 @@
 	"settings.keys.thoughtPlayback": "Index: play / pause",
 	"settings.categories.controls": "Key bindings",
 	"settings.keys.pause": "Pause / resume",
-	"settings.keys.description": "Select a binding, then press a key or a modifier combination. Module movement applies to the focused slot; Thought Index controls apply only in the index.",
+	"settings.keys.description": "Select a binding, then press a key or a modifier combination. Module movement applies to the focused slot; Thought Index controls apply only in the index. Left/right arrows browse index records; PageUp/PageDown step through demonstrations by default.",
 	"settings.keys.clear": "Clear binding: {{action}}",
 	"settings.keys.moveRight": "Move module right",
 	"settings.keys.speed": "Toggle game speed",
 	"settings.keys.unbound": "Unbound",
-	"settings.categories.info": "Info"
+	"settings.categories.info": "Info",
+	"settings.keys.pageNavigationReserved": "Left and right arrows are reserved for browsing Thought Index records. Choose another key or add a modifier."
 }

@@ -4,10 +4,12 @@ export const KEYBINDINGS_STORAGE_KEY = 'prism-bastion-keybindings-v1';
 export const defaultKeybindings = {
   pause: 'Space', launch: 'N', speed: 'G', advancedDraft: 'V',
   moveLeft: 'Alt+ArrowLeft', moveRight: 'Alt+ArrowRight',
-  thoughtPlayback: 'Space', thoughtPrevious: 'ArrowLeft', thoughtNext: 'ArrowRight', thoughtRestart: 'R',
+  thoughtPlayback: 'Space', thoughtPrevious: 'PageUp', thoughtNext: 'PageDown', thoughtRestart: 'R',
 } as const;
 export type KeybindingAction = keyof typeof defaultKeybindings;
 export type Keybindings = Record<KeybindingAction, string | null>;
+export const isReservedPageBinding = (action: KeybindingAction, binding: string): boolean =>
+  action.startsWith('thought') && (binding === 'ArrowLeft' || binding === 'ArrowRight');
 export const keybindingActions = Object.keys(defaultKeybindings) as KeybindingAction[];
 const events = new EventTarget();
 let fallback: string | null = null;
@@ -29,7 +31,7 @@ export const parseKeybindings = (raw: string | null): Keybindings => {
     if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return bindings;
     for (const action of keybindingActions) {
       const value: unknown = (saved as Record<string, unknown>)[action];
-      if (value === null || validBinding(value)) bindings[action] = value;
+      if (value === null || (validBinding(value) && !isReservedPageBinding(action, value))) bindings[action] = value;
     }
     for (const action of keybindingActions) {
       const key = bindings[action];

@@ -55,6 +55,12 @@ Headers, navigation, and primary actions remain in their allocated regions. Long
 
 A frame's dimensions are determined by viewport and layout role, not by the selected mode, tab, content length, loading state, or error message. Reserve the same region for alternative content: Standard difficulty and Creative calibration share the same home-page allocation. Keep modal outer dimensions stable across categories. Responsive resizing is appropriate when the viewport changes; ordinary selection changes must not move neighboring frames. Reduce decorative regions before reducing usable control space on short screens.
 
+## Page keyboard navigation
+
+The home page and archive pages own one default horizontal selection. Left/right arrows select levels on the home page, records in the Thought Index and Signal Compendium, and top-level categories in the Defense Archive. This works immediately after entering or returning to a page, including when focus falls back to the document body. Selection and focus move together; a home carousel only moves when the selected level is outside its visible range.
+
+Use `usePageArrowNavigation` for this default. Covered or inert pages must ignore navigation, and modal dialogs and editable controls retain their own keys. Secondary vertical lists use up/down arrows when focused. Thought Index step controls use PageUp/PageDown by default; unmodified left/right arrows are reserved for browsing its records.
+
 ## Divide rectangles by responsibility
 
 Start from the screen's operating model, then convert it into rectangles:

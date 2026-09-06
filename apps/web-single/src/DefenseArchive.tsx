@@ -1,3 +1,5 @@
+import { navigateSelectionList } from '@prism-bastion/web-shared/ui/selectionListKeyboard';
+import { navigatePageSelection, usePageArrowNavigation } from '@prism-bastion/web-shared/ui/usePageArrowNavigation';
 import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -135,7 +137,7 @@ const History = ({ records }: { records: DefenseRecord[] }) => {
         <label><span>{t('defenseArchive.filter.level')}</span><select value={levelId} onChange={(event) => setFilter(setLevelId, event.currentTarget.value)}><option value="all">{t('defenseArchive.filter.all')}</option>{LEVELS.map((level) => <option key={level.id} value={level.id}>{levelName(t, level.id)}</option>)}</select></label>
         <label><span>{t('defenseArchive.filter.difficulty')}</span><select value={difficultyId} onChange={(event) => setFilter(setDifficultyId, event.currentTarget.value)}><option value="all">{t('defenseArchive.filter.all')}</option>{DIFFICULTIES.map((difficulty) => <option key={difficulty.id} value={difficulty.id}>{difficultyName(t, difficulty.id)}</option>)}</select></label>
       </div>
-      {visible.length === 0 ? <div className="defense-archive-empty compact"><strong>{t('defenseArchive.noMatches')}</strong><p>{t('defenseArchive.noMatchesDetail')}</p></div> : <div className="defense-list">{visible.map((record) => <button key={record.id} data-result={record.result} aria-pressed={selectedId === record.id} onClick={() => setSelectedId(record.id)}>
+      {visible.length === 0 ? <div className="defense-archive-empty compact"><strong>{t('defenseArchive.noMatches')}</strong><p>{t('defenseArchive.noMatchesDetail')}</p></div> : <div className="defense-list" onKeyDown={navigateSelectionList}>{visible.map((record) => <button key={record.id} data-result={record.result} aria-pressed={selectedId === record.id} onClick={() => setSelectedId(record.id)}>
         <i aria-hidden="true"/><span><strong>{levelName(t, record.levelId)}</strong><small>{new Date(record.endedAt).toLocaleString()}</small></span><span><b>{t(`defenseArchive.result.${record.result}`)}</b><small>{difficultyName(t, record.difficultyId)} · {record.waveReached}/{record.maxWaves}</small></span><em>→</em>
       </button>)}</div>}
       <footer className="history-pages"><button disabled={page === 0} onClick={() => setPage((value) => value - 1)}>←</button><span>{page + 1} / {pageCount}</span><button disabled={page + 1 >= pageCount} onClick={() => setPage((value) => value + 1)}>→</button></footer>
@@ -147,6 +149,7 @@ const History = ({ records }: { records: DefenseRecord[] }) => {
 export function DefenseArchive({ repository, onBack }: { repository: DefenseArchiveRepository; onBack: () => void }) {
   const { t } = useTranslation();
   const [tab, setTab] = useState<DefenseArchiveTab>('overview');
+  const pageRef = usePageArrowNavigation((direction) => navigatePageSelection(pageRef.current, '.defense-archive-tabs [role="tab"]', direction));
   const [snapshot, setSnapshot] = useState<DefenseArchiveSnapshot | null>(null);
   const [error, setError] = useState(false);
   const contentRef = useRef<HTMLElement>(null);
@@ -171,7 +174,7 @@ export function DefenseArchive({ repository, onBack }: { repository: DefenseArch
     setTab(nextTab);
     event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[nextIndex]?.focus();
   };
-  return <main className="archive-shell defense-archive-shell">
+  return <main ref={pageRef} tabIndex={-1} className="archive-shell defense-archive-shell">
     <div className="defense-archive-frame">
       <ArchiveHeader
         className="defense-archive-head"
