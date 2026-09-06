@@ -38,6 +38,31 @@ pnpm test -- tests/compiler.test.ts
 
 Tests protect software contracts, not the current balance baseline. Read [Testing boundaries](testing-boundaries.md) before asserting production damage, energy, signal stats, wave composition, map coordinates, or report totals.
 
+## Format touched files
+
+Use Prettier with `prettier-plugin-curly`. Code uses tabs displayed at four columns,
+semicolons, single quotes, and a preferred line width of 120. The plugin inserts
+braces around every control-statement body, including single-line `if`, `else`,
+and loop bodies. Markdown and YAML retain two-space indentation.
+
+Pass explicit files or quoted globs to format or check just the files you touch:
+
+```bash
+pnpm format packages/game-core/src/modules/barrage.ts
+pnpm format:check packages/game-core/src/modules/barrage.ts
+```
+
+`pnpm format:check .` audits the repository without writing. Existing files have
+not been migrated, so this check is intentionally separate from `pnpm check` and
+CI for now. `pnpm format .` explicitly opts into a repository-wide rewrite; do not
+use it for routine changes during the migration.
+
+Generated files and locale JSON are excluded. Continue to use
+`pnpm format:locales` for locale resources. `.editorconfig` supplies editor defaults;
+configure the Prettier editor extension to use the project's local installation.
+In VS Code, set `editor.insertSpaces` to `false`, `editor.tabSize` to `4`, and
+`editor.detectIndentation` to `false` if local settings override these defaults.
+
 ## Match the repository boundaries
 
 - Put deterministic gameplay state and rules in `packages/game-core/src/game/`.

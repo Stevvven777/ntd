@@ -1,0 +1,15 @@
+# Dependencies, generated output, and local tooling.
+node_modules/
+**/dist/
+**/dist-types/
+**/*.tsbuildinfo
+test-results/
+playwright-report/
+coverage/
+.agents/
+.codex/
+.vscode/
+pnpm-lock.yaml
+
+# Maintained by pnpm format:locales with its own canonical format.
+packages/web-shared/src/i18n/locales/*.json
