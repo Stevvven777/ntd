@@ -7,127 +7,141 @@ import { simulateAuthoritativeCombat } from '@prism-bastion/coop/simulation';
 import type { CombatVerificationRequest } from '@prism-bastion/coop/simulation';
 
 const noFireRequest = (): CombatVerificationRequest => {
-  const plan = createInitialCoopPlan('triune-delta', 'extreme', 42);
-  plan.towers[0]?.slots.fill(null);
-  return {
-    levelId: 'triune-delta',
-    difficultyId: 'extreme',
-    phaseId: 7,
-    kind: 'local-defense',
-    wave: 8,
-    planHash: hashCoopPlan(plan),
-    plan,
-    signals: [],
-  };
+	const plan = createInitialCoopPlan('triune-delta', 'extreme', 42);
+	plan.towers[0]?.slots.fill(null);
+	return {
+		levelId: 'triune-delta',
+		difficultyId: 'extreme',
+		phaseId: 7,
+		kind: 'local-defense',
+		wave: 8,
+		planHash: hashCoopPlan(plan),
+		plan,
+		signals: [],
+	};
 };
 
 describe('authoritative co-op combat simulation', () => {
-  it('replays a phase deterministically without a browser', () => {
-    const request = noFireRequest();
+	it('replays a phase deterministically without a browser', () => {
+		const request = noFireRequest();
 
-    const first = simulateAuthoritativeCombat(request);
-    const second = simulateAuthoritativeCombat(request);
+		const first = simulateAuthoritativeCombat(request);
+		const second = simulateAuthoritativeCombat(request);
 
-    expect(first).toEqual(second);
-    expect(first.phaseId).toBe(request.phaseId);
-    expect(first.planHash).toBe(request.planHash);
-    expect(first.shardsEarned).toBe(0);
-    expect(first.leaks).toHaveLength(60);
-  });
+		expect(first).toEqual(second);
+		expect(first.phaseId).toBe(request.phaseId);
+		expect(first.planHash).toBe(request.planHash);
+		expect(first.shardsEarned).toBe(0);
+		expect(first.leaks).toHaveLength(60);
+	});
 
-  it('rejects omitted leaks and forged rewards', () => {
-    const expected = simulateAuthoritativeCombat(noFireRequest());
+	it('rejects omitted leaks and forged rewards', () => {
+		const expected = simulateAuthoritativeCombat(noFireRequest());
 
-    expect(combatResultsMatch(expected, { ...expected, leaks: [] })).toBe(false);
-    expect(combatResultsMatch(expected, { ...expected, shardsEarned: 1_000_000 })).toBe(false);
-    expect(combatResultsMatch(expected, structuredClone(expected))).toBe(true);
-  });
+		expect(combatResultsMatch(expected, { ...expected, leaks: [] })).toBe(false);
+		expect(combatResultsMatch(expected, { ...expected, shardsEarned: 1_000_000 })).toBe(false);
+		expect(combatResultsMatch(expected, structuredClone(expected))).toBe(true);
+	});
 
-  it('restores post-local tower state before validating reinforcement', () => {
-    const plan = createInitialCoopPlan('starter-elbow', 'normal', 42);
-    const localPlanHash = hashCoopPlan(plan);
-    const controller = new CoopGameController({ levelId: 'starter-elbow', difficultyId: 'normal', seed: 0 });
-    const clientEngine = controller.engine;
-    controller.applyPlan(plan);
-    const results = new Map<number, CoopCombatResult>();
-    clientEngine.subscribe((event) => {
-      if (event.type !== 'combat-phase-completed') return;
-      const result = event.result;
-      results.set(result.phaseId, {
-        phaseId: result.phaseId,
-        planHash: result.planHash,
-        shardsEarned: result.shardsEarned,
-        leaks: result.leaks.map((leak) => ({ ...leak })),
-      });
-    });
-    controller.startCombat({
-      phaseId: 1,
-      planHash: localPlanHash,
-      wave: 1,
-      kind: 'local-defense',
-    });
-    expect(controller.fastForward()).toBe(true);
-    const localResult = results.get(1);
-    expect(localResult).toBeDefined();
-    if (!localResult) return;
+	it('restores post-local tower state before validating reinforcement', () => {
+		const plan = createInitialCoopPlan('starter-elbow', 'normal', 42);
+		const localPlanHash = hashCoopPlan(plan);
+		const controller = new CoopGameController({ levelId: 'starter-elbow', difficultyId: 'normal', seed: 0 });
+		const clientEngine = controller.engine;
+		controller.applyPlan(plan);
+		const results = new Map<number, CoopCombatResult>();
+		clientEngine.subscribe((event) => {
+			if (event.type !== 'combat-phase-completed') {
+				return;
+			}
+			const result = event.result;
+			results.set(result.phaseId, {
+				phaseId: result.phaseId,
+				planHash: result.planHash,
+				shardsEarned: result.shardsEarned,
+				leaks: result.leaks.map((leak) => ({ ...leak })),
+			});
+		});
+		controller.startCombat({
+			phaseId: 1,
+			planHash: localPlanHash,
+			wave: 1,
+			kind: 'local-defense',
+		});
+		expect(controller.fastForward()).toBe(true);
+		const localResult = results.get(1);
+		expect(localResult).toBeDefined();
+		if (!localResult) {
+			return;
+		}
 
-    const postLocalPlan = structuredClone(plan);
-    postLocalPlan.shards += localResult.shardsEarned;
-    const reinforcementPlanHash = hashCoopPlan(postLocalPlan);
-    const signals: CoopLeakedSignal[] = [{ ordinal: 0, type: 'spark', variantId: 'spark', entrance: 'starter-elbow:0' }];
-    controller.startCombat({
-      phaseId: 2,
-      planHash: reinforcementPlanHash,
-      wave: 1,
-      kind: 'reinforcement',
-      signals,
-    });
-    expect(controller.fastForward()).toBe(true);
-    const clientResult = results.get(2);
-    expect(clientResult).toBeDefined();
-    if (!clientResult) return;
+		const postLocalPlan = structuredClone(plan);
+		postLocalPlan.shards += localResult.shardsEarned;
+		const reinforcementPlanHash = hashCoopPlan(postLocalPlan);
+		const signals: CoopLeakedSignal[] = [
+			{ ordinal: 0, type: 'spark', variantId: 'spark', entrance: 'starter-elbow:0' },
+		];
+		controller.startCombat({
+			phaseId: 2,
+			planHash: reinforcementPlanHash,
+			wave: 1,
+			kind: 'reinforcement',
+			signals,
+		});
+		expect(controller.fastForward()).toBe(true);
+		const clientResult = results.get(2);
+		expect(clientResult).toBeDefined();
+		if (!clientResult) {
+			return;
+		}
 
-    const serverResult = simulateAuthoritativeCombat({
-      levelId: 'starter-elbow',
-      difficultyId: 'normal',
-      phaseId: 2,
-      kind: 'reinforcement',
-      wave: 1,
-      planHash: reinforcementPlanHash,
-      plan: postLocalPlan,
-      signals,
-    });
-    expect(serverResult).toEqual(clientResult);
-  });
+		const serverResult = simulateAuthoritativeCombat({
+			levelId: 'starter-elbow',
+			difficultyId: 'normal',
+			phaseId: 2,
+			kind: 'reinforcement',
+			wave: 1,
+			planHash: reinforcementPlanHash,
+			plan: postLocalPlan,
+			signals,
+		});
+		expect(serverResult).toEqual(clientResult);
+	});
 
-  it('preserves a fracture fragment through a reinforcement phase', () => {
-    const plan = createInitialCoopPlan('starter-elbow', 'normal', 42);
-    plan.towers[0]?.slots.fill(null);
-    const controller = new CoopGameController({ levelId: 'starter-elbow', difficultyId: 'normal', seed: 0 });
-    controller.applyPlan(plan);
-    let result: CoopCombatResult | null = null;
-    controller.engine.subscribe((event) => {
-      if (event.type === 'combat-phase-completed') result = event.result;
-    });
-    controller.startCombat({
-      phaseId: 2,
-      planHash: hashCoopPlan(plan),
-      wave: 1,
-      kind: 'reinforcement',
-      signals: [{
-        ordinal: 0,
-        type: 'fracture',
-        variantId: 'fracture-fragment',
-        entrance: 'starter-elbow:0',
-      }],
-    });
+	it('preserves a fracture fragment through a reinforcement phase', () => {
+		const plan = createInitialCoopPlan('starter-elbow', 'normal', 42);
+		plan.towers[0]?.slots.fill(null);
+		const controller = new CoopGameController({ levelId: 'starter-elbow', difficultyId: 'normal', seed: 0 });
+		controller.applyPlan(plan);
+		let result: CoopCombatResult | null = null;
+		controller.engine.subscribe((event) => {
+			if (event.type === 'combat-phase-completed') {
+				result = event.result;
+			}
+		});
+		controller.startCombat({
+			phaseId: 2,
+			planHash: hashCoopPlan(plan),
+			wave: 1,
+			kind: 'reinforcement',
+			signals: [
+				{
+					ordinal: 0,
+					type: 'fracture',
+					variantId: 'fracture-fragment',
+					entrance: 'starter-elbow:0',
+				},
+			],
+		});
 
-    expect(controller.fastForward()).toBe(true);
-    expect(result?.leaks).toEqual([{
-      ordinal: 0,
-      type: 'fracture',
-      variantId: 'fracture-fragment',
-      entrance: 'starter-elbow:0',
-    }]);
-  });
+		expect(controller.fastForward()).toBe(true);
+		expect(result?.leaks).toEqual([
+			{
+				ordinal: 0,
+				type: 'fracture',
+				variantId: 'fracture-fragment',
+				entrance: 'starter-elbow:0',
+			},
+		]);
+	});
 });

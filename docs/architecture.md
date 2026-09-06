@@ -6,14 +6,14 @@ Prism Bastion separates deterministic simulation, co-op coordination, browser pr
 
 ## Workspaces
 
-| Area | Responsibility | Primary entry points |
-| --- | --- | --- |
-| `packages/game-core` | DOM-free combat, signals, runtime modules, plans, snapshots, notices, and visual cues | `src/index.ts`, `src/game/engine.ts`, `src/modules/`, `src/signals/` |
-| `packages/coop` | Wire schemas, shared planning rules, co-op controller, result comparison, and authoritative simulation | `src/protocol.ts`, `src/controller.ts`, `src/simulation.ts`, `src/results.ts` |
+| Area                  | Responsibility                                                                                               | Primary entry points                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `packages/game-core`  | DOM-free combat, signals, runtime modules, plans, snapshots, notices, and visual cues                        | `src/index.ts`, `src/game/engine.ts`, `src/modules/`, `src/signals/`                        |
+| `packages/coop`       | Wire schemas, shared planning rules, co-op controller, result comparison, and authoritative simulation       | `src/protocol.ts`, `src/controller.ts`, `src/simulation.ts`, `src/results.ts`               |
 | `packages/web-shared` | Canvas/WebGL rendering, effects, module presentation, common UI, thoughts, search, and flat locale resources | `src/index.ts`, `src/game/renderer.ts`, `src/module-presentations/`, `src/ui/`, `src/i18n/` |
-| `apps/web-single` | Single-player shell, levels, tutorial, rewards, archive, and browser persistence | `src/App.tsx`, `src/GameSession.tsx`, `src/main.tsx` |
-| `apps/web-coop` | Full single-page site and dynamically loaded co-op UI/client | `src/FullSiteApp.tsx`, `src/coop-feature.tsx`, `src/client.ts` |
-| `apps/coop-server` | Node HTTP/WebSocket process, rooms, Origin policy, and worker scheduling | `src/index.ts`, `src/coop-room.ts`, `src/combat-worker.ts` |
+| `apps/web-single`     | Single-player shell, levels, tutorial, rewards, archive, and browser persistence                             | `src/App.tsx`, `src/GameSession.tsx`, `src/main.tsx`                                        |
+| `apps/web-coop`       | Full single-page site and dynamically loaded co-op UI/client                                                 | `src/FullSiteApp.tsx`, `src/coop-feature.tsx`, `src/client.ts`                              |
+| `apps/coop-server`    | Node HTTP/WebSocket process, rooms, Origin policy, and worker scheduling                                     | `src/index.ts`, `src/coop-room.ts`, `src/combat-worker.ts`                                  |
 
 ## Runtime ownership
 

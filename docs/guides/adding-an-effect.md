@@ -9,22 +9,17 @@ Use an `EffectDefinition` for transient geometry such as sparks, rings, muzzle f
 An effect needs a globally unique ID, lifetime, optional layer and bloom strength, and a stateless render callback:
 
 ```ts
-const effects: readonly EffectDefinition[] = [{
-  id: 'module:ion:hit',
-  lifetime: 0.35,
-  layer: 'air',
-  bloom: 0.8,
-  render: (frame, painter) => {
-    painter.ring(
-      frame.x,
-      frame.y,
-      4 + frame.easeOut(3) * 32,
-      3 * frame.fout,
-      frame.color,
-      frame.fout,
-    );
+const effects: readonly EffectDefinition[] = [
+  {
+    id: 'module:ion:hit',
+    lifetime: 0.35,
+    layer: 'air',
+    bloom: 0.8,
+    render: (frame, painter) => {
+      painter.ring(frame.x, frame.y, 4 + frame.easeOut(3) * 32, 3 * frame.fout, frame.color, frame.fout);
+    },
   },
-}];
+];
 ```
 
 Choose the layer by occlusion intent: `ground`, `under-projectile`, `projectile`, `air`, or `overlay`. Omit `bloom` to use the layer default, set a strength to tune emission, or use `false` to exclude the effect from the emissive pass.

@@ -1,51 +1,51 @@
 .level-map-wrap {
-  position: relative;
-  height: 158px;
-  overflow: hidden;
-  background: #fafafe;
+	position: relative;
+	height: 158px;
+	overflow: hidden;
+	background: #fafafe;
 }
 
 .level-map-wrap::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(#d8d5e0 1px, transparent 1px);
-  background-size: 17px 17px;
-  opacity: 0.45;
+	content: '';
+	position: absolute;
+	inset: 0;
+	background-image: radial-gradient(#d8d5e0 1px, transparent 1px);
+	background-size: 17px 17px;
+	opacity: 0.45;
 }
 
 .level-map-wrap > .level-sector-tag {
-  position: absolute;
-  z-index: 2;
-  top: 12px;
-  left: 13px;
-  --tag-accent: var(--level-accent);
+	position: absolute;
+	z-index: 2;
+	top: 12px;
+	left: 13px;
+	--tag-accent: var(--level-accent);
 }
 
 .level-map {
-  position: absolute;
-  z-index: 1;
-  inset: 12px;
-  width: calc(100% - 24px);
-  height: calc(100% - 24px);
+	position: absolute;
+	z-index: 1;
+	inset: 12px;
+	width: calc(100% - 24px);
+	height: calc(100% - 24px);
 }
 
 .level-map .route-edge {
-  stroke: var(--level-accent);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 28;
-  opacity: 0.72;
+	stroke: var(--level-accent);
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke-width: 28;
+	opacity: 0.72;
 }
 
 .level-map .tower-pad {
-  fill: #fff;
-  stroke: var(--level-accent);
-  stroke-width: 7;
+	fill: #fff;
+	stroke: var(--level-accent);
+	stroke-width: 7;
 }
 
 .level-map .route-junction {
-  fill: #fff;
-  stroke: var(--level-accent);
-  stroke-width: 8;
+	fill: #fff;
+	stroke: var(--level-accent);
+	stroke-width: 8;
 }

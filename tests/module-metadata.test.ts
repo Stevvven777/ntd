@@ -3,51 +3,55 @@ import { MODULE_RARITIES, createModuleRegistry } from '@prism-bastion/game-core/
 import { createModulePresentationRegistry } from '@prism-bastion/web-shared/module-presentations';
 
 describe('module metadata', () => {
-  const registry = createModuleRegistry();
-  const presentationRegistry = createModulePresentationRegistry();
+	const registry = createModuleRegistry();
+	const presentationRegistry = createModulePresentationRegistry();
 
-  it('provides structurally valid metadata for every registered module', () => {
-    const modules = registry.list();
-    const ids = modules.map((module) => module.id);
+	it('provides structurally valid metadata for every registered module', () => {
+		const modules = registry.list();
+		const ids = modules.map((module) => module.id);
 
-    expect(new Set(ids).size).toBe(ids.length);
-    for (const module of modules) {
-      expect(module.id.length).toBeGreaterThan(0);
-      expect(module.meta.color).toMatch(/^#[0-9a-f]{6}$/i);
-      expect(Number.isFinite(module.meta.energy)).toBe(true);
-      if (module.meta.energy < 0) expect(module.kind).toBe('logic');
-      expect(Object.keys(MODULE_RARITIES)).toContain(module.meta.rarity);
-      expect(Array.isArray(module.tags)).toBe(true);
-      expect(new Set(module.tags).size).toBe(module.tags.length);
-    }
-    const presentations = presentationRegistry.list();
-    expect(new Set(presentations.map((module) => module.icon)).size).toBe(presentations.length);
-    expect(presentations.map(({ id }) => id).sort()).toEqual(ids.sort());
-    expect(presentations.filter((presentation) => typeof presentation.meta.tint !== 'string').map(({ id }) => id)).toEqual([]);
-    for (const presentation of presentations) {
-      expect(typeof presentation.icon).toBe('function');
-      expect(presentation.meta.color).toMatch(/^#[0-9a-f]{6}$/i);
-      expect(presentation.meta.displayColor).toMatch(/^#[0-9a-f]{6}$/i);
-      expect(presentation.meta.tint).toMatch(/^#[0-9a-f]{6}$/i);
-    }
-  });
+		expect(new Set(ids).size).toBe(ids.length);
+		for (const module of modules) {
+			expect(module.id.length).toBeGreaterThan(0);
+			expect(module.meta.color).toMatch(/^#[0-9a-f]{6}$/i);
+			expect(Number.isFinite(module.meta.energy)).toBe(true);
+			if (module.meta.energy < 0) {
+				expect(module.kind).toBe('logic');
+			}
+			expect(Object.keys(MODULE_RARITIES)).toContain(module.meta.rarity);
+			expect(Array.isArray(module.tags)).toBe(true);
+			expect(new Set(module.tags).size).toBe(module.tags.length);
+		}
+		const presentations = presentationRegistry.list();
+		expect(new Set(presentations.map((module) => module.icon)).size).toBe(presentations.length);
+		expect(presentations.map(({ id }) => id).sort()).toEqual(ids.sort());
+		expect(
+			presentations.filter((presentation) => typeof presentation.meta.tint !== 'string').map(({ id }) => id),
+		).toEqual([]);
+		for (const presentation of presentations) {
+			expect(typeof presentation.icon).toBe('function');
+			expect(presentation.meta.color).toMatch(/^#[0-9a-f]{6}$/i);
+			expect(presentation.meta.displayColor).toMatch(/^#[0-9a-f]{6}$/i);
+			expect(presentation.meta.tint).toMatch(/^#[0-9a-f]{6}$/i);
+		}
+	});
 
-  it('keeps static projectile lifetime aligned with its runtime duration', () => {
-    for (const module of registry.list().filter((candidate) => candidate.kind === 'static')) {
-      const carrier = registry.compile(['impact-trigger', 'pulse', module.id]).shots[0];
-      const payload = carrier?.payload[0];
+	it('keeps static projectile lifetime aligned with its runtime duration', () => {
+		for (const module of registry.list().filter((candidate) => candidate.kind === 'static')) {
+			const carrier = registry.compile(['impact-trigger', 'pulse', module.id]).shots[0];
+			const payload = carrier?.payload[0];
 
-      expect(payload?.static).toBeDefined();
-      expect(payload?.lifetime).toBe(payload?.static?.duration);
-      expect(payload?.lifetime).toBeGreaterThan(0);
-    }
-  });
+			expect(payload?.static).toBeDefined();
+			expect(payload?.lifetime).toBe(payload?.static?.duration);
+			expect(payload?.lifetime).toBeGreaterThan(0);
+		}
+	});
 
-  it('keeps resonant trail at its rebalanced epic damage tier', () => {
-    const resonance = registry.require('resonant-trail');
+	it('keeps resonant trail at its rebalanced epic damage tier', () => {
+		const resonance = registry.require('resonant-trail');
 
-    expect(resonance.meta.rarity).toBe('epic');
-    expect(resonance.meta.energy).toBe(44);
-    expect(resonance.meta.text?.detail).toMatchObject({ damage: 150, interval: 0.26, radius: 56, speed: 4 });
-  });
+		expect(resonance.meta.rarity).toBe('epic');
+		expect(resonance.meta.energy).toBe(44);
+		expect(resonance.meta.text?.detail).toMatchObject({ damage: 150, interval: 0.26, radius: 56, speed: 4 });
+	});
 });

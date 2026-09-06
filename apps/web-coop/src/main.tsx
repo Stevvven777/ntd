@@ -8,7 +8,13 @@ import { defenseArchiveRepository } from '@prism-bastion/web-single/defense-arch
 import { configureSettingsArchiveRepository } from '@prism-bastion/web-shared/ui/SettingsPanel';
 
 const root = document.getElementById('app');
-if (!root) throw new Error('Missing app root');
+if (!root) {
+	throw new Error('Missing app root');
+}
 
 configureSettingsArchiveRepository(defenseArchiveRepository);
-createRoot(root).render(<StrictMode><FullSiteApp /></StrictMode>);
+createRoot(root).render(
+	<StrictMode>
+		<FullSiteApp />
+	</StrictMode>,
+);

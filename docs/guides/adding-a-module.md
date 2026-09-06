@@ -11,13 +11,13 @@ The presentation file may import the core definition when it needs shared author
 
 ## 1. Choose the compiler category
 
-| Kind | Compile action | Runtime expectation |
-| --- | --- | --- |
-| `projectile` | `emitProjectile(spec)` | Creates a moving root shot or captured payload |
-| `static` | `emitProjectile({ ..., static })` | Can only be deployed as a trigger payload |
-| `modifier` | `modifyNext(patch)` | Changes the next emitted projectile |
-| `trail` | `modifyNext(patch)` | Changes the next projectile and normally owns `onTrail` behavior |
-| `logic` | `modifyNext(patch)` or `wrapNext(trigger)` | Changes scheduling, aiming, cost, or payload capture |
+| Kind         | Compile action                             | Runtime expectation                                              |
+| ------------ | ------------------------------------------ | ---------------------------------------------------------------- |
+| `projectile` | `emitProjectile(spec)`                     | Creates a moving root shot or captured payload                   |
+| `static`     | `emitProjectile({ ..., static })`          | Can only be deployed as a trigger payload                        |
+| `modifier`   | `modifyNext(patch)`                        | Changes the next emitted projectile                              |
+| `trail`      | `modifyNext(patch)`                        | Changes the next projectile and normally owns `onTrail` behavior |
+| `logic`      | `modifyNext(patch)` or `wrapNext(trigger)` | Changes scheduling, aiming, cost, or payload capture             |
 
 If the behavior cannot be expressed by the shared blueprint, trigger, runtime hooks, target effects, or `ModuleCombatApi`, extend those neutral core types deliberately and add compiler tests first.
 

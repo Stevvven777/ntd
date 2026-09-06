@@ -20,12 +20,12 @@ export type { TrailWakeCopy } from './trail-wake';
 export { buildDeferredTriggerThought, buildExpirationTriggerThought } from './trigger';
 export type { DeferredTriggerCopy, ExpirationTriggerCopy } from './trigger';
 export {
-  fireCapturedRun,
-  finishRun,
-  openRun,
-  resetTo,
-  resetWithLoadoutReplacement,
-  settleTowerForReset,
-  showPause,
+	fireCapturedRun,
+	finishRun,
+	openRun,
+	resetTo,
+	resetWithLoadoutReplacement,
+	settleTowerForReset,
+	showPause,
 } from './sequences';
 export type { FireCaptureOptions, ShowPauseOptions, SignalSpawn } from './sequences';

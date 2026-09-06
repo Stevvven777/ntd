@@ -10,11 +10,11 @@
 
 Current resolution has three variants without adding another game mode:
 
-| Session identity | Context | Rule variant |
-| --- | --- | --- |
-| Standard | Tutorial level | Tutorial setup, limited inventory and economy, no draft rewards |
-| Standard | Other levels | Standard setup, limited inventory and economy, draft rewards |
-| Creative | Any level | Unlimited inventory and economy, configured waves and core, creative scenario controls |
+| Session identity | Context        | Rule variant                                                                           |
+| ---------------- | -------------- | -------------------------------------------------------------------------------------- |
+| Standard         | Tutorial level | Tutorial setup, limited inventory and economy, no draft rewards                        |
+| Standard         | Other levels   | Standard setup, limited inventory and economy, draft rewards                           |
+| Creative         | Any level      | Unlimited inventory and economy, configured waves and core, creative scenario controls |
 
 The tutorial remains a Standard session. Its existing special setup is represented as a rule variant rather than a hidden mode.
 
@@ -22,17 +22,17 @@ The tutorial remains a Standard session. Its existing special setup is represent
 
 Each field answers one engine or UI question:
 
-| Policy | Governs |
-| --- | --- |
-| `setup` | Starting inventory and tower slots |
-| `inventory` | Module availability and installation limits |
-| `rewards` | Initial and between-wave module drafts |
-| `economy` | Starting shards and unlimited-shard presentation |
-| `waves` | Level-defined or configured wave count |
-| `core` | Standard or configured core stability |
-| `signalScaling` | Level scaling or configured signal scales |
+| Policy             | Governs                                                       |
+| ------------------ | ------------------------------------------------------------- |
+| `setup`            | Starting inventory and tower slots                            |
+| `inventory`        | Module availability and installation limits                   |
+| `rewards`          | Initial and between-wave module drafts                        |
+| `economy`          | Starting shards and unlimited-shard presentation              |
+| `waves`            | Level-defined or configured wave count                        |
+| `core`             | Standard or configured core stability                         |
+| `signalScaling`    | Level scaling or configured signal scales                     |
 | `scenarioControls` | Availability of direct scenario controls and signal injection |
-| `archive` | Eligibility context for defense archive facts |
+| `archive`          | Eligibility context for defense archive facts                 |
 
 Mode checks remain appropriate when code is presenting the session's identity, such as a mode name or Creative run indicator. Behavioral branches should read the narrow rule that grants the behavior.
 

@@ -4,20 +4,20 @@ Prism Bastion is a geometric tower-defense game built around modular programming
 
 ### Commands
 
-| Command | Purpose |
-| --- | --- |
-| `pnpm dev` | Start esbuild watch mode and the local development server |
-| `pnpm build` | Produce minified static assets |
-| `pnpm lint` | Run ESLint |
-| `pnpm format <files...>` | Format selected files with Prettier and insert control-statement braces |
-| `pnpm format:check <files...>` | Check selected files without writing |
-| `pnpm typecheck` | Run strict TypeScript checking |
-| `pnpm test` | Run Vitest unit and component tests |
-| `pnpm test:e2e` | Run Playwright browser smoke tests |
-| `pnpm check` | Run lint, type checking, tests, and production builds |
-| `pnpm format:locales` | Complete and format locale files using the English key order |
-| `pnpm balance:report` | Generate a balance report from current configuration |
-| `pnpm perf:report` | Run the spatial-index performance report |
+| Command                        | Purpose                                                                 |
+| ------------------------------ | ----------------------------------------------------------------------- |
+| `pnpm dev`                     | Start esbuild watch mode and the local development server               |
+| `pnpm build`                   | Produce minified static assets                                          |
+| `pnpm lint`                    | Run ESLint                                                              |
+| `pnpm format <files...>`       | Format selected files with Prettier and insert control-statement braces |
+| `pnpm format:check <files...>` | Check selected files without writing                                    |
+| `pnpm typecheck`               | Run strict TypeScript checking                                          |
+| `pnpm test`                    | Run Vitest unit and component tests                                     |
+| `pnpm test:e2e`                | Run Playwright browser smoke tests                                      |
+| `pnpm check`                   | Run lint, type checking, tests, and production builds                   |
+| `pnpm format:locales`          | Complete and format locale files using the English key order            |
+| `pnpm balance:report`          | Generate a balance report from current configuration                    |
+| `pnpm perf:report`             | Run the spatial-index performance report                                |
 
 ### Architecture
 

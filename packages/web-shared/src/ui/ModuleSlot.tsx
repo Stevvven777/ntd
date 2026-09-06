@@ -10,61 +10,119 @@ import { KIND_SYMBOL, moduleVariableStyle } from './modulePresentation';
 import { modulePresentationRegistry } from '../module-presentations';
 import './ModuleSlot.css';
 
-export function ModuleSlot({ index, isLast, definition, selectedModule, onSelectModule, engine }: {
-  index: number;
-  isLast: boolean;
-  definition: ModuleDefinition | undefined;
-  selectedModule: ModuleId | null;
-  onSelectModule: (moduleId: ModuleId) => void;
-  engine: GameEngine;
+export function ModuleSlot({
+	index,
+	isLast,
+	definition,
+	selectedModule,
+	onSelectModule,
+	engine,
+}: {
+	index: number;
+	isLast: boolean;
+	definition: ModuleDefinition | undefined;
+	selectedModule: ModuleId | null;
+	onSelectModule: (moduleId: ModuleId) => void;
+	engine: GameEngine;
 }) {
-  const { t } = useTranslation();
-  const bindings = useKeybindings();
-  const Icon = definition ? modulePresentationRegistry.require(definition.id).icon : undefined;
-  const dragStart = (event: DragEvent<HTMLButtonElement>): void => {
-    event.dataTransfer.setData('text/slot', String(index));
-    event.dataTransfer.effectAllowed = 'move';
-  };
-  const drop = (event: DragEvent<HTMLButtonElement>): void => {
-    event.preventDefault();
-    event.currentTarget.classList.remove('drag-over');
-    const incoming = event.dataTransfer.getData('text/module');
-    const source = event.dataTransfer.getData('text/slot');
-    if (incoming) engine.installModule(index, incoming);
-    else if (source !== '') engine.swapModules(Number(source), index);
-  };
-  const keyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
-    if (event.repeat || event.nativeEvent.isComposing) return;
-    const left = matchesKeybinding(event, bindings.moveLeft);
-    if (!left && !matchesKeybinding(event, bindings.moveRight)) return;
-    event.preventDefault();
-    engine.swapModules(index, index + (left ? -1 : 1));
-  };
-  return (
-    <div className="slot-wrap">
-      {!definition ? (
-        <button className="module-slot empty" data-slot={index} data-tutorial-slot={index}
-          onClick={() => { if (selectedModule) engine.installModule(index, selectedModule); }}
-          onDragOver={(event) => { event.preventDefault(); event.currentTarget.classList.add('drag-over'); }}
-          onDragLeave={(event) => event.currentTarget.classList.remove('drag-over')}
-          onDrop={drop} aria-label={t('moduleSlot.emptyAria', { slot: index + 1 })}>
-          <span>+</span><small>{t('moduleSlot.slot', { slot: index + 1 })}</small>
-        </button>
-      ) : (
-        <div className="filled-slot">
-          <button className={`module-slot filled ${definition.kind}`} data-slot={index} data-touch-slot={index} data-tutorial-slot={index} style={moduleVariableStyle(definition)} draggable
-            onDragStart={dragStart} onDragOver={(event) => { event.preventDefault(); event.currentTarget.classList.add('drag-over'); }}
-            onDragLeave={(event) => event.currentTarget.classList.remove('drag-over')} onDrop={drop} onKeyDown={keyDown}
-            onClick={() => onSelectModule(definition.id)}
-            aria-keyshortcuts={[bindings.moveLeft, bindings.moveRight].filter(Boolean).join(' ')}
-            aria-label={t('moduleSlot.filledAria', { slot: index + 1, module: moduleName(t, definition.id), left: bindings.moveLeft ?? t('settings.keys.unbound'), right: bindings.moveRight ?? t('settings.keys.unbound') })}
-            title={t('moduleSlot.filledTitle', { module: moduleName(t, definition.id), description: moduleDescription(t, definition), left: bindings.moveLeft ?? t('settings.keys.unbound'), right: bindings.moveRight ?? t('settings.keys.unbound') })}>
-            <span className="slot-kind">{KIND_SYMBOL[definition.kind]}</span><span className="slot-icon">{Icon ? <Icon /> : null}</span><small>{moduleShortName(t, definition.id)}</small>
-          </button>
-          <button className="slot-remove" onClick={() => engine.installModule(index, null)} aria-label={t('moduleSlot.remove', { slot: index + 1, module: moduleName(t, definition.id) })}><UiIcon name="close" /></button>
-        </div>
-      )}
-      {!isLast ? <span className="flow-arrow">›</span> : null}
-    </div>
-  );
+	const { t } = useTranslation();
+	const bindings = useKeybindings();
+	const Icon = definition ? modulePresentationRegistry.require(definition.id).icon : undefined;
+	const dragStart = (event: DragEvent<HTMLButtonElement>): void => {
+		event.dataTransfer.setData('text/slot', String(index));
+		event.dataTransfer.effectAllowed = 'move';
+	};
+	const drop = (event: DragEvent<HTMLButtonElement>): void => {
+		event.preventDefault();
+		event.currentTarget.classList.remove('drag-over');
+		const incoming = event.dataTransfer.getData('text/module');
+		const source = event.dataTransfer.getData('text/slot');
+		if (incoming) {
+			engine.installModule(index, incoming);
+		} else if (source !== '') {
+			engine.swapModules(Number(source), index);
+		}
+	};
+	const keyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
+		if (event.repeat || event.nativeEvent.isComposing) {
+			return;
+		}
+		const left = matchesKeybinding(event, bindings.moveLeft);
+		if (!left && !matchesKeybinding(event, bindings.moveRight)) {
+			return;
+		}
+		event.preventDefault();
+		engine.swapModules(index, index + (left ? -1 : 1));
+	};
+	return (
+		<div className="slot-wrap">
+			{!definition ? (
+				<button
+					className="module-slot empty"
+					data-slot={index}
+					data-tutorial-slot={index}
+					onClick={() => {
+						if (selectedModule) {
+							engine.installModule(index, selectedModule);
+						}
+					}}
+					onDragOver={(event) => {
+						event.preventDefault();
+						event.currentTarget.classList.add('drag-over');
+					}}
+					onDragLeave={(event) => event.currentTarget.classList.remove('drag-over')}
+					onDrop={drop}
+					aria-label={t('moduleSlot.emptyAria', { slot: index + 1 })}
+				>
+					<span>+</span>
+					<small>{t('moduleSlot.slot', { slot: index + 1 })}</small>
+				</button>
+			) : (
+				<div className="filled-slot">
+					<button
+						className={`module-slot filled ${definition.kind}`}
+						data-slot={index}
+						data-touch-slot={index}
+						data-tutorial-slot={index}
+						style={moduleVariableStyle(definition)}
+						draggable
+						onDragStart={dragStart}
+						onDragOver={(event) => {
+							event.preventDefault();
+							event.currentTarget.classList.add('drag-over');
+						}}
+						onDragLeave={(event) => event.currentTarget.classList.remove('drag-over')}
+						onDrop={drop}
+						onKeyDown={keyDown}
+						onClick={() => onSelectModule(definition.id)}
+						aria-keyshortcuts={[bindings.moveLeft, bindings.moveRight].filter(Boolean).join(' ')}
+						aria-label={t('moduleSlot.filledAria', {
+							slot: index + 1,
+							module: moduleName(t, definition.id),
+							left: bindings.moveLeft ?? t('settings.keys.unbound'),
+							right: bindings.moveRight ?? t('settings.keys.unbound'),
+						})}
+						title={t('moduleSlot.filledTitle', {
+							module: moduleName(t, definition.id),
+							description: moduleDescription(t, definition),
+							left: bindings.moveLeft ?? t('settings.keys.unbound'),
+							right: bindings.moveRight ?? t('settings.keys.unbound'),
+						})}
+					>
+						<span className="slot-kind">{KIND_SYMBOL[definition.kind]}</span>
+						<span className="slot-icon">{Icon ? <Icon /> : null}</span>
+						<small>{moduleShortName(t, definition.id)}</small>
+					</button>
+					<button
+						className="slot-remove"
+						onClick={() => engine.installModule(index, null)}
+						aria-label={t('moduleSlot.remove', { slot: index + 1, module: moduleName(t, definition.id) })}
+					>
+						<UiIcon name="close" />
+					</button>
+				</div>
+			)}
+			{!isLast ? <span className="flow-arrow">›</span> : null}
+		</div>
+	);
 }

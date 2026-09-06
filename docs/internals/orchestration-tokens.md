@@ -8,14 +8,14 @@ Creative sessions can transfer the selected tower's module sequence and targetin
 
 The decoded token is an unsigned big-endian byte sequence:
 
-| Bytes | Contents |
-| --- | --- |
-| `0..1` | Magic bytes `50 42` |
-| `2` | Format version `01` |
-| `3` | Effective slot count in the high nibble; firing mode in the low nibble |
-| `4` | Targeting code in the high three bits; reserved flags in the low five bits |
-| `5..` | One unsigned 8-bit module code per effective slot |
-| Final four | Big-endian CRC-32/ISO-HDLC of every preceding byte |
+| Bytes      | Contents                                                                   |
+| ---------- | -------------------------------------------------------------------------- |
+| `0..1`     | Magic bytes `50 42`                                                        |
+| `2`        | Format version `01`                                                        |
+| `3`        | Effective slot count in the high nibble; firing mode in the low nibble     |
+| `4`        | Targeting code in the high three bits; reserved flags in the low five bits |
+| `5..`      | One unsigned 8-bit module code per effective slot                          |
+| Final four | Big-endian CRC-32/ISO-HDLC of every preceding byte                         |
 
 Trailing empty slots are omitted; empty slots inside the sequence use module code zero. Version 1 emits firing mode zero and reserved flags zero. A decoder must reject nonzero values as unsupported features rather than ignoring them. The four-bit slot count reserves capacity for 15 slots, the firing field reserves 16 modes, and the one-byte module code reserves identifiers 1 through 255.
 

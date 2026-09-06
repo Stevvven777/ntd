@@ -8,105 +8,163 @@ import { SettingsPanel } from './SettingsPanel';
 import './GameHeader.css';
 
 export function GameHeader({
-  engine,
-  snapshot,
-  onExit,
-  onLaunch,
-  launchDisabled,
-  launchReady = false,
-  suspended = false,
-  launchReadyLabel,
-  launchCancelLabel,
+	engine,
+	snapshot,
+	onExit,
+	onLaunch,
+	launchDisabled,
+	launchReady = false,
+	suspended = false,
+	launchReadyLabel,
+	launchCancelLabel,
 }: {
-  engine: GameEngine;
-  snapshot: GameSnapshot;
-  onExit: () => void;
-  onLaunch?: () => void;
-  launchDisabled?: boolean;
-  launchReady?: boolean;
-  suspended?: boolean;
-  launchReadyLabel?: string;
-  launchCancelLabel?: string;
+	engine: GameEngine;
+	snapshot: GameSnapshot;
+	onExit: () => void;
+	onLaunch?: () => void;
+	launchDisabled?: boolean;
+	launchReady?: boolean;
+	suspended?: boolean;
+	launchReadyLabel?: string;
+	launchCancelLabel?: string;
 }) {
-  const { t } = useTranslation();
-  const bindings = useKeybindings();
-  const drafting = Boolean(snapshot.draft);
-  const waveDisabled = snapshot.status !== 'planning' || drafting;
-  const launchLabel = launchReady
-    ? (launchReadyLabel ?? t('header.launch'))
-    : snapshot.status === 'wave'
-      ? t('header.signals', { count: snapshot.signalsAlive + snapshot.waveQueue })
-      : snapshot.status === 'reward'
-        ? t('header.awaitingDraft')
-        : t('header.launch');
-  const launchWave = launchReady
-    ? (launchCancelLabel ?? t('header.complete'))
-    : snapshot.wave >= snapshot.maxWaves
-      ? t('header.complete')
-      : t('header.waveNumber', { wave: String(snapshot.wave + 1).padStart(2, '0') });
+	const { t } = useTranslation();
+	const bindings = useKeybindings();
+	const drafting = Boolean(snapshot.draft);
+	const waveDisabled = snapshot.status !== 'planning' || drafting;
+	const launchLabel = launchReady
+		? (launchReadyLabel ?? t('header.launch'))
+		: snapshot.status === 'wave'
+			? t('header.signals', { count: snapshot.signalsAlive + snapshot.waveQueue })
+			: snapshot.status === 'reward'
+				? t('header.awaitingDraft')
+				: t('header.launch');
+	const launchWave = launchReady
+		? (launchCancelLabel ?? t('header.complete'))
+		: snapshot.wave >= snapshot.maxWaves
+			? t('header.complete')
+			: t('header.waveNumber', { wave: String(snapshot.wave + 1).padStart(2, '0') });
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent): void => {
-      if (suspended || shouldIgnoreGameShortcut(event)) return;
-      const keys = getKeybindings();
-      if (matchesKeybinding(event, keys.launch) && !(launchDisabled ?? waveDisabled)) {
-        event.preventDefault();
-        if (onLaunch) onLaunch(); else engine.startWave();
-      } else if (!engine.externallyControlled && !drafting) {
-        if (matchesKeybinding(event, keys.pause)) { event.preventDefault(); engine.togglePause(); }
-        else if (matchesKeybinding(event, keys.speed)) { event.preventDefault(); engine.setSpeed(snapshot.speed === 1 ? 2 : 1); }
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [suspended, engine, drafting, launchDisabled, waveDisabled, onLaunch, snapshot.speed]);
+	useEffect(() => {
+		const onKeyDown = (event: KeyboardEvent): void => {
+			if (suspended || shouldIgnoreGameShortcut(event)) {
+				return;
+			}
+			const keys = getKeybindings();
+			if (matchesKeybinding(event, keys.launch) && !(launchDisabled ?? waveDisabled)) {
+				event.preventDefault();
+				if (onLaunch) {
+					onLaunch();
+				} else {
+					engine.startWave();
+				}
+			} else if (!engine.externallyControlled && !drafting) {
+				if (matchesKeybinding(event, keys.pause)) {
+					event.preventDefault();
+					engine.togglePause();
+				} else if (matchesKeybinding(event, keys.speed)) {
+					event.preventDefault();
+					engine.setSpeed(snapshot.speed === 1 ? 2 : 1);
+				}
+			}
+		};
+		window.addEventListener('keydown', onKeyDown);
+		return () => window.removeEventListener('keydown', onKeyDown);
+	}, [suspended, engine, drafting, launchDisabled, waveDisabled, onLaunch, snapshot.speed]);
 
-  return (
-    <header className="topbar">
-      <button className="exit-button" onClick={onExit} aria-label={t('header.exit')}>
-        <span aria-hidden="true">←</span><strong>{t('header.back')}</strong>
-      </button>
+	return (
+		<header className="topbar">
+			<button className="exit-button" onClick={onExit} aria-label={t('header.exit')}>
+				<span aria-hidden="true">←</span>
+				<strong>{t('header.back')}</strong>
+			</button>
 
-      <div className="top-stats" aria-label={t('header.gameStatus')}>
-        <div className="metric core-metric">
-          <span className="metric-icon heart-icon"><UiIcon name="heart" /></span>
-          <div><small>{t('header.core')}</small><strong>{snapshot.core}<em>/{snapshot.maxCore}</em></strong></div>
-          <div className="micro-bar"><i style={{ width: `${snapshot.core / snapshot.maxCore * 100}%` }} /></div>
-        </div>
-        <div className="metric shard-metric">
-          <span className="metric-icon shard-icon"><UiIcon name="diamond" /></span>
-          <div><small>{t('header.shards')}</small><strong>{engine.rules.economy === 'unlimited' ? '∞' : snapshot.shards}</strong></div>
-        </div>
-        <div className="metric wave-metric">
-          <span className="metric-icon wave-icon">≋</span>
-          <div><small>{t('header.wave')}</small><strong>{snapshot.wave}<em>/{snapshot.maxWaves}</em></strong></div>
-        </div>
-      </div>
+			<div className="top-stats" aria-label={t('header.gameStatus')}>
+				<div className="metric core-metric">
+					<span className="metric-icon heart-icon">
+						<UiIcon name="heart" />
+					</span>
+					<div>
+						<small>{t('header.core')}</small>
+						<strong>
+							{snapshot.core}
+							<em>/{snapshot.maxCore}</em>
+						</strong>
+					</div>
+					<div className="micro-bar">
+						<i style={{ width: `${(snapshot.core / snapshot.maxCore) * 100}%` }} />
+					</div>
+				</div>
+				<div className="metric shard-metric">
+					<span className="metric-icon shard-icon">
+						<UiIcon name="diamond" />
+					</span>
+					<div>
+						<small>{t('header.shards')}</small>
+						<strong>{engine.rules.economy === 'unlimited' ? '∞' : snapshot.shards}</strong>
+					</div>
+				</div>
+				<div className="metric wave-metric">
+					<span className="metric-icon wave-icon">≋</span>
+					<div>
+						<small>{t('header.wave')}</small>
+						<strong>
+							{snapshot.wave}
+							<em>/{snapshot.maxWaves}</em>
+						</strong>
+					</div>
+				</div>
+			</div>
 
-      <div className="top-actions">
-        <SettingsPanel />
-        {engine.externallyControlled ? null : <div className="speed-switch" role="group" aria-label={t('header.speed')}>
-          {[1, 2].map((speed) => (
-            <button key={speed} disabled={drafting} className={snapshot.speed === speed ? 'active' : ''} onClick={() => engine.setSpeed(speed)}>{speed}×</button>
-          ))}
-        </div>}
-        {engine.externallyControlled ? null : <button disabled={drafting} aria-keyshortcuts={bindings.pause ?? undefined} title={bindings.pause ?? undefined} className={`icon-button pause-button ${snapshot.manuallyPaused ? 'active' : ''}`} onClick={() => engine.togglePause()} aria-label={snapshot.manuallyPaused ? t('header.resume') : t('header.pause')}>
-          <span className="pause-glyph"><UiIcon name={snapshot.manuallyPaused ? 'play' : 'pause'} /></span>
-        </button>}
-        <button
-          className="launch-button"
-          aria-keyshortcuts={bindings.launch ?? undefined}
-          title={bindings.launch ?? undefined}
-          data-tutorial-launch
-          data-ready={launchReady || undefined}
-          onClick={onLaunch ?? (() => engine.startWave())}
-          disabled={launchDisabled ?? waveDisabled}
-          aria-label={launchReady ? (launchCancelLabel ?? launchWave) : `${launchLabel} · ${launchWave}`}
-        >
-          <span className="launch-icon"><UiIcon name={launchReady ? 'close' : 'play'} /></span>
-          <span className="launch-copy"><small>{launchLabel}</small><strong>{launchWave}</strong></span>
-        </button>
-      </div>
-    </header>
-  );
+			<div className="top-actions">
+				<SettingsPanel />
+				{engine.externallyControlled ? null : (
+					<div className="speed-switch" role="group" aria-label={t('header.speed')}>
+						{[1, 2].map((speed) => (
+							<button
+								key={speed}
+								disabled={drafting}
+								className={snapshot.speed === speed ? 'active' : ''}
+								onClick={() => engine.setSpeed(speed)}
+							>
+								{speed}×
+							</button>
+						))}
+					</div>
+				)}
+				{engine.externallyControlled ? null : (
+					<button
+						disabled={drafting}
+						aria-keyshortcuts={bindings.pause ?? undefined}
+						title={bindings.pause ?? undefined}
+						className={`icon-button pause-button ${snapshot.manuallyPaused ? 'active' : ''}`}
+						onClick={() => engine.togglePause()}
+						aria-label={snapshot.manuallyPaused ? t('header.resume') : t('header.pause')}
+					>
+						<span className="pause-glyph">
+							<UiIcon name={snapshot.manuallyPaused ? 'play' : 'pause'} />
+						</span>
+					</button>
+				)}
+				<button
+					className="launch-button"
+					aria-keyshortcuts={bindings.launch ?? undefined}
+					title={bindings.launch ?? undefined}
+					data-tutorial-launch
+					data-ready={launchReady || undefined}
+					onClick={onLaunch ?? (() => engine.startWave())}
+					disabled={launchDisabled ?? waveDisabled}
+					aria-label={launchReady ? (launchCancelLabel ?? launchWave) : `${launchLabel} · ${launchWave}`}
+				>
+					<span className="launch-icon">
+						<UiIcon name={launchReady ? 'close' : 'play'} />
+					</span>
+					<span className="launch-copy">
+						<small>{launchLabel}</small>
+						<strong>{launchWave}</strong>
+					</span>
+				</button>
+			</div>
+		</header>
+	);
 }

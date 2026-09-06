@@ -8,760 +8,916 @@ import { thoughtRegistry, ThoughtSceneDirector } from '@prism-bastion/web-shared
 import type { ThoughtCue, ThoughtLoadoutMode, ThoughtLoadoutPlacement } from '@prism-bastion/web-shared/thoughts/types';
 
 const maximumDirectorSteps = (director: ThoughtSceneDirector): number => {
-  const seconds = director.definition.beats.reduce((total, beat) => {
-    if (!beat.cues) return total + Math.max(beat.duration ?? 0, beat.timeout ?? 0, beat.timelineDuration);
-    return total + beat.cues.reduce((cueTotal, cue) => (
-      cueTotal + Math.max(cue.duration ?? 0, cue.timeout ?? 0)
-    ), 0);
-  }, 0);
-  return Math.ceil(seconds / FIXED_SIMULATION_STEP) + 1;
+	const seconds = director.definition.beats.reduce((total, beat) => {
+		if (!beat.cues) {
+			return total + Math.max(beat.duration ?? 0, beat.timeout ?? 0, beat.timelineDuration);
+		}
+		return total + beat.cues.reduce((cueTotal, cue) => cueTotal + Math.max(cue.duration ?? 0, cue.timeout ?? 0), 0);
+	}, 0);
+	return Math.ceil(seconds / FIXED_SIMULATION_STEP) + 1;
 };
 
 const runDirector = (director: ThoughtSceneDirector, inspect?: () => void): void => {
-  for (let step = 0; step < maximumDirectorSteps(director); step += 1) {
-    const status = director.getSnapshot().status;
-    if (status === 'completed' || status === 'error') return;
-    inspect?.();
-    director.update(FIXED_SIMULATION_STEP);
-  }
+	for (let step = 0; step < maximumDirectorSteps(director); step += 1) {
+		const status = director.getSnapshot().status;
+		if (status === 'completed' || status === 'error') {
+			return;
+		}
+		inspect?.();
+		director.update(FIXED_SIMULATION_STEP);
+	}
 };
 
 const runUntilCue = (director: ThoughtSceneDirector, cueId: string): void => {
-  for (let step = 0; step < maximumDirectorSteps(director) && director.getSnapshot().cueId !== cueId; step += 1) {
-    director.update(FIXED_SIMULATION_STEP);
-  }
+	for (let step = 0; step < maximumDirectorSteps(director) && director.getSnapshot().cueId !== cueId; step += 1) {
+		director.update(FIXED_SIMULATION_STEP);
+	}
 };
 
-const angleDistance = (left: number, right: number): number => (
-  Math.abs(((left - right + Math.PI * 3) % (Math.PI * 2)) - Math.PI)
-);
+const angleDistance = (left: number, right: number): number =>
+	Math.abs(((left - right + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
 
 const presentedTowerEnergyRatio = (director: ThoughtSceneDirector, towerIndex = 0): number => {
-  const presentation = director.getRenderPresentation();
-  const tower = director.runtime.engine.towers[towerIndex];
-  return presentation.towerEnergyRatios?.[towerIndex]
-    ?? presentation.towerEnergyRatio
-    ?? (tower ? tower.energy / tower.maxEnergy : 0);
+	const presentation = director.getRenderPresentation();
+	const tower = director.runtime.engine.towers[towerIndex];
+	return (
+		presentation.towerEnergyRatios?.[towerIndex] ??
+		presentation.towerEnergyRatio ??
+		(tower ? tower.energy / tower.maxEnergy : 0)
+	);
 };
 
 describe('thought registry', () => {
-  it('uses each subject module display color for its towers', () => {
-    for (const definition of thoughtRegistry.list()) {
-      expect(definition.towerColor).toBe(
-        modulePresentationRegistry.require(definition.subject.moduleId).meta.displayColor,
-      );
-    }
-  });
+	it('uses each subject module display color for its towers', () => {
+		for (const definition of thoughtRegistry.list()) {
+			expect(definition.towerColor).toBe(
+				modulePresentationRegistry.require(definition.subject.moduleId).meta.displayColor,
+			);
+		}
+	});
 
-  it('maps every registered subject and diagnostic back to its thought', () => {
-    const definitions = thoughtRegistry.list();
-    expect(definitions.length).toBeGreaterThan(0);
-    expect(new Set(definitions.map((definition) => definition.id)).size).toBe(definitions.length);
-    for (const definition of definitions) {
-      expect(thoughtRegistry.forModule(definition.subject.moduleId)).toBe(definition);
-      for (const diagnostic of definition.relatedDiagnostics ?? []) {
-        expect(thoughtRegistry.forDiagnostic(diagnostic)).toBe(definition);
-      }
-    }
-  });
+	it('maps every registered subject and diagnostic back to its thought', () => {
+		const definitions = thoughtRegistry.list();
+		expect(definitions.length).toBeGreaterThan(0);
+		expect(new Set(definitions.map((definition) => definition.id)).size).toBe(definitions.length);
+		for (const definition of definitions) {
+			expect(thoughtRegistry.forModule(definition.subject.moduleId)).toBe(definition);
+			for (const diagnostic of definition.relatedDiagnostics ?? []) {
+				expect(thoughtRegistry.forDiagnostic(diagnostic)).toBe(definition);
+			}
+		}
+	});
 
-  it('references existing English copy for every record and beat', () => {
-    for (const definition of thoughtRegistry.list()) {
-      expect(en[definition.titleKey as keyof typeof en]).toBeTruthy();
-      expect(en[definition.summaryKey as keyof typeof en]).toBeTruthy();
-      for (const beat of definition.beats) {
-        expect(en[beat.captionKey as keyof typeof en]).toBeTruthy();
-        for (const cue of beat.cues ?? []) {
-          if (cue.sectionTitleKey) {
-            expect(en[cue.sectionTitleKey as keyof typeof en]).toBeTruthy();
-          }
-          if (cue.overlay?.type === 'caption') {
-            expect(en[cue.overlay.textKey as keyof typeof en]).toBeTruthy();
-          }
-        }
-      }
-    }
-  });
+	it('references existing English copy for every record and beat', () => {
+		for (const definition of thoughtRegistry.list()) {
+			expect(en[definition.titleKey as keyof typeof en]).toBeTruthy();
+			expect(en[definition.summaryKey as keyof typeof en]).toBeTruthy();
+			for (const beat of definition.beats) {
+				expect(en[beat.captionKey as keyof typeof en]).toBeTruthy();
+				for (const cue of beat.cues ?? []) {
+					if (cue.sectionTitleKey) {
+						expect(en[cue.sectionTitleKey as keyof typeof en]).toBeTruthy();
+					}
+					if (cue.overlay?.type === 'caption') {
+						expect(en[cue.overlay.textKey as keyof typeof en]).toBeTruthy();
+					}
+				}
+			}
+		}
+	});
 
-  it('keeps visible loadout dialogs anchored across incremental reveals', () => {
-    const violations: string[] = [];
+	it('keeps visible loadout dialogs anchored across incremental reveals', () => {
+		const violations: string[] = [];
 
-    for (const definition of thoughtRegistry.list()) {
-      let mode: ThoughtLoadoutMode = 'hidden';
-      let placements = new Map<number, ThoughtLoadoutPlacement>([[0, 'right']]);
+		for (const definition of thoughtRegistry.list()) {
+			let mode: ThoughtLoadoutMode = 'hidden';
+			let placements = new Map<number, ThoughtLoadoutPlacement>([[0, 'right']]);
 
-      for (const beat of definition.beats) {
-        for (const cue of beat.cues ?? []) {
-          const nextMode = cue.loadoutMode ?? mode;
-          const nextPlacements = cue.overlay?.type === 'loadout'
-            ? new Map<number, ThoughtLoadoutPlacement>([[
-              cue.overlay.target === 'tower' ? 0 : cue.overlay.target.towerIndex,
-              cue.overlay.placement ?? 'right',
-            ]])
-            : cue.overlay?.type === 'loadouts'
-              ? new Map(cue.overlay.targets.map((target) => [target.towerIndex, target.placement]))
-              : placements;
+			for (const beat of definition.beats) {
+				for (const cue of beat.cues ?? []) {
+					const nextMode = cue.loadoutMode ?? mode;
+					const nextPlacements =
+						cue.overlay?.type === 'loadout'
+							? new Map<number, ThoughtLoadoutPlacement>([
+									[
+										cue.overlay.target === 'tower' ? 0 : cue.overlay.target.towerIndex,
+										cue.overlay.placement ?? 'right',
+									],
+								])
+							: cue.overlay?.type === 'loadouts'
+								? new Map(cue.overlay.targets.map((target) => [target.towerIndex, target.placement]))
+								: placements;
 
-          if (mode === 'dialog' && nextMode === 'dialog') {
-            for (const [towerIndex, placement] of nextPlacements) {
-              const previousPlacement = placements.get(towerIndex);
-              if (previousPlacement && previousPlacement !== placement) {
-                violations.push(
-                  `${definition.id}/${beat.id}/${cue.id}: tower ${towerIndex} moved ${previousPlacement} -> ${placement}`,
-                );
-              }
-            }
-          }
+					if (mode === 'dialog' && nextMode === 'dialog') {
+						for (const [towerIndex, placement] of nextPlacements) {
+							const previousPlacement = placements.get(towerIndex);
+							if (previousPlacement && previousPlacement !== placement) {
+								violations.push(
+									`${definition.id}/${beat.id}/${cue.id}: tower ${towerIndex} moved ${previousPlacement} -> ${placement}`,
+								);
+							}
+						}
+					}
 
-          mode = nextMode;
-          placements = nextPlacements;
-        }
-      }
-    }
+					mode = nextMode;
+					placements = nextPlacements;
+				}
+			}
+		}
 
-    expect(violations).toEqual([]);
-  });
+		expect(violations).toEqual([]);
+	});
 
-  it('shows the first dialog module immediately and marks only later additions', () => {
-    const definition = thoughtRegistry.require('pulse');
-    const director = new ThoughtSceneDirector(definition);
-    const firstDialog = definition.beats.findIndex((beat) => beat.id === 'show-pulse');
-    const carrierDialog = definition.beats.findIndex((beat) => beat.id === 'construct-carrier');
+	it('shows the first dialog module immediately and marks only later additions', () => {
+		const definition = thoughtRegistry.require('pulse');
+		const director = new ThoughtSceneDirector(definition);
+		const firstDialog = definition.beats.findIndex((beat) => beat.id === 'show-pulse');
+		const carrierDialog = definition.beats.findIndex((beat) => beat.id === 'construct-carrier');
 
-    director.goTo(firstDialog);
-    expect(director.getSnapshot().cueId).toBe('show-pulse-loadout');
-    expect(director.getSnapshot().loadoutAdditions).toEqual([]);
+		director.goTo(firstDialog);
+		expect(director.getSnapshot().cueId).toBe('show-pulse-loadout');
+		expect(director.getSnapshot().loadoutAdditions).toEqual([]);
 
-    director.goTo(carrierDialog);
-    runUntilCue(director, 'insert-carrier-frost');
-    expect(director.getSnapshot().loadoutAdditions).toEqual([{
-      towerIndex: 0,
-      slot: 0,
-      moduleId: 'frost',
-    }]);
-    director.dispose();
-  });
+		director.goTo(carrierDialog);
+		runUntilCue(director, 'insert-carrier-frost');
+		expect(director.getSnapshot().loadoutAdditions).toEqual([
+			{
+				towerIndex: 0,
+				slot: 0,
+				moduleId: 'frost',
+			},
+		]);
+		director.dispose();
+	});
 
-  it('opens a substantial rebuild by immediately animating its first module', () => {
-    const definition = thoughtRegistry.require('focus-core');
-    const director = new ThoughtSceneDirector(definition);
-    const chainDialog = definition.beats.findIndex((beat) => beat.id === 'construct-chain');
+	it('opens a substantial rebuild by immediately animating its first module', () => {
+		const definition = thoughtRegistry.require('focus-core');
+		const director = new ThoughtSceneDirector(definition);
+		const chainDialog = definition.beats.findIndex((beat) => beat.id === 'construct-chain');
 
-    director.goTo(chainDialog);
-    runUntilCue(director, 'show-chain-loadout');
-    expect(director.getSnapshot().loadoutAdditions).toEqual([{
-      towerIndex: 0,
-      slot: 0,
-      moduleId: 'arcbolt',
-    }]);
-    director.dispose();
-  });
+		director.goTo(chainDialog);
+		runUntilCue(director, 'show-chain-loadout');
+		expect(director.getSnapshot().loadoutAdditions).toEqual([
+			{
+				towerIndex: 0,
+				slot: 0,
+				moduleId: 'arcbolt',
+			},
+		]);
+		director.dispose();
+	});
 
-  it('keeps signals alive while their fade-out transition is running', () => {
-    const violations: string[] = [];
+	it('keeps signals alive while their fade-out transition is running', () => {
+		const violations: string[] = [];
 
-    for (const definition of thoughtRegistry.list()) {
-      for (const beat of definition.beats) {
-        for (const cue of beat.cues ?? []) {
-          const deletesSignals = cue.actions?.some((action) => action.type === 'delete-signals') ?? false;
-          if (cue.transition?.signalOpacity === 0 && deletesSignals) {
-            violations.push(`${definition.id}/${beat.id}/${cue.id}`);
-          }
-        }
-      }
-    }
+		for (const definition of thoughtRegistry.list()) {
+			for (const beat of definition.beats) {
+				for (const cue of beat.cues ?? []) {
+					const deletesSignals = cue.actions?.some((action) => action.type === 'delete-signals') ?? false;
+					if (cue.transition?.signalOpacity === 0 && deletesSignals) {
+						violations.push(`${definition.id}/${beat.id}/${cue.id}`);
+					}
+				}
+			}
+		}
 
-    expect(violations).toEqual([]);
-  });
+		expect(violations).toEqual([]);
+	});
 
-  it('returns visible towers to their default rotation before resetting combat', () => {
-    const violations: string[] = [];
+	it('returns visible towers to their default rotation before resetting combat', () => {
+		const violations: string[] = [];
 
-    for (const definition of thoughtRegistry.list()) {
-      let initialized = false;
-      let towerOpacity = definition.initialScene?.towerOpacity ?? 1;
-      let towerOpacities = definition.initialScene?.towerOpacities;
-      let towerRotation = definition.initialScene?.towerRotation;
-      let towerRotations = definition.initialScene?.towerRotations;
-      const towerCount = definition.scene?.towerPads?.length ?? 1;
+		for (const definition of thoughtRegistry.list()) {
+			let initialized = false;
+			let towerOpacity = definition.initialScene?.towerOpacity ?? 1;
+			let towerOpacities = definition.initialScene?.towerOpacities;
+			let towerRotation = definition.initialScene?.towerRotation;
+			let towerRotations = definition.initialScene?.towerRotations;
+			const towerCount = definition.scene?.towerPads?.length ?? 1;
 
-      for (const beat of definition.beats) {
-        const cues: readonly ThoughtCue[] = beat.cues ?? [{ id: beat.id, actions: beat.actions }];
-        for (const cue of cues) {
-          const resetsCombat = cue.actions?.some((action) => (
-            action.type === 'setup' || action.type === 'setup-towers'
-          )) ?? false;
+			for (const beat of definition.beats) {
+				const cues: readonly ThoughtCue[] = beat.cues ?? [{ id: beat.id, actions: beat.actions }];
+				for (const cue of cues) {
+					const resetsCombat =
+						cue.actions?.some((action) => action.type === 'setup' || action.type === 'setup-towers') ??
+						false;
 
-          if (resetsCombat && initialized) {
-            for (let towerIndex = 0; towerIndex < towerCount; towerIndex += 1) {
-              const opacity = towerOpacities?.[towerIndex] ?? towerOpacity;
-              if (opacity <= 0) continue;
-              const rotation = towerRotations?.[towerIndex] ?? towerRotation;
-              if (rotation === undefined || angleDistance(rotation, DEFAULT_TOWER_ROTATION) > 1e-9) {
-                violations.push(`${definition.id}/${beat.id}/${cue.id}: tower ${towerIndex}`);
-              }
-            }
-          }
+					if (resetsCombat && initialized) {
+						for (let towerIndex = 0; towerIndex < towerCount; towerIndex += 1) {
+							const opacity = towerOpacities?.[towerIndex] ?? towerOpacity;
+							if (opacity <= 0) {
+								continue;
+							}
+							const rotation = towerRotations?.[towerIndex] ?? towerRotation;
+							if (rotation === undefined || angleDistance(rotation, DEFAULT_TOWER_ROTATION) > 1e-9) {
+								violations.push(`${definition.id}/${beat.id}/${cue.id}: tower ${towerIndex}`);
+							}
+						}
+					}
 
-          if (resetsCombat) {
-            initialized = true;
-            towerRotation = undefined;
-            towerRotations = undefined;
-          }
-          if (cue.transition?.towerOpacity !== undefined) towerOpacity = cue.transition.towerOpacity;
-          if (cue.transition?.towerOpacities !== undefined) towerOpacities = cue.transition.towerOpacities;
-          if (cue.transition?.towerRotation !== undefined) towerRotation = cue.transition.towerRotation;
-          if (cue.transition?.towerRotations !== undefined) towerRotations = cue.transition.towerRotations;
-        }
-      }
-    }
+					if (resetsCombat) {
+						initialized = true;
+						towerRotation = undefined;
+						towerRotations = undefined;
+					}
+					if (cue.transition?.towerOpacity !== undefined) {
+						towerOpacity = cue.transition.towerOpacity;
+					}
+					if (cue.transition?.towerOpacities !== undefined) {
+						towerOpacities = cue.transition.towerOpacities;
+					}
+					if (cue.transition?.towerRotation !== undefined) {
+						towerRotation = cue.transition.towerRotation;
+					}
+					if (cue.transition?.towerRotations !== undefined) {
+						towerRotations = cue.transition.towerRotations;
+					}
+				}
+			}
+		}
 
-    expect(violations).toEqual([]);
-  });
+		expect(violations).toEqual([]);
+	});
 
-  it('preserves the revised projectile teaching contracts', () => {
-    const prismSlug = thoughtRegistry.require('prism-slug');
-    expect(prismSlug.relatedModuleIds).toContain('frost');
-    expect(prismSlug.beats.flatMap((beat) => beat.cues ?? []).some((cue) => (
-      cue.waitFor?.type === 'signal-slowed' && cue.waitFor.moduleId === 'frost'
-    ))).toBe(true);
+	it('preserves the revised projectile teaching contracts', () => {
+		const prismSlug = thoughtRegistry.require('prism-slug');
+		expect(prismSlug.relatedModuleIds).toContain('frost');
+		expect(
+			prismSlug.beats
+				.flatMap((beat) => beat.cues ?? [])
+				.some((cue) => cue.waitFor?.type === 'signal-slowed' && cue.waitFor.moduleId === 'frost'),
+		).toBe(true);
 
-    for (const id of ['nova', 'geode-bloom'] as const) {
-      const definition = thoughtRegistry.require(id);
-      const cues = definition.beats.flatMap((beat) => beat.cues ?? []);
-      const launchIndex = cues.findIndex((cue) => (
-        cue.waitFor?.type === 'projectile-spawned' && cue.waitFor.moduleId === id
-      ));
-      const flightIndex = cues.findIndex((cue) => (
-        cue.overlay?.type === 'caption'
-        && typeof cue.overlay.target === 'object'
-        && 'projectileRef' in cue.overlay.target
-      ));
-      expect(launchIndex).toBeGreaterThanOrEqual(0);
-      expect(flightIndex).toBeGreaterThan(launchIndex);
-      expect(definition.relatedModuleIds).toEqual(expect.arrayContaining(['frost', 'condense-core']));
-    }
+		for (const id of ['nova', 'geode-bloom'] as const) {
+			const definition = thoughtRegistry.require(id);
+			const cues = definition.beats.flatMap((beat) => beat.cues ?? []);
+			const launchIndex = cues.findIndex(
+				(cue) => cue.waitFor?.type === 'projectile-spawned' && cue.waitFor.moduleId === id,
+			);
+			const flightIndex = cues.findIndex(
+				(cue) =>
+					cue.overlay?.type === 'caption' &&
+					typeof cue.overlay.target === 'object' &&
+					'projectileRef' in cue.overlay.target,
+			);
+			expect(launchIndex).toBeGreaterThanOrEqual(0);
+			expect(flightIndex).toBeGreaterThan(launchIndex);
+			expect(definition.relatedModuleIds).toEqual(expect.arrayContaining(['frost', 'condense-core']));
+		}
 
-    const arcbolt = thoughtRegistry.require('arcbolt');
-    expect(arcbolt.relatedModuleIds).toEqual(expect.arrayContaining(['frost', 'focus-core']));
-    expect(arcbolt.beats.flatMap((beat) => beat.cues ?? []).some((cue) => (
-      cue.waitFor?.type === 'secondary-hit' && (cue.waitFor.occurrence ?? 1) > 1
-    ))).toBe(true);
-    expect(arcbolt.beats.flatMap((beat) => beat.cues ?? []).some((cue) => (
-      cue.waitFor?.type === 'signal-slowed' && (cue.waitFor.occurrence ?? 1) > 1
-    ))).toBe(true);
+		const arcbolt = thoughtRegistry.require('arcbolt');
+		expect(arcbolt.relatedModuleIds).toEqual(expect.arrayContaining(['frost', 'focus-core']));
+		expect(
+			arcbolt.beats
+				.flatMap((beat) => beat.cues ?? [])
+				.some((cue) => cue.waitFor?.type === 'secondary-hit' && (cue.waitFor.occurrence ?? 1) > 1),
+		).toBe(true);
+		expect(
+			arcbolt.beats
+				.flatMap((beat) => beat.cues ?? [])
+				.some((cue) => cue.waitFor?.type === 'signal-slowed' && (cue.waitFor.occurrence ?? 1) > 1),
+		).toBe(true);
 
-    for (const id of ['needle', 'razor'] as const) {
-      const definition = thoughtRegistry.require(id);
-      expect(definition.scene?.id).toContain('straight-firing-lane');
-      expect(definition.relatedModuleIds).toEqual(expect.arrayContaining(['seeker', 'cinder-trail', 'focus-core']));
-    }
+		for (const id of ['needle', 'razor'] as const) {
+			const definition = thoughtRegistry.require(id);
+			expect(definition.scene?.id).toContain('straight-firing-lane');
+			expect(definition.relatedModuleIds).toEqual(
+				expect.arrayContaining(['seeker', 'cinder-trail', 'focus-core']),
+			);
+		}
 
-    const voidBeam = thoughtRegistry.require('void-beam');
-    expect(voidBeam.scene?.id).toContain('straight-firing-lane');
-    expect(voidBeam.relatedModuleIds).toContain('cinder-trail');
+		const voidBeam = thoughtRegistry.require('void-beam');
+		expect(voidBeam.scene?.id).toContain('straight-firing-lane');
+		expect(voidBeam.relatedModuleIds).toContain('cinder-trail');
 
-    for (const id of ['ember-coating', 'toxin', 'searing-sigil', 'starfire-matrix'] as const) {
-      const definition = thoughtRegistry.require(id);
-      const staticCarrier = id === 'toxin' ? 'ember-field' : 'toxic-cloud';
-      expect(definition.relatedModuleIds).toEqual(expect.arrayContaining([staticCarrier, 'impact-trigger']));
-      if (id === 'toxin') expect(definition.relatedModuleIds).not.toContain('toxic-cloud');
-      expect(definition.beats.flatMap((beat) => beat.cues ?? []).some((cue) => (
-        cue.waitForSignalStates?.some((state) => state.statusId === id)
-      ))).toBe(true);
-    }
+		for (const id of ['ember-coating', 'toxin', 'searing-sigil', 'starfire-matrix'] as const) {
+			const definition = thoughtRegistry.require(id);
+			const staticCarrier = id === 'toxin' ? 'ember-field' : 'toxic-cloud';
+			expect(definition.relatedModuleIds).toEqual(expect.arrayContaining([staticCarrier, 'impact-trigger']));
+			if (id === 'toxin') {
+				expect(definition.relatedModuleIds).not.toContain('toxic-cloud');
+			}
+			expect(
+				definition.beats
+					.flatMap((beat) => beat.cues ?? [])
+					.some((cue) => cue.waitForSignalStates?.some((state) => state.statusId === id)),
+			).toBe(true);
+		}
 
-    for (const id of ['double-fork', 'fork'] as const) {
-      expect(thoughtRegistry.require(id).relatedModuleIds).toEqual(expect.arrayContaining([
-        'seeker',
-        'focus-core',
-      ]));
-    }
+		for (const id of ['double-fork', 'fork'] as const) {
+			expect(thoughtRegistry.require(id).relatedModuleIds).toEqual(
+				expect.arrayContaining(['seeker', 'focus-core']),
+			);
+		}
 
-    expect(thoughtRegistry.require('overdrive').scene?.id).toContain('parallel-comparison');
-    const economizer = thoughtRegistry.require('economizer');
-    const economizerCues = economizer.beats.flatMap((beat) => beat.cues ?? []);
-    expect(economizer.scene?.id).toContain('straight-range-pass');
-    expect(economizer.relatedModuleIds).toContain('prism-slug');
-    expect(economizer.relatedModuleIds).not.toContain('pulse');
-    expect(economizerCues.flatMap((cue) => cue.actions ?? []).some((action) => (
-      action.type === 'setup' && action.slots.length === 1 && action.slots[0] === 'prism-slug'
-    ))).toBe(true);
-    expect(economizerCues.flatMap((cue) => cue.actions ?? []).some((action) => (
-      action.type === 'setup' && action.slots.includes('economizer') && action.slots.includes('prism-slug')
-    ))).toBe(true);
-    expect(economizerCues.some((cue) => cue.waitFor?.type === 'tower-energy-changed')).toBe(true);
-    const reclaim = thoughtRegistry.require('reclaim-circuit');
-    const reclaimCues = reclaim.beats.flatMap((beat) => beat.cues ?? []);
-    const reclaimSignals = reclaimCues.flatMap((cue) => cue.actions ?? [])
-      .filter((action) => action.type === 'spawn-signal');
-    expect(reclaim.relatedModuleIds).toContain('nova');
-    expect(reclaim.relatedModuleIds).toContain('colossus');
-    expect(reclaim.relatedModuleIds).not.toContain('pulse');
-    expect(reclaimSignals.filter((action) => action.signal === 'block')).toHaveLength(4);
-    expect(reclaimSignals.filter((action) => action.signal === 'crown')).toHaveLength(1);
-    expect(reclaimCues.filter((cue) => (
-      cue.waitFor?.type === 'tower-energy-changed' && cue.waitFor.occurrence === 5
-    ))).toHaveLength(1);
-    expect(reclaimCues.some((cue) => (
-      cue.waitFor?.type === 'projectile-absorbed' && cue.waitFor.moduleId === 'nova'
-    ))).toBe(true);
-    expect(reclaimCues.find((cue) => cue.id === 'resume-durable-cluster')?.actions).toContainEqual({
-      type: 'set-tower-casting', enabled: true,
-    });
-    expect(thoughtRegistry.require('ricochet').beats.flatMap((beat) => beat.cues ?? [])
-      .flatMap((cue) => cue.actions ?? [])
-      .filter((action) => action.type === 'spawn-signal')).toHaveLength(3);
-    const colossus = thoughtRegistry.require('colossus');
-    expect(colossus.relatedModuleIds).toEqual(expect.arrayContaining(['nova', 'condense-core']));
-    expect(colossus.relatedModuleIds).not.toContain('pulse');
+		expect(thoughtRegistry.require('overdrive').scene?.id).toContain('parallel-comparison');
+		const economizer = thoughtRegistry.require('economizer');
+		const economizerCues = economizer.beats.flatMap((beat) => beat.cues ?? []);
+		expect(economizer.scene?.id).toContain('straight-range-pass');
+		expect(economizer.relatedModuleIds).toContain('prism-slug');
+		expect(economizer.relatedModuleIds).not.toContain('pulse');
+		expect(
+			economizerCues
+				.flatMap((cue) => cue.actions ?? [])
+				.some(
+					(action) =>
+						action.type === 'setup' && action.slots.length === 1 && action.slots[0] === 'prism-slug',
+				),
+		).toBe(true);
+		expect(
+			economizerCues
+				.flatMap((cue) => cue.actions ?? [])
+				.some(
+					(action) =>
+						action.type === 'setup' &&
+						action.slots.includes('economizer') &&
+						action.slots.includes('prism-slug'),
+				),
+		).toBe(true);
+		expect(economizerCues.some((cue) => cue.waitFor?.type === 'tower-energy-changed')).toBe(true);
+		const reclaim = thoughtRegistry.require('reclaim-circuit');
+		const reclaimCues = reclaim.beats.flatMap((beat) => beat.cues ?? []);
+		const reclaimSignals = reclaimCues
+			.flatMap((cue) => cue.actions ?? [])
+			.filter((action) => action.type === 'spawn-signal');
+		expect(reclaim.relatedModuleIds).toContain('nova');
+		expect(reclaim.relatedModuleIds).toContain('colossus');
+		expect(reclaim.relatedModuleIds).not.toContain('pulse');
+		expect(reclaimSignals.filter((action) => action.signal === 'block')).toHaveLength(4);
+		expect(reclaimSignals.filter((action) => action.signal === 'crown')).toHaveLength(1);
+		expect(
+			reclaimCues.filter((cue) => cue.waitFor?.type === 'tower-energy-changed' && cue.waitFor.occurrence === 5),
+		).toHaveLength(1);
+		expect(
+			reclaimCues.some((cue) => cue.waitFor?.type === 'projectile-absorbed' && cue.waitFor.moduleId === 'nova'),
+		).toBe(true);
+		expect(reclaimCues.find((cue) => cue.id === 'resume-durable-cluster')?.actions).toContainEqual({
+			type: 'set-tower-casting',
+			enabled: true,
+		});
+		expect(
+			thoughtRegistry
+				.require('ricochet')
+				.beats.flatMap((beat) => beat.cues ?? [])
+				.flatMap((cue) => cue.actions ?? [])
+				.filter((action) => action.type === 'spawn-signal'),
+		).toHaveLength(3);
+		const colossus = thoughtRegistry.require('colossus');
+		expect(colossus.relatedModuleIds).toEqual(expect.arrayContaining(['nova', 'condense-core']));
+		expect(colossus.relatedModuleIds).not.toContain('pulse');
 
-    const condenseCues = thoughtRegistry.require('condense-core').beats.flatMap((beat) => beat.cues ?? []);
-    const novaFirst = condenseCues.findIndex((cue) => cue.loadoutVisibleRange?.start === 1);
-    const condenseAdded = condenseCues.findIndex((cue) => (
-      cue.loadoutVisibleRange?.start === 0 && cue.loadoutVisibleRange.count === 2
-    ));
-    expect(novaFirst).toBeGreaterThanOrEqual(0);
-    expect(condenseAdded).toBeGreaterThan(novaFirst);
-  });
+		const condenseCues = thoughtRegistry.require('condense-core').beats.flatMap((beat) => beat.cues ?? []);
+		const novaFirst = condenseCues.findIndex((cue) => cue.loadoutVisibleRange?.start === 1);
+		const condenseAdded = condenseCues.findIndex(
+			(cue) => cue.loadoutVisibleRange?.start === 0 && cue.loadoutVisibleRange.count === 2,
+		);
+		expect(novaFirst).toBeGreaterThanOrEqual(0);
+		expect(condenseAdded).toBeGreaterThan(novaFirst);
+	});
 
-  it('preserves the repeat, trigger, seeker, and trail teaching contracts', () => {
-    for (const [id, casts] of [['echo', 2], ['barrage', 4]] as const) {
-      const definition = thoughtRegistry.require(id);
-      const cues = definition.beats.flatMap((beat) => beat.cues ?? []);
-      expect(definition.relatedModuleIds).toContain('focus-core');
-      expect(cues.some((cue) => (
-        cue.waitFor?.type === 'projectile-spawned'
-        && cue.waitFor.moduleId === id
-        && cue.waitFor.occurrence === casts * casts
-      ))).toBe(true);
-      expect(cues.flatMap((cue) => cue.actions ?? []).some((action) => (
-        action.type === 'setup'
-        && action.slots.filter((moduleId) => moduleId === id).length === 2
-      ))).toBe(true);
-    }
+	it('preserves the repeat, trigger, seeker, and trail teaching contracts', () => {
+		for (const [id, casts] of [
+			['echo', 2],
+			['barrage', 4],
+		] as const) {
+			const definition = thoughtRegistry.require(id);
+			const cues = definition.beats.flatMap((beat) => beat.cues ?? []);
+			expect(definition.relatedModuleIds).toContain('focus-core');
+			expect(
+				cues.some(
+					(cue) =>
+						cue.waitFor?.type === 'projectile-spawned' &&
+						cue.waitFor.moduleId === id &&
+						cue.waitFor.occurrence === casts * casts,
+				),
+			).toBe(true);
+			expect(
+				cues
+					.flatMap((cue) => cue.actions ?? [])
+					.some(
+						(action) =>
+							action.type === 'setup' && action.slots.filter((moduleId) => moduleId === id).length === 2,
+					),
+			).toBe(true);
+		}
 
-    const seeker = thoughtRegistry.require('seeker');
-    expect(seeker.relatedModuleIds).toEqual(expect.arrayContaining(['pulse', 'fork']));
-    expect(seeker.beats.flatMap((beat) => beat.cues ?? []).some((cue) => (
-      cue.waitFor?.type === 'projectile-hit'
-      && cue.waitFor.moduleId === 'seeker'
-      && cue.waitFor.occurrence === 3
-    ))).toBe(true);
+		const seeker = thoughtRegistry.require('seeker');
+		expect(seeker.relatedModuleIds).toEqual(expect.arrayContaining(['pulse', 'fork']));
+		expect(
+			seeker.beats
+				.flatMap((beat) => beat.cues ?? [])
+				.some(
+					(cue) =>
+						cue.waitFor?.type === 'projectile-hit' &&
+						cue.waitFor.moduleId === 'seeker' &&
+						cue.waitFor.occurrence === 3,
+				),
+		).toBe(true);
 
-    for (const id of ['timer-trigger', 'terrain-trigger'] as const) {
-      const definition = thoughtRegistry.require(id);
-      expect(definition.relatedModuleIds).toEqual(expect.arrayContaining(['void-beam', 'pulse', 'toxic-cloud']));
-      const cues = definition.beats.flatMap((beat) => beat.cues ?? []);
-      expect(cues.some((cue) => (
-        cue.waitFor?.type === 'projectile-absorbed' && cue.waitFor.moduleId === id
-      ))).toBe(true);
-      expect(cues.flatMap((cue) => cue.actions ?? []).some((action) => (
-        action.type === 'spawn-signal' && action.signal === 'crown'
-      ))).toBe(true);
-    }
+		for (const id of ['timer-trigger', 'terrain-trigger'] as const) {
+			const definition = thoughtRegistry.require(id);
+			expect(definition.relatedModuleIds).toEqual(expect.arrayContaining(['void-beam', 'pulse', 'toxic-cloud']));
+			const cues = definition.beats.flatMap((beat) => beat.cues ?? []);
+			expect(cues.some((cue) => cue.waitFor?.type === 'projectile-absorbed' && cue.waitFor.moduleId === id)).toBe(
+				true,
+			);
+			expect(
+				cues
+					.flatMap((cue) => cue.actions ?? [])
+					.some((action) => action.type === 'spawn-signal' && action.signal === 'crown'),
+			).toBe(true);
+		}
 
-    const expiration = thoughtRegistry.require('expiration-trigger');
-    expect(expiration.relatedModuleIds).toEqual(expect.arrayContaining(['needle', 'pulse', 'toxic-cloud']));
-    expect(expiration.beats.flatMap((beat) => beat.cues ?? [])
-      .flatMap((cue) => cue.actions ?? [])
-      .some((action) => action.type === 'spawn-signal' && action.signal === 'crown')).toBe(true);
+		const expiration = thoughtRegistry.require('expiration-trigger');
+		expect(expiration.relatedModuleIds).toEqual(expect.arrayContaining(['needle', 'pulse', 'toxic-cloud']));
+		expect(
+			expiration.beats
+				.flatMap((beat) => beat.cues ?? [])
+				.flatMap((cue) => cue.actions ?? [])
+				.some((action) => action.type === 'spawn-signal' && action.signal === 'crown'),
+		).toBe(true);
 
-    for (const id of ['starfire-trail', 'rift-trail', 'resonant-trail'] as const) {
-      const definition = thoughtRegistry.require(id);
-      expect(definition.scene?.id).toContain('parallel-comparison');
-      expect(definition.relatedModuleIds).toEqual(expect.arrayContaining(['pulse', 'void-beam', 'nova', 'razor']));
-    }
-  });
+		for (const id of ['starfire-trail', 'rift-trail', 'resonant-trail'] as const) {
+			const definition = thoughtRegistry.require(id);
+			expect(definition.scene?.id).toContain('parallel-comparison');
+			expect(definition.relatedModuleIds).toEqual(
+				expect.arrayContaining(['pulse', 'void-beam', 'nova', 'razor']),
+			);
+		}
+	});
 
-  it('derives authored timeline widths from timed cues', () => {
-    const authored = thoughtRegistry.list().filter((definition) => definition.beats.every((beat) => beat.cues));
-    expect(authored.length).toBeGreaterThan(0);
-    for (const definition of authored) {
-      for (const beat of definition.beats) {
-        const duration = beat.cues?.reduce((sum, cue) => sum + (cue.timelineWait ? 0 : (cue.duration ?? 0)), 0);
-        expect(beat.timelineDuration).toBeCloseTo(duration ?? 0);
-      }
-    }
-  });
+	it('derives authored timeline widths from timed cues', () => {
+		const authored = thoughtRegistry.list().filter((definition) => definition.beats.every((beat) => beat.cues));
+		expect(authored.length).toBeGreaterThan(0);
+		for (const definition of authored) {
+			for (const beat of definition.beats) {
+				const duration = beat.cues?.reduce((sum, cue) => sum + (cue.timelineWait ? 0 : (cue.duration ?? 0)), 0);
+				expect(beat.timelineDuration).toBeCloseTo(duration ?? 0);
+			}
+		}
+	});
 });
 
 describe('thought scenes', () => {
-  it('uses an authored local scene for Condensing Lens', () => {
-    const definition = thoughtRegistry.require('frost');
-    const scene = definition.scene;
-    if (!scene) throw new Error('Expected an authored scene');
-    const director = new ThoughtSceneDirector(definition);
-    expect(director.runtime.engine.level.id).toBe(`thought:${scene.id}`);
-    expect(director.runtime.engine.level.towerPads[0]).toEqual(scene.tower);
-    expect(director.runtime.engine.level.graph.edges).toHaveLength(scene.path.length - 1);
-    director.dispose();
-  });
+	it('uses an authored local scene for Condensing Lens', () => {
+		const definition = thoughtRegistry.require('frost');
+		const scene = definition.scene;
+		if (!scene) {
+			throw new Error('Expected an authored scene');
+		}
+		const director = new ThoughtSceneDirector(definition);
+		expect(director.runtime.engine.level.id).toBe(`thought:${scene.id}`);
+		expect(director.runtime.engine.level.towerPads[0]).toEqual(scene.tower);
+		expect(director.runtime.engine.level.graph.edges).toHaveLength(scene.path.length - 1);
+		director.dispose();
+	});
 
-  it('estimates where a route enters and leaves tower range', () => {
-    const definition = thoughtRegistry.list().find((candidate) => candidate.scene);
-    if (!definition) throw new Error('Expected an authored scene');
-    const runtime = new CombatRuntime(definition.seed, definition.scene);
-    const tower = runtime.engine.towers[0];
-    const routeId = runtime.engine.level.graph.entrances[0];
-    if (!tower || !routeId) throw new Error('Expected a tower route');
-    const range = runtime.engine.estimateTowerAttackProgressRange(tower.id, routeId);
-    if (!range) throw new Error('Expected the route to cross tower range');
-    const route = runtime.engine.routeFor(routeId);
-    const entry = route.pointAtDistance(route.length * range.minimum).position;
-    const exit = route.pointAtDistance(route.length * range.maximum).position;
-    expect(range.minimum).toBeLessThan(range.maximum);
-    expect(Math.hypot(entry.x - tower.position.x, entry.y - tower.position.y)).toBeCloseTo(tower.range);
-    expect(Math.hypot(exit.x - tower.position.x, exit.y - tower.position.y)).toBeCloseTo(tower.range);
-    runtime.dispose();
-  });
+	it('estimates where a route enters and leaves tower range', () => {
+		const definition = thoughtRegistry.list().find((candidate) => candidate.scene);
+		if (!definition) {
+			throw new Error('Expected an authored scene');
+		}
+		const runtime = new CombatRuntime(definition.seed, definition.scene);
+		const tower = runtime.engine.towers[0];
+		const routeId = runtime.engine.level.graph.entrances[0];
+		if (!tower || !routeId) {
+			throw new Error('Expected a tower route');
+		}
+		const range = runtime.engine.estimateTowerAttackProgressRange(tower.id, routeId);
+		if (!range) {
+			throw new Error('Expected the route to cross tower range');
+		}
+		const route = runtime.engine.routeFor(routeId);
+		const entry = route.pointAtDistance(route.length * range.minimum).position;
+		const exit = route.pointAtDistance(route.length * range.maximum).position;
+		expect(range.minimum).toBeLessThan(range.maximum);
+		expect(Math.hypot(entry.x - tower.position.x, entry.y - tower.position.y)).toBeCloseTo(tower.range);
+		expect(Math.hypot(exit.x - tower.position.x, exit.y - tower.position.y)).toBeCloseTo(tower.range);
+		runtime.dispose();
+	});
 
-  it('spawns authored subjects relative to the tower range entry', () => {
-    const definition = thoughtRegistry.list().find((candidate) => candidate.beats.some((beat) => beat.cues?.some((cue) => cue.actions?.some((action) => action.type === 'spawn-signal' && action.position?.type === 'tower-range-entry'))));
-    if (!definition) throw new Error('Expected a positioned signal action');
-    const action = definition.beats.flatMap((beat) => beat.cues ?? [])
-      .flatMap((cue) => cue.actions ?? [])
-      .find((candidate) => candidate.type === 'spawn-signal' && candidate.position?.type === 'tower-range-entry');
-    if (action?.type !== 'spawn-signal' || action.position?.type !== 'tower-range-entry') throw new Error('Expected a positioned signal');
-    const runtime = new CombatRuntime(definition.seed, definition.scene);
-    const tower = runtime.engine.towers[0];
-    const routeId = runtime.engine.level.graph.entrances[0];
-    if (!tower || !routeId) throw new Error('Expected a tower route');
-    const range = runtime.engine.estimateTowerAttackProgressRange(tower.id, routeId);
-    if (!range) throw new Error('Expected the route to cross tower range');
-    const route = runtime.engine.routeFor(routeId);
-    const expected = Math.max(0, range.minimum - (action.position.leadDistance ?? 0) / route.length);
-    runtime.spawnSignal(action.signal, action.position);
-    const signal = runtime.engine.signals.at(-1);
-    expect(signal?.progress).toBeCloseTo(expected);
-    runtime.dispose();
-  });
+	it('spawns authored subjects relative to the tower range entry', () => {
+		const definition = thoughtRegistry
+			.list()
+			.find((candidate) =>
+				candidate.beats.some((beat) =>
+					beat.cues?.some((cue) =>
+						cue.actions?.some(
+							(action) => action.type === 'spawn-signal' && action.position?.type === 'tower-range-entry',
+						),
+					),
+				),
+			);
+		if (!definition) {
+			throw new Error('Expected a positioned signal action');
+		}
+		const action = definition.beats
+			.flatMap((beat) => beat.cues ?? [])
+			.flatMap((cue) => cue.actions ?? [])
+			.find((candidate) => candidate.type === 'spawn-signal' && candidate.position?.type === 'tower-range-entry');
+		if (action?.type !== 'spawn-signal' || action.position?.type !== 'tower-range-entry') {
+			throw new Error('Expected a positioned signal');
+		}
+		const runtime = new CombatRuntime(definition.seed, definition.scene);
+		const tower = runtime.engine.towers[0];
+		const routeId = runtime.engine.level.graph.entrances[0];
+		if (!tower || !routeId) {
+			throw new Error('Expected a tower route');
+		}
+		const range = runtime.engine.estimateTowerAttackProgressRange(tower.id, routeId);
+		if (!range) {
+			throw new Error('Expected the route to cross tower range');
+		}
+		const route = runtime.engine.routeFor(routeId);
+		const expected = Math.max(0, range.minimum - (action.position.leadDistance ?? 0) / route.length);
+		runtime.spawnSignal(action.signal, action.position);
+		const signal = runtime.engine.signals.at(-1);
+		expect(signal?.progress).toBeCloseTo(expected);
+		runtime.dispose();
+	});
 
-  it('freezes timeline progress at authored indefinite waits', () => {
-    const definition = thoughtRegistry.list().find((candidate) => candidate.beats.some((beat) => (
-      beat.cues?.some((cue) => cue.timelineWait && cue.waitForClear)
-    )));
-    if (!definition) throw new Error('Expected an authored indefinite wait');
-    const waitCue = definition.beats.flatMap((beat) => beat.cues ?? [])
-      .find((cue) => cue.timelineWait && cue.waitForClear);
-    if (!waitCue) throw new Error('Expected a clear-bound indefinite wait');
-    const director = new ThoughtSceneDirector(definition);
-    runUntilCue(director, waitCue.id);
-    expect(director.getSnapshot().cueId).toBe(waitCue.id);
-    const progress = director.getTimelineProgress();
-    let samples = 0;
-    while (director.getSnapshot().cueId === waitCue.id && samples < 120 * 30) {
-      director.update(FIXED_SIMULATION_STEP);
-      if (director.getSnapshot().cueId === waitCue.id) {
-        expect(director.getTimelineProgress()).toBe(progress);
-        samples += 1;
-      }
-    }
-    expect(samples).toBeGreaterThan(0);
-    director.dispose();
-  });
+	it('freezes timeline progress at authored indefinite waits', () => {
+		const definition = thoughtRegistry
+			.list()
+			.find((candidate) =>
+				candidate.beats.some((beat) => beat.cues?.some((cue) => cue.timelineWait && cue.waitForClear)),
+			);
+		if (!definition) {
+			throw new Error('Expected an authored indefinite wait');
+		}
+		const waitCue = definition.beats
+			.flatMap((beat) => beat.cues ?? [])
+			.find((cue) => cue.timelineWait && cue.waitForClear);
+		if (!waitCue) {
+			throw new Error('Expected a clear-bound indefinite wait');
+		}
+		const director = new ThoughtSceneDirector(definition);
+		runUntilCue(director, waitCue.id);
+		expect(director.getSnapshot().cueId).toBe(waitCue.id);
+		const progress = director.getTimelineProgress();
+		let samples = 0;
+		while (director.getSnapshot().cueId === waitCue.id && samples < 120 * 30) {
+			director.update(FIXED_SIMULATION_STEP);
+			if (director.getSnapshot().cueId === waitCue.id) {
+				expect(director.getTimelineProgress()).toBe(progress);
+				samples += 1;
+			}
+		}
+		expect(samples).toBeGreaterThan(0);
+		director.dispose();
+	});
 
-  it('keeps the captured combat subject alive while its state is explained', () => {
-    const definition = thoughtRegistry.list().find((candidate) => candidate.beats.some((beat) => beat.cues?.some((cue) => (
-      cue.requireSignalState?.slowed === true && cue.overlay?.type === 'caption'
-    ))));
-    if (!definition) throw new Error('Expected a state-bound explanation');
-    const cue = definition.beats.flatMap((beat) => beat.cues ?? [])
-      .find((candidate) => candidate.requireSignalState?.slowed === true && candidate.overlay?.type === 'caption');
-    if (!cue?.requireSignalState) throw new Error('Expected a state-bound cue');
-    const director = new ThoughtSceneDirector(definition);
-    runUntilCue(director, cue.id);
-    const signal = director.getBoundSignal(cue.requireSignalState.signalRef);
-    expect(director.getSnapshot().cueId).toBe(cue.id);
-    expect(signal?.dead).toBe(false);
-    expect(signal?.slowTime).toBeGreaterThan(0);
-    director.dispose();
-  });
+	it('keeps the captured combat subject alive while its state is explained', () => {
+		const definition = thoughtRegistry
+			.list()
+			.find((candidate) =>
+				candidate.beats.some((beat) =>
+					beat.cues?.some(
+						(cue) => cue.requireSignalState?.slowed === true && cue.overlay?.type === 'caption',
+					),
+				),
+			);
+		if (!definition) {
+			throw new Error('Expected a state-bound explanation');
+		}
+		const cue = definition.beats
+			.flatMap((beat) => beat.cues ?? [])
+			.find(
+				(candidate) => candidate.requireSignalState?.slowed === true && candidate.overlay?.type === 'caption',
+			);
+		if (!cue?.requireSignalState) {
+			throw new Error('Expected a state-bound cue');
+		}
+		const director = new ThoughtSceneDirector(definition);
+		runUntilCue(director, cue.id);
+		const signal = director.getBoundSignal(cue.requireSignalState.signalRef);
+		expect(director.getSnapshot().cueId).toBe(cue.id);
+		expect(signal?.dead).toBe(false);
+		expect(signal?.slowTime).toBeGreaterThan(0);
+		director.dispose();
+	});
 
-  it.each([
-    ['double-fork', 2],
-    ['fork', 3],
-  ] as const)('shows %s spreading, converging with guidance, then focusing to one projectile', (id, count) => {
-    const director = new ThoughtSceneDirector(thoughtRegistry.require(id));
+	it.each([
+		['double-fork', 2],
+		['fork', 3],
+	] as const)('shows %s spreading, converging with guidance, then focusing to one projectile', (id, count) => {
+		const director = new ThoughtSceneDirector(thoughtRegistry.require(id));
 
-    runUntilCue(director, 'point-split-projectiles');
-    const splitProjectiles = director.getBoundProjectileGroup('splitProjectiles');
-    const splitAngles = new Set(splitProjectiles.map((projectile) => (
-      Math.atan2(projectile.velocity.y, projectile.velocity.x)
-    )));
-    expect(director.getSnapshot().cueId).toBe('point-split-projectiles');
-    expect(splitProjectiles).toHaveLength(count);
-    expect(splitAngles.size).toBe(count);
+		runUntilCue(director, 'point-split-projectiles');
+		const splitProjectiles = director.getBoundProjectileGroup('splitProjectiles');
+		const splitAngles = new Set(
+			splitProjectiles.map((projectile) => Math.atan2(projectile.velocity.y, projectile.velocity.x)),
+		);
+		expect(director.getSnapshot().cueId).toBe('point-split-projectiles');
+		expect(splitProjectiles).toHaveLength(count);
+		expect(splitAngles.size).toBe(count);
 
-    const guidedHits: Extract<CombatEvent, { type: 'projectile-hit' }>[] = [];
-    const unsubscribe = director.runtime.subscribe((event) => {
-      if (event.type === 'projectile-hit' && event.shot.modules.includes('seeker')) {
-        guidedHits.push(event);
-      }
-    });
-    runUntilCue(director, 'point-guided-target');
-    const guidedTarget = director.getBoundSignal('guidedTarget');
-    expect(director.getSnapshot().cueId).toBe('point-guided-target');
-    expect(guidedTarget).not.toBeNull();
-    expect(guidedHits).toHaveLength(count);
-    expect(new Set(guidedHits.map((event) => event.signalId))).toEqual(new Set([guidedTarget?.id]));
+		const guidedHits: Extract<CombatEvent, { type: 'projectile-hit' }>[] = [];
+		const unsubscribe = director.runtime.subscribe((event) => {
+			if (event.type === 'projectile-hit' && event.shot.modules.includes('seeker')) {
+				guidedHits.push(event);
+			}
+		});
+		runUntilCue(director, 'point-guided-target');
+		const guidedTarget = director.getBoundSignal('guidedTarget');
+		expect(director.getSnapshot().cueId).toBe('point-guided-target');
+		expect(guidedTarget).not.toBeNull();
+		expect(guidedHits).toHaveLength(count);
+		expect(new Set(guidedHits.map((event) => event.signalId))).toEqual(new Set([guidedTarget?.id]));
 
-    runUntilCue(director, 'point-focused-projectile');
-    const focusedProjectile = director.getBoundProjectile('focusedProjectile');
-    expect(director.getSnapshot().cueId).toBe('point-focused-projectile');
-    expect(focusedProjectile?.shot.count).toBe(1);
-    expect(focusedProjectile?.modules).toContain('focus-core');
-    unsubscribe();
-    director.dispose();
-  });
+		runUntilCue(director, 'point-focused-projectile');
+		const focusedProjectile = director.getBoundProjectile('focusedProjectile');
+		expect(director.getSnapshot().cueId).toBe('point-focused-projectile');
+		expect(focusedProjectile?.shot.count).toBe(1);
+		expect(focusedProjectile?.modules).toContain('focus-core');
+		unsubscribe();
+		director.dispose();
+	});
 
-  it('shows the Overdriven comparison target losing more health', () => {
-    const director = new ThoughtSceneDirector(thoughtRegistry.require('overdrive'));
-    runUntilCue(director, 'point-overdrive-damage');
-    const baseline = director.getBoundSignal('baselineTarget');
-    const overdriven = director.getBoundSignal('overdriveTarget');
-    expect(director.getSnapshot().cueId).toBe('point-overdrive-damage');
-    expect(baseline).not.toBeNull();
-    expect(overdriven).not.toBeNull();
-    expect(overdriven?.hp).toBeLessThan(baseline?.hp ?? 0);
-    director.dispose();
-  });
+	it('shows the Overdriven comparison target losing more health', () => {
+		const director = new ThoughtSceneDirector(thoughtRegistry.require('overdrive'));
+		runUntilCue(director, 'point-overdrive-damage');
+		const baseline = director.getBoundSignal('baselineTarget');
+		const overdriven = director.getBoundSignal('overdriveTarget');
+		expect(director.getSnapshot().cueId).toBe('point-overdrive-damage');
+		expect(baseline).not.toBeNull();
+		expect(overdriven).not.toBeNull();
+		expect(overdriven?.hp).toBeLessThan(baseline?.hp ?? 0);
+		director.dispose();
+	});
 
-  it('shows the Economizer tradeoff through consecutive single-tower casts', () => {
-    const baselineDirector = new ThoughtSceneDirector(thoughtRegistry.require('economizer'));
-    runUntilCue(baselineDirector, 'point-baseline');
-    const baseline = baselineDirector.getBoundSignal('baselineTarget');
-    expect(baselineDirector.getSnapshot().cueId).toBe('point-baseline');
-    expect(baseline).not.toBeNull();
-    const baselineHealth = baseline?.hp;
-    baselineDirector.dispose();
+	it('shows the Economizer tradeoff through consecutive single-tower casts', () => {
+		const baselineDirector = new ThoughtSceneDirector(thoughtRegistry.require('economizer'));
+		runUntilCue(baselineDirector, 'point-baseline');
+		const baseline = baselineDirector.getBoundSignal('baselineTarget');
+		expect(baselineDirector.getSnapshot().cueId).toBe('point-baseline');
+		expect(baseline).not.toBeNull();
+		const baselineHealth = baseline?.hp;
+		baselineDirector.dispose();
 
-    const economizedDirector = new ThoughtSceneDirector(thoughtRegistry.require('economizer'));
-    runUntilCue(economizedDirector, 'point-economized-damage');
-    const economized = economizedDirector.getBoundSignal('economizedTarget');
-    expect(economizedDirector.getSnapshot().cueId).toBe('point-economized-damage');
-    expect(economized).not.toBeNull();
-    expect(economized?.hp).toBeGreaterThan(baselineHealth ?? Number.POSITIVE_INFINITY);
-    economizedDirector.dispose();
-  });
+		const economizedDirector = new ThoughtSceneDirector(thoughtRegistry.require('economizer'));
+		runUntilCue(economizedDirector, 'point-economized-damage');
+		const economized = economizedDirector.getBoundSignal('economizedTarget');
+		expect(economizedDirector.getSnapshot().cueId).toBe('point-economized-damage');
+		expect(economized).not.toBeNull();
+		expect(economized?.hp).toBeGreaterThan(baselineHealth ?? Number.POSITIVE_INFINITY);
+		economizedDirector.dispose();
+	});
 
-  it('shows Reclaim Circuit refunding a cluster hit before a shield blocks the return', () => {
-    const director = new ThoughtSceneDirector(thoughtRegistry.require('reclaim-circuit'));
-    runUntilCue(director, 'point-cluster-refund');
-    expect(director.getSnapshot().cueId).toBe('point-cluster-refund');
-    expect(presentedTowerEnergyRatio(director)).toBeGreaterThan(0.75);
+	it('shows Reclaim Circuit refunding a cluster hit before a shield blocks the return', () => {
+		const director = new ThoughtSceneDirector(thoughtRegistry.require('reclaim-circuit'));
+		runUntilCue(director, 'point-cluster-refund');
+		expect(director.getSnapshot().cueId).toBe('point-cluster-refund');
+		expect(presentedTowerEnergyRatio(director)).toBeGreaterThan(0.75);
 
-    let repeatedLaunches = 0;
-    const unsubscribe = director.runtime.subscribe((event) => {
-      if (event.type === 'projectile-spawned' && event.shot.modules.includes('nova')) repeatedLaunches += 1;
-    });
-    runUntilCue(director, 'configure-shield-test');
-    expect(repeatedLaunches).toBeGreaterThan(0);
+		let repeatedLaunches = 0;
+		const unsubscribe = director.runtime.subscribe((event) => {
+			if (event.type === 'projectile-spawned' && event.shot.modules.includes('nova')) {
+				repeatedLaunches += 1;
+			}
+		});
+		runUntilCue(director, 'configure-shield-test');
+		expect(repeatedLaunches).toBeGreaterThan(0);
 
-    runUntilCue(director, 'point-shield-no-return');
-    expect(director.getSnapshot().cueId).toBe('point-shield-no-return');
-    expect(director.getBoundSignal('shieldTarget')?.dead).toBe(false);
-    unsubscribe();
-    director.dispose();
-  });
+		runUntilCue(director, 'point-shield-no-return');
+		expect(director.getSnapshot().cueId).toBe('point-shield-no-return');
+		expect(director.getBoundSignal('shieldTarget')?.dead).toBe(false);
+		unsubscribe();
+		director.dispose();
+	});
 
-  it('keeps tower energy continuous when a transition resets the runtime', () => {
-    const director = new ThoughtSceneDirector(thoughtRegistry.require('nova'));
-    let boundary: { before: number; after: number } | undefined;
+	it('keeps tower energy continuous when a transition resets the runtime', () => {
+		const director = new ThoughtSceneDirector(thoughtRegistry.require('nova'));
+		let boundary: { before: number; after: number } | undefined;
 
-    for (let step = 0; step < maximumDirectorSteps(director); step += 1) {
-      const snapshot = director.getSnapshot();
-      if (snapshot.status === 'completed' || snapshot.status === 'error') break;
-      const ratioBeforeReset = presentedTowerEnergyRatio(director);
+		for (let step = 0; step < maximumDirectorSteps(director); step += 1) {
+			const snapshot = director.getSnapshot();
+			if (snapshot.status === 'completed' || snapshot.status === 'error') {
+				break;
+			}
+			const ratioBeforeReset = presentedTowerEnergyRatio(director);
 
-      director.update(FIXED_SIMULATION_STEP);
-      if (director.getSnapshot().cueId !== 'modifier-configure') continue;
+			director.update(FIXED_SIMULATION_STEP);
+			if (director.getSnapshot().cueId !== 'modifier-configure') {
+				continue;
+			}
 
-      boundary = {
-        before: ratioBeforeReset,
-        after: presentedTowerEnergyRatio(director),
-      };
-      break;
-    }
+			boundary = {
+				before: ratioBeforeReset,
+				after: presentedTowerEnergyRatio(director),
+			};
+			break;
+		}
 
-    director.dispose();
-    expect(boundary).toBeDefined();
-    expect(boundary?.after).toBeCloseTo(boundary?.before ?? 0);
-    expect(boundary?.after).toBeCloseTo(1);
-  });
+		director.dispose();
+		expect(boundary).toBeDefined();
+		expect(boundary?.after).toBeCloseTo(boundary?.before ?? 0);
+		expect(boundary?.after).toBeCloseTo(1);
+	});
 
-  it('visually refills tower energy while settling toward a runtime reset', () => {
-    const director = new ThoughtSceneDirector(thoughtRegistry.require('nova'));
-    runUntilCue(director, 'modifier-settle-rotation');
-    expect(director.getSnapshot().cueId).toBe('modifier-settle-rotation');
+	it('visually refills tower energy while settling toward a runtime reset', () => {
+		const director = new ThoughtSceneDirector(thoughtRegistry.require('nova'));
+		runUntilCue(director, 'modifier-settle-rotation');
+		expect(director.getSnapshot().cueId).toBe('modifier-settle-rotation');
 
-    const start = presentedTowerEnergyRatio(director);
-    const duration = director.definition.beats
-      .flatMap((beat) => beat.cues ?? [])
-      .find((cue) => cue.id === 'modifier-settle-rotation')?.duration;
-    if (duration === undefined) throw new Error('Expected a timed reset settle');
+		const start = presentedTowerEnergyRatio(director);
+		const duration = director.definition.beats
+			.flatMap((beat) => beat.cues ?? [])
+			.find((cue) => cue.id === 'modifier-settle-rotation')?.duration;
+		if (duration === undefined) {
+			throw new Error('Expected a timed reset settle');
+		}
 
-    for (let elapsed = 0; elapsed < duration / 2; elapsed += FIXED_SIMULATION_STEP) {
-      director.update(FIXED_SIMULATION_STEP);
-    }
-    const midpoint = presentedTowerEnergyRatio(director);
+		for (let elapsed = 0; elapsed < duration / 2; elapsed += FIXED_SIMULATION_STEP) {
+			director.update(FIXED_SIMULATION_STEP);
+		}
+		const midpoint = presentedTowerEnergyRatio(director);
 
-    director.dispose();
-    expect(start).toBeLessThan(1);
-    expect(midpoint).toBeGreaterThan(start);
-    expect(midpoint).toBeLessThan(1);
-  });
+		director.dispose();
+		expect(start).toBeLessThan(1);
+		expect(midpoint).toBeGreaterThan(start);
+		expect(midpoint).toBeLessThan(1);
+	});
 
-  it('preserves independent energy interpolation for multi-tower reset transitions', () => {
-    const director = new ThoughtSceneDirector(thoughtRegistry.require('cinder-trail'));
-    runUntilCue(director, 'settle-first-comparison-rotation');
-    expect(director.getSnapshot().cueId).toBe('settle-first-comparison-rotation');
+	it('preserves independent energy interpolation for multi-tower reset transitions', () => {
+		const director = new ThoughtSceneDirector(thoughtRegistry.require('cinder-trail'));
+		runUntilCue(director, 'settle-first-comparison-rotation');
+		expect(director.getSnapshot().cueId).toBe('settle-first-comparison-rotation');
 
-    const start = director.runtime.engine.towers.map((tower, towerIndex) => {
-      const actual = tower.energy / tower.maxEnergy;
-      expect(presentedTowerEnergyRatio(director, towerIndex)).toBeCloseTo(actual);
-      return actual;
-    });
-    expect(start).toHaveLength(2);
+		const start = director.runtime.engine.towers.map((tower, towerIndex) => {
+			const actual = tower.energy / tower.maxEnergy;
+			expect(presentedTowerEnergyRatio(director, towerIndex)).toBeCloseTo(actual);
+			return actual;
+		});
+		expect(start).toHaveLength(2);
 
-    for (let elapsed = 0; elapsed < 0.25; elapsed += FIXED_SIMULATION_STEP) {
-      director.update(FIXED_SIMULATION_STEP);
-    }
-    const midpoint = start.map((_, towerIndex) => presentedTowerEnergyRatio(director, towerIndex));
+		for (let elapsed = 0; elapsed < 0.25; elapsed += FIXED_SIMULATION_STEP) {
+			director.update(FIXED_SIMULATION_STEP);
+		}
+		const midpoint = start.map((_, towerIndex) => presentedTowerEnergyRatio(director, towerIndex));
 
-    director.dispose();
-    expect(start.some((ratio) => ratio < 1)).toBe(true);
-    midpoint.forEach((ratio, towerIndex) => {
-      expect(ratio).toBeGreaterThan(start[towerIndex] ?? 0);
-      expect(ratio).toBeLessThan(1);
-    });
-  });
+		director.dispose();
+		expect(start.some((ratio) => ratio < 1)).toBe(true);
+		midpoint.forEach((ratio, towerIndex) => {
+			expect(ratio).toBeGreaterThan(start[towerIndex] ?? 0);
+			expect(ratio).toBeLessThan(1);
+		});
+	});
 
-  it('eases the tower toward an authored orientation after a semantic wait', () => {
-    const definition = thoughtRegistry.list().find((candidate) => candidate.beats.some((beat) => beat.cues?.some((cue) => cue.transition?.towerRotation !== undefined)));
-    if (!definition) throw new Error('Expected an authored tower orientation');
-    const cue = definition.beats.flatMap((beat) => beat.cues ?? [])
-      .find((candidate) => candidate.transition?.towerRotation !== undefined);
-    if (cue?.transition?.towerRotation === undefined || cue.duration === undefined) throw new Error('Expected a timed tower orientation');
-    const director = new ThoughtSceneDirector(definition);
-    runUntilCue(director, cue.id);
-    expect(director.getSnapshot().cueId).toBe(cue.id);
-    const start = director.getRenderPresentation().towerRotation;
-    if (start === undefined) throw new Error('Expected a presentation rotation');
-    const initialDistance = angleDistance(start, cue.transition.towerRotation);
-    const midpoint = cue.duration / 2;
-    for (let elapsed = 0; elapsed < midpoint; elapsed += FIXED_SIMULATION_STEP) {
-      director.update(FIXED_SIMULATION_STEP);
-    }
-    const rotation = director.getRenderPresentation().towerRotation;
-    if (rotation === undefined) throw new Error('Expected an interpolated presentation rotation');
-    expect(angleDistance(rotation, cue.transition.towerRotation)).toBeLessThan(initialDistance);
-    expect(angleDistance(rotation, cue.transition.towerRotation)).toBeGreaterThan(0);
-    director.dispose();
-  });
+	it('eases the tower toward an authored orientation after a semantic wait', () => {
+		const definition = thoughtRegistry
+			.list()
+			.find((candidate) =>
+				candidate.beats.some((beat) => beat.cues?.some((cue) => cue.transition?.towerRotation !== undefined)),
+			);
+		if (!definition) {
+			throw new Error('Expected an authored tower orientation');
+		}
+		const cue = definition.beats
+			.flatMap((beat) => beat.cues ?? [])
+			.find((candidate) => candidate.transition?.towerRotation !== undefined);
+		if (cue?.transition?.towerRotation === undefined || cue.duration === undefined) {
+			throw new Error('Expected a timed tower orientation');
+		}
+		const director = new ThoughtSceneDirector(definition);
+		runUntilCue(director, cue.id);
+		expect(director.getSnapshot().cueId).toBe(cue.id);
+		const start = director.getRenderPresentation().towerRotation;
+		if (start === undefined) {
+			throw new Error('Expected a presentation rotation');
+		}
+		const initialDistance = angleDistance(start, cue.transition.towerRotation);
+		const midpoint = cue.duration / 2;
+		for (let elapsed = 0; elapsed < midpoint; elapsed += FIXED_SIMULATION_STEP) {
+			director.update(FIXED_SIMULATION_STEP);
+		}
+		const rotation = director.getRenderPresentation().towerRotation;
+		if (rotation === undefined) {
+			throw new Error('Expected an interpolated presentation rotation');
+		}
+		expect(angleDistance(rotation, cue.transition.towerRotation)).toBeLessThan(initialDistance);
+		expect(angleDistance(rotation, cue.transition.towerRotation)).toBeGreaterThan(0);
+		director.dispose();
+	});
 
-  it('releases authored tower orientation before combat-driven aiming resumes', () => {
-    for (const definition of thoughtRegistry.list()) {
-      const cues = new Map(definition.beats.flatMap((beat) => beat.cues ?? []).map((cue) => [cue.id, cue]));
-      const director = new ThoughtSceneDirector(definition);
-      runDirector(director, () => {
-        const snapshot = director.getSnapshot();
-        const cue = cues.get(snapshot.cueId);
-        const resumesCasting = cue?.actions?.some((action) => (
-          action.type === 'set-tower-casting' && action.enabled
-        ));
-        if (resumesCasting) {
-          const presentation = director.getRenderPresentation();
-          expect(presentation.towerRotation, `${definition.id}/${snapshot.cueId}`).toBeUndefined();
-          expect(presentation.towerRotations, `${definition.id}/${snapshot.cueId}`).toBeUndefined();
-        }
-      });
-      expect(director.getSnapshot().status).toBe('completed');
-      director.dispose();
-    }
-  });
+	it('releases authored tower orientation before combat-driven aiming resumes', () => {
+		for (const definition of thoughtRegistry.list()) {
+			const cues = new Map(definition.beats.flatMap((beat) => beat.cues ?? []).map((cue) => [cue.id, cue]));
+			const director = new ThoughtSceneDirector(definition);
+			runDirector(director, () => {
+				const snapshot = director.getSnapshot();
+				const cue = cues.get(snapshot.cueId);
+				const resumesCasting = cue?.actions?.some(
+					(action) => action.type === 'set-tower-casting' && action.enabled,
+				);
+				if (resumesCasting) {
+					const presentation = director.getRenderPresentation();
+					expect(presentation.towerRotation, `${definition.id}/${snapshot.cueId}`).toBeUndefined();
+					expect(presentation.towerRotations, `${definition.id}/${snapshot.cueId}`).toBeUndefined();
+				}
+			});
+			expect(director.getSnapshot().status).toBe('completed');
+			director.dispose();
+		}
+	});
 
-  it.each(thoughtRegistry.list().map((definition) => [definition.id, definition] as const))(
-    'runs %s to completion against real combat events',
-    (_id, definition) => {
-      const director = new ThoughtSceneDirector(definition);
-      runDirector(director);
-      expect(director.getSnapshot().status).toBe('completed');
-      director.dispose();
-    },
-  );
+	it.each(thoughtRegistry.list().map((definition) => [definition.id, definition] as const))(
+		'runs %s to completion against real combat events',
+		(_id, definition) => {
+			const director = new ThoughtSceneDirector(definition);
+			runDirector(director);
+			expect(director.getSnapshot().status).toBe('completed');
+			director.dispose();
+		},
+	);
 
-  it('publishes trigger before payload deployment', () => {
-    const runtime = new CombatRuntime(41);
-    const events: CombatEvent[] = [];
-    const unsubscribe = runtime.subscribe((event) => events.push(event));
-    runtime.setup({ slots: ['impact-trigger', 'pulse', 'proximity-mine'] });
-    runtime.spawnSignal('spark');
-    for (let step = 0; step < 16 * 120 && !events.some((event) => event.type === 'payload-deployed'); step += 1) {
-      runtime.update(FIXED_SIMULATION_STEP);
-    }
-    const triggerIndex = events.findIndex((event) => event.type === 'trigger-fired');
-    const payloadIndex = events.findIndex((event) => event.type === 'payload-deployed');
-    expect(triggerIndex).toBeGreaterThan(-1);
-    expect(payloadIndex).toBeGreaterThan(triggerIndex);
-    unsubscribe();
-    runtime.dispose();
-  });
+	it('publishes trigger before payload deployment', () => {
+		const runtime = new CombatRuntime(41);
+		const events: CombatEvent[] = [];
+		const unsubscribe = runtime.subscribe((event) => events.push(event));
+		runtime.setup({ slots: ['impact-trigger', 'pulse', 'proximity-mine'] });
+		runtime.spawnSignal('spark');
+		for (let step = 0; step < 16 * 120 && !events.some((event) => event.type === 'payload-deployed'); step += 1) {
+			runtime.update(FIXED_SIMULATION_STEP);
+		}
+		const triggerIndex = events.findIndex((event) => event.type === 'trigger-fired');
+		const payloadIndex = events.findIndex((event) => event.type === 'payload-deployed');
+		expect(triggerIndex).toBeGreaterThan(-1);
+		expect(payloadIndex).toBeGreaterThan(triggerIndex);
+		unsubscribe();
+		runtime.dispose();
+	});
 
-  it('uses the real compiler for focus conversion', () => {
-    const runtime = new CombatRuntime(43);
-    const forked = runtime.setup({ slots: ['double-fork', 'pulse'] }).shots[0];
-    const focused = runtime.setup({ slots: ['focus-core', 'double-fork', 'pulse'] }).shots[0];
-    expect(forked?.count).toBe(2);
-    expect(focused?.count).toBe(1);
-    expect(focused?.damage).toBeGreaterThan(forked?.damage ?? 0);
-    expect(focused?.speed).toBeGreaterThan(forked?.speed ?? 0);
-    runtime.dispose();
-  });
+	it('uses the real compiler for focus conversion', () => {
+		const runtime = new CombatRuntime(43);
+		const forked = runtime.setup({ slots: ['double-fork', 'pulse'] }).shots[0];
+		const focused = runtime.setup({ slots: ['focus-core', 'double-fork', 'pulse'] }).shots[0];
+		expect(forked?.count).toBe(2);
+		expect(focused?.count).toBe(1);
+		expect(focused?.damage).toBeGreaterThan(forked?.damage ?? 0);
+		expect(focused?.speed).toBeGreaterThan(forked?.speed ?? 0);
+		runtime.dispose();
+	});
 
-  it('rebuilds deterministically when stepping backward', () => {
-    const definition = thoughtRegistry.list().find((candidate) => candidate.beats.length > 1);
-    if (!definition) throw new Error('Expected a multi-beat thought');
-    const director = new ThoughtSceneDirector(definition);
-    const target = definition.beats.length - 1;
-    director.goTo(target);
-    expect(director.getSnapshot().beatIndex).toBe(target);
-    director.previous();
-    expect(director.getSnapshot()).toMatchObject({ beatIndex: target - 1, status: 'paused' });
-    director.dispose();
-  });
+	it('rebuilds deterministically when stepping backward', () => {
+		const definition = thoughtRegistry.list().find((candidate) => candidate.beats.length > 1);
+		if (!definition) {
+			throw new Error('Expected a multi-beat thought');
+		}
+		const director = new ThoughtSceneDirector(definition);
+		const target = definition.beats.length - 1;
+		director.goTo(target);
+		expect(director.getSnapshot().beatIndex).toBe(target);
+		director.previous();
+		expect(director.getSnapshot()).toMatchObject({ beatIndex: target - 1, status: 'paused' });
+		director.dispose();
+	});
 
-  it('replays event-dependent state when a timeline unit is selected directly', () => {
-    const definition = thoughtRegistry.list().find((candidate) => candidate.beats.some((beat) => beat.cues?.some((cue) => (
-      cue.waitFor?.type === 'payload-deployed' && cue.waitFor.moduleId !== undefined
-    ))));
-    if (!definition) throw new Error('Expected a payload-dependent timeline unit');
-    const sourceBeat = definition.beats.findIndex((beat) => beat.cues?.some((cue) => (
-      cue.waitFor?.type === 'payload-deployed' && cue.waitFor.moduleId !== undefined
-    )));
-    const payloadSource = definition.beats[sourceBeat]?.cues
-      ?.find((cue) => cue.waitFor?.type === 'payload-deployed' && cue.waitFor.moduleId !== undefined)
-      ?.waitFor?.moduleId;
-    if (!payloadSource) throw new Error('Expected an authored payload source');
-    const director = new ThoughtSceneDirector(definition);
-    const target = Math.min(sourceBeat + 1, definition.beats.length - 1);
-    director.goTo(target);
-    expect(director.getSnapshot().beatIndex).toBe(target);
-    expect(director.getSnapshot().status).not.toBe('error');
-    expect(director.runtime.engine.projectiles.some((projectile) => projectile.shot.source === payloadSource)).toBe(true);
-    director.dispose();
-  });
+	it('replays event-dependent state when a timeline unit is selected directly', () => {
+		const definition = thoughtRegistry
+			.list()
+			.find((candidate) =>
+				candidate.beats.some((beat) =>
+					beat.cues?.some(
+						(cue) => cue.waitFor?.type === 'payload-deployed' && cue.waitFor.moduleId !== undefined,
+					),
+				),
+			);
+		if (!definition) {
+			throw new Error('Expected a payload-dependent timeline unit');
+		}
+		const sourceBeat = definition.beats.findIndex((beat) =>
+			beat.cues?.some((cue) => cue.waitFor?.type === 'payload-deployed' && cue.waitFor.moduleId !== undefined),
+		);
+		const payloadSource = definition.beats[sourceBeat]?.cues?.find(
+			(cue) => cue.waitFor?.type === 'payload-deployed' && cue.waitFor.moduleId !== undefined,
+		)?.waitFor?.moduleId;
+		if (!payloadSource) {
+			throw new Error('Expected an authored payload source');
+		}
+		const director = new ThoughtSceneDirector(definition);
+		const target = Math.min(sourceBeat + 1, definition.beats.length - 1);
+		director.goTo(target);
+		expect(director.getSnapshot().beatIndex).toBe(target);
+		expect(director.getSnapshot().status).not.toBe('error');
+		expect(director.runtime.engine.projectiles.some((projectile) => projectile.shot.source === payloadSource)).toBe(
+			true,
+		);
+		director.dispose();
+	});
 
-  it('replays signal-state waits when selecting a later timeline unit', () => {
-    const definition = thoughtRegistry.list().find((candidate) => candidate.beats.some((beat) => (
-      beat.cues?.some((cue) => cue.waitForSignalStates)
-    )));
-    if (!definition) throw new Error('Expected a signal-state wait');
-    const director = new ThoughtSceneDirector(definition);
-    const target = definition.beats.length - 1;
-    director.goTo(target);
-    expect(director.getSnapshot().beatIndex).toBe(target);
-    expect(director.getSnapshot().status).not.toBe('error');
-    director.dispose();
-  });
+	it('replays signal-state waits when selecting a later timeline unit', () => {
+		const definition = thoughtRegistry
+			.list()
+			.find((candidate) => candidate.beats.some((beat) => beat.cues?.some((cue) => cue.waitForSignalStates)));
+		if (!definition) {
+			throw new Error('Expected a signal-state wait');
+		}
+		const director = new ThoughtSceneDirector(definition);
+		const target = definition.beats.length - 1;
+		director.goTo(target);
+		expect(director.getSnapshot().beatIndex).toBe(target);
+		expect(director.getSnapshot().status).not.toBe('error');
+		director.dispose();
+	});
 });

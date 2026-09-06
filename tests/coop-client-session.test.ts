@@ -7,52 +7,62 @@ const SESSION_KEY = 'prism-bastion-coop-session-v2';
 const LEGACY_SESSION_KEY = 'prism-bastion-coop-session-v1';
 
 class FakeWebSocket extends EventTarget {
-  static readonly CONNECTING = 0;
-  static readonly OPEN = 1;
-  static readonly CLOSED = 3;
-  readonly url: string;
-  readyState = FakeWebSocket.CONNECTING;
+	static readonly CONNECTING = 0;
+	static readonly OPEN = 1;
+	static readonly CLOSED = 3;
+	readonly url: string;
+	readyState = FakeWebSocket.CONNECTING;
 
-  constructor(url: string | URL) {
-    super();
-    this.url = String(url);
-  }
+	constructor(url: string | URL) {
+		super();
+		this.url = String(url);
+	}
 
-  send(): void {}
-  close(): void { this.readyState = FakeWebSocket.CLOSED; }
+	send(): void {}
+	close(): void {
+		this.readyState = FakeWebSocket.CLOSED;
+	}
 }
 
 describe('co-op client session endpoint binding', () => {
-  beforeEach(() => {
-    sessionStorage.clear();
-    vi.stubGlobal('WebSocket', FakeWebSocket);
-  });
+	beforeEach(() => {
+		sessionStorage.clear();
+		vi.stubGlobal('WebSocket', FakeWebSocket);
+	});
 
-  afterEach(() => vi.unstubAllGlobals());
+	afterEach(() => vi.unstubAllGlobals());
 
-  it('resumes against the node that issued the stored credential', () => {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({
-      code: 'ABC234',
-      token: 'a-secure-resume-token',
-      playerId: 'p1',
-      serverUrl: 'wss://hk.example/ws',
-    }));
-    const client = new CoopClient();
+	it('resumes against the node that issued the stored credential', () => {
+		sessionStorage.setItem(
+			SESSION_KEY,
+			JSON.stringify({
+				code: 'ABC234',
+				token: 'a-secure-resume-token',
+				playerId: 'p1',
+				serverUrl: 'wss://hk.example/ws',
+			}),
+		);
+		const client = new CoopClient();
 
-    client.open();
+		client.open();
 
-    const socket = client['socket'] as unknown as FakeWebSocket;
-    expect(socket.url).toBe('wss://hk.example/ws');
-  });
+		const socket = client['socket'] as unknown as FakeWebSocket;
+		expect(socket.url).toBe('wss://hk.example/ws');
+	});
 
-  it('discards legacy sessions that were not bound to a server', () => {
-    sessionStorage.setItem(LEGACY_SESSION_KEY, JSON.stringify({
-      code: 'ABC234', token: 'a-secure-resume-token', playerId: 'p1',
-    }));
+	it('discards legacy sessions that were not bound to a server', () => {
+		sessionStorage.setItem(
+			LEGACY_SESSION_KEY,
+			JSON.stringify({
+				code: 'ABC234',
+				token: 'a-secure-resume-token',
+				playerId: 'p1',
+			}),
+		);
 
-    const client = new CoopClient();
+		const client = new CoopClient();
 
-    expect(client.storedSession).toBeNull();
-    expect(sessionStorage.getItem(LEGACY_SESSION_KEY)).toBeNull();
-  });
+		expect(client.storedSession).toBeNull();
+		expect(sessionStorage.getItem(LEGACY_SESSION_KEY)).toBeNull();
+	});
 });

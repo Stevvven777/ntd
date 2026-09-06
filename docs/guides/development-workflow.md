@@ -17,18 +17,18 @@ Open <http://localhost:4173>. The development process watches TypeScript, CSS, a
 
 Run the narrowest relevant check while editing, then run the full check before handoff.
 
-| Command | Use |
-| --- | --- |
-| `pnpm lint` | ESLint across the repository |
-| `pnpm typecheck` | Strict TypeScript checking without output |
-| `pnpm test` | Vitest unit and component suite |
-| `pnpm test:e2e` | Playwright browser smoke tests |
-| `pnpm format:locales` | Complete and canonically format locale resources |
-| `pnpm check:locales` | Flat, aligned, formatted locale resources and module placeholders |
-| `pnpm check:cjk` | Source-language boundary outside docs and locales |
-| `pnpm perf:report` | Spatial-index comparison workload |
-| `pnpm build` | Minified single-player assets in `apps/web-single/dist/` |
-| `pnpm check` | CJK, locale, lint, type, unit/component, and production-build checks |
+| Command               | Use                                                                  |
+| --------------------- | -------------------------------------------------------------------- |
+| `pnpm lint`           | ESLint across the repository                                         |
+| `pnpm typecheck`      | Strict TypeScript checking without output                            |
+| `pnpm test`           | Vitest unit and component suite                                      |
+| `pnpm test:e2e`       | Playwright browser smoke tests                                       |
+| `pnpm format:locales` | Complete and canonically format locale resources                     |
+| `pnpm check:locales`  | Flat, aligned, formatted locale resources and module placeholders    |
+| `pnpm check:cjk`      | Source-language boundary outside docs and locales                    |
+| `pnpm perf:report`    | Spatial-index comparison workload                                    |
+| `pnpm build`          | Minified single-player assets in `apps/web-single/dist/`             |
+| `pnpm check`          | CJK, locale, lint, type, unit/component, and production-build checks |
 
 For one Vitest file, pass it through the script:
 

@@ -1,13 +1,55 @@
-.settings-keybindings-section { grid-template-columns: 1fr; border-top: 2px solid var(--ink, #252134); }
-.keybinding-list { min-width: 0; }
-.keybinding-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(105px, auto) 30px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #dedbe5; font-size: 13px; }
-.keybinding-list button { min-height: 34px; padding: 6px 9px; border: 1px solid var(--ink, #252134); color: inherit; background: #fff; cursor: pointer; }
-.keybinding-list button:hover { background: #efedf3; }
-.keybinding-list button[aria-pressed='true'] { color: #fff; background: var(--purple, #6558e8); }
-.keybinding-list button:focus-visible { outline: 3px solid var(--purple, #6558e8); outline-offset: 2px; }
-.keybinding-list button:disabled { opacity: .4; cursor: default; }
-.keybinding-status { min-height: 2.6em; margin: 10px 0; font-size: 12px; line-height: 1.4; }
-.keybinding-reset { width: 100%; }
+.settings-keybindings-section {
+	grid-template-columns: 1fr;
+	border-top: 2px solid var(--ink, #252134);
+}
+.keybinding-list {
+	min-width: 0;
+}
+.keybinding-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(105px, auto) 30px;
+	gap: 8px;
+	align-items: center;
+	padding: 6px 0;
+	border-bottom: 1px solid #dedbe5;
+	font-size: 13px;
+}
+.keybinding-list button {
+	min-height: 34px;
+	padding: 6px 9px;
+	border: 1px solid var(--ink, #252134);
+	color: inherit;
+	background: #fff;
+	cursor: pointer;
+}
+.keybinding-list button:hover {
+	background: #efedf3;
+}
+.keybinding-list button[aria-pressed='true'] {
+	color: #fff;
+	background: var(--purple, #6558e8);
+}
+.keybinding-list button:focus-visible {
+	outline: 3px solid var(--purple, #6558e8);
+	outline-offset: 2px;
+}
+.keybinding-list button:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+.keybinding-status {
+	min-height: 2.6em;
+	margin: 10px 0;
+	font-size: 12px;
+	line-height: 1.4;
+}
+.keybinding-reset {
+	width: 100%;
+}
 
-.keybinding-status:empty { display: none; }
-.keybinding-reset { margin-top: 12px; }
+.keybinding-status:empty {
+	display: none;
+}
+.keybinding-reset {
+	margin-top: 12px;
+}

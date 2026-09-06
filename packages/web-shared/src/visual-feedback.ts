@@ -4,7 +4,7 @@ import { gameEffects } from './effects/game-effects';
 import { modulePresentationRegistry } from './module-presentations';
 
 export function createWebVisualFeedback(): EffectEngine & VisualFeedbackSink {
-  const engine = new EffectEngine().registerMany(gameEffects);
-  modulePresentationRegistry.registerEffects(engine);
-  return engine;
+	const engine = new EffectEngine().registerMany(gameEffects);
+	modulePresentationRegistry.registerEffects(engine);
+	return engine;
 }

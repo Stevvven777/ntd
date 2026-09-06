@@ -5,104 +5,112 @@ import { createModuleRegistry } from '@prism-bastion/game-core/modules';
 import { addTestProjectile, advanceEngineFor as advance } from './helpers/combat';
 
 const addProjectile = (
-  engine: GameEngine,
-  shot: ShotBlueprint,
-  position: { x: number; y: number },
-  velocity: { x: number; y: number },
+	engine: GameEngine,
+	shot: ShotBlueprint,
+	position: { x: number; y: number },
+	velocity: { x: number; y: number },
 ): Projectile => addTestProjectile(engine, shot, position, velocity, null, { trailTimer: 0 });
 
 const spawnSignalAt = (engine: GameEngine, position: { x: number; y: number }): Signal => {
-  engine.spawnCreativeSignal('spark');
-  const signal = engine.signals.at(-1);
-  if (!signal) throw new Error('Expected a signal');
-  signal.speed = 0;
-  signal.position = { ...position };
-  signal.hp = 1_000;
-  signal.maxHp = 1_000;
-  return signal;
+	engine.spawnCreativeSignal('spark');
+	const signal = engine.signals.at(-1);
+	if (!signal) {
+		throw new Error('Expected a signal');
+	}
+	signal.speed = 0;
+	signal.position = { ...position };
+	signal.hp = 1_000;
+	signal.maxHp = 1_000;
+	return signal;
 };
 
 describe('Starfire Wake', () => {
-  const registry = createModuleRegistry();
+	const registry = createModuleRegistry();
 
-  it('registers at the authored epic status-trail tier', () => {
-    const definition = registry.require('starfire-trail');
-    const shot = registry.compile(['starfire-trail', 'void-beam']).shots[0];
+	it('registers at the authored epic status-trail tier', () => {
+		const definition = registry.require('starfire-trail');
+		const shot = registry.compile(['starfire-trail', 'void-beam']).shots[0];
 
-    expect(definition).toMatchObject({
-      kind: 'trail',
-      tags: expect.arrayContaining(['trail', 'area', 'status']),
-      meta: {
-        rarity: 'epic',
-        energy: 48,
-        text: { detail: { damage: 45, width: 44, duration: 2, burnDamage: 5, burnTicks: 5 } },
-      },
-    });
-    expect(shot).toMatchObject({ damage: 28, energyCost: 69 });
-  });
+		expect(definition).toMatchObject({
+			kind: 'trail',
+			tags: expect.arrayContaining(['trail', 'area', 'status']),
+			meta: {
+				rarity: 'epic',
+				energy: 48,
+				text: { detail: { damage: 45, width: 44, duration: 2, burnDamage: 5, burnTicks: 5 } },
+			},
+		});
+		expect(shot).toMatchObject({ damage: 28, energyCost: 69 });
+	});
 
-  it('creates a persistent effects-only plasma band with shared Starfire particles', () => {
-    const engine = new GameEngine({ mode: 'creative', levelId: 'starter-elbow', seed: 157 });
-    const shot = engine.modules.compile(['starfire-trail', 'void-beam']).shots[0];
-    if (!shot) throw new Error('Expected a Starfire Wake void beam');
-    const spawnEffect = vi.spyOn(engine.visuals, 'spawn');
-    addProjectile(engine, shot, { x: 100, y: 100 }, { x: shot.speed, y: 0 });
+	it('creates a persistent effects-only plasma band with shared Starfire particles', () => {
+		const engine = new GameEngine({ mode: 'creative', levelId: 'starter-elbow', seed: 157 });
+		const shot = engine.modules.compile(['starfire-trail', 'void-beam']).shots[0];
+		if (!shot) {
+			throw new Error('Expected a Starfire Wake void beam');
+		}
+		const spawnEffect = vi.spyOn(engine.visuals, 'spawn');
+		addProjectile(engine, shot, { x: 100, y: 100 }, { x: shot.speed, y: 0 });
 
-    advance(engine, 0.3);
+		advance(engine, 0.3);
 
-    expect(engine.spaceRifts).toHaveLength(1);
-    expect(engine.spaceRifts[0]).toMatchObject({
-      width: 44,
-      damagePerSecond: 12.6,
-      pointLifetime: 2,
-      coverageGroup: 'starfire-trail',
-      visual: { type: 'effects-only' },
-      contactStatus: {
-        id: 'starfire-trail',
-        duration: 2,
-        interval: 0.4,
-        damage: 5,
-        particle: { effectId: 'module:starfire-trail:burning', interval: 0.32 },
-      },
-    });
-    const effectIds = spawnEffect.mock.calls.map(([id]) => id);
-    expect(effectIds).toEqual(expect.arrayContaining([
-      'module:starfire-trail:plasma',
-      'module:starfire-trail:starfall',
-    ]));
-  });
+		expect(engine.spaceRifts).toHaveLength(1);
+		expect(engine.spaceRifts[0]).toMatchObject({
+			width: 44,
+			damagePerSecond: 12.6,
+			pointLifetime: 2,
+			coverageGroup: 'starfire-trail',
+			visual: { type: 'effects-only' },
+			contactStatus: {
+				id: 'starfire-trail',
+				duration: 2,
+				interval: 0.4,
+				damage: 5,
+				particle: { effectId: 'module:starfire-trail:burning', interval: 0.32 },
+			},
+		});
+		const effectIds = spawnEffect.mock.calls.map(([id]) => id);
+		expect(effectIds).toEqual(
+			expect.arrayContaining(['module:starfire-trail:plasma', 'module:starfire-trail:starfall']),
+		);
+	});
 
-  it('keeps Cinderwake and Starfire Wake as independent damage and status families', () => {
-    const engine = new GameEngine({ mode: 'creative', levelId: 'starter-elbow', seed: 163 });
-    const shot = engine.modules.compile(['cinder-trail', 'starfire-trail', 'void-beam']).shots[0];
-    if (!shot) throw new Error('Expected a combined fire-trail void beam');
-    addProjectile(engine, shot, { x: 100, y: 100 }, { x: shot.speed, y: 0 });
-    advance(engine, 0.2);
-    const signal = spawnSignalAt(engine, { x: 120, y: 100 });
+	it('keeps Cinderwake and Starfire Wake as independent damage and status families', () => {
+		const engine = new GameEngine({ mode: 'creative', levelId: 'starter-elbow', seed: 163 });
+		const shot = engine.modules.compile(['cinder-trail', 'starfire-trail', 'void-beam']).shots[0];
+		if (!shot) {
+			throw new Error('Expected a combined fire-trail void beam');
+		}
+		addProjectile(engine, shot, { x: 100, y: 100 }, { x: shot.speed, y: 0 });
+		advance(engine, 0.2);
+		const signal = spawnSignalAt(engine, { x: 120, y: 100 });
 
-    const runtime = engine as unknown as { updateSpaceRifts(delta: number): void };
-    for (let step = 0; step < 30; step += 1) runtime.updateSpaceRifts(FIXED_SIMULATION_STEP);
+		const runtime = engine as unknown as { updateSpaceRifts(delta: number): void };
+		for (let step = 0; step < 30; step += 1) {
+			runtime.updateSpaceRifts(FIXED_SIMULATION_STEP);
+		}
 
-    expect(engine.spaceRifts.filter((trail) => trail.contacts.has(signal.id))).toHaveLength(2);
-    expect(1_000 - signal.hp).toBeCloseTo((7 + 12.6) * 0.25, 6);
-    expect(signal.statuses.map((status) => status.id)).toEqual(expect.arrayContaining([
-      'cinder-trail',
-      'starfire-trail',
-    ]));
-  });
+		expect(engine.spaceRifts.filter((trail) => trail.contacts.has(signal.id))).toHaveLength(2);
+		expect(1_000 - signal.hp).toBeCloseTo((7 + 12.6) * 0.25, 6);
+		expect(signal.statuses.map((status) => status.id)).toEqual(
+			expect.arrayContaining(['cinder-trail', 'starfire-trail']),
+		);
+	});
 
-  it('scales one shared plasma band when the module is stacked', () => {
-    const engine = new GameEngine({ mode: 'creative', levelId: 'starter-elbow', seed: 167 });
-    const shot = engine.modules.compile(['starfire-trail', 'starfire-trail', 'void-beam']).shots[0];
-    if (!shot) throw new Error('Expected a stacked Starfire Wake void beam');
-    addProjectile(engine, shot, { x: 100, y: 100 }, { x: shot.speed, y: 0 });
+	it('scales one shared plasma band when the module is stacked', () => {
+		const engine = new GameEngine({ mode: 'creative', levelId: 'starter-elbow', seed: 167 });
+		const shot = engine.modules.compile(['starfire-trail', 'starfire-trail', 'void-beam']).shots[0];
+		if (!shot) {
+			throw new Error('Expected a stacked Starfire Wake void beam');
+		}
+		addProjectile(engine, shot, { x: 100, y: 100 }, { x: shot.speed, y: 0 });
 
-    engine.update(FIXED_SIMULATION_STEP);
+		engine.update(FIXED_SIMULATION_STEP);
 
-    expect(engine.spaceRifts).toHaveLength(1);
-    expect(engine.spaceRifts[0]).toMatchObject({
-      damagePerSecond: 25.2,
-      contactStatus: { damage: 10 },
-    });
-  });
+		expect(engine.spaceRifts).toHaveLength(1);
+		expect(engine.spaceRifts[0]).toMatchObject({
+			damagePerSecond: 25.2,
+			contactStatus: { damage: 10 },
+		});
+	});
 });

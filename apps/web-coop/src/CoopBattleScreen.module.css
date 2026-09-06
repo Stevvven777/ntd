@@ -1,3 +1,17 @@
-.gameWrap { width: 100%; height: 100dvh; min-width: 0; min-height: 0; overflow: hidden; background: #efedf3; }
-.sessionCell { width: 100%; height: 100%; min-width: 0; min-height: 0; }
-.sessionCell :global([data-app-shell]) { height: 100%; }
+.gameWrap {
+	width: 100%;
+	height: 100dvh;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+	background: #efedf3;
+}
+.sessionCell {
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+	min-height: 0;
+}
+.sessionCell :global([data-app-shell]) {
+	height: 100%;
+}

@@ -14,7 +14,11 @@ Create `ComponentName.module.css` beside a React component when the rules descri
 import styles from './StatusPanel.module.css';
 
 export function StatusPanel({ active }: { active: boolean }) {
-  return <section className={styles.root} data-active={active || undefined}>...</section>;
+  return (
+    <section className={styles.root} data-active={active || undefined}>
+      ...
+    </section>
+  );
 }
 ```
 
@@ -58,9 +62,7 @@ Use native attributes such as `disabled`, `aria-pressed`, `aria-selected`, and `
 Conditional classes remain appropriate when the class represents a reusable visual part instead of state. Join imported values rather than mixing them with literal local class names:
 
 ```tsx
-const className = [styles.card, compact && styles.compact, externalClassName]
-  .filter(Boolean)
-  .join(' ');
+const className = [styles.card, compact && styles.compact, externalClassName].filter(Boolean).join(' ');
 ```
 
 ## Preserve component boundaries
@@ -69,7 +71,9 @@ A component stylesheet may style its own descendants, including native elements.
 
 ```css
 /* Avoid: SignalPreview owns this name. */
-.header .signalPreviewTag { min-height: 26px; }
+.header .signalPreviewTag {
+  min-height: 26px;
+}
 ```
 
 Use one of these boundaries instead:

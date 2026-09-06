@@ -1,15 +1,15 @@
 import type { PersistedAchievementStateV1, PersistedDefenseRecordV1 } from './types';
 
 export interface IArchiveStorageReader {
-  getDefense(id: string): Promise<unknown | undefined>;
-  getDefenses(): Promise<unknown[]>;
-  getAchievementState(): Promise<unknown | undefined>;
+	getDefense(id: string): Promise<unknown | undefined>;
+	getDefenses(): Promise<unknown[]>;
+	getAchievementState(): Promise<unknown | undefined>;
 }
 
 export interface IArchiveStorageWriter extends IArchiveStorageReader {
-  addDefense(record: PersistedDefenseRecordV1): Promise<void>;
-  putAchievementState(state: PersistedAchievementStateV1): Promise<void>;
-  clearAll(): Promise<void>;
+	addDefense(record: PersistedDefenseRecordV1): Promise<void>;
+	putAchievementState(state: PersistedAchievementStateV1): Promise<void>;
+	clearAll(): Promise<void>;
 }
 
 /**
@@ -21,6 +21,6 @@ export interface IArchiveStorageWriter extends IArchiveStorageReader {
  * supplied by the reader or writer.
  */
 export interface IArchiveStorage {
-  read<TResult>(operation: (reader: IArchiveStorageReader) => Promise<TResult>): Promise<TResult>;
-  write<TResult>(operation: (writer: IArchiveStorageWriter) => Promise<TResult>): Promise<TResult>;
+	read<TResult>(operation: (reader: IArchiveStorageReader) => Promise<TResult>): Promise<TResult>;
+	write<TResult>(operation: (writer: IArchiveStorageWriter) => Promise<TResult>): Promise<TResult>;
 }

@@ -9,20 +9,27 @@ import { defenseArchiveRepository } from './defense-archive';
 import { configureSettingsArchiveRepository } from '@prism-bastion/web-shared/ui/SettingsPanel';
 
 const root = document.querySelector<HTMLElement>('#app');
-if (!root) throw new Error('App root is missing');
+if (!root) {
+	throw new Error('App root is missing');
+}
 
 configureSettingsArchiveRepository(defenseArchiveRepository);
 
 createRoot(root).render(
-  <StrictMode>
-    <SinglePlayerApp />
-  </StrictMode>,
+	<StrictMode>
+		<SinglePlayerApp />
+	</StrictMode>,
 );
 
 const warmShaders = (): void => {
-  if ('requestIdleCallback' in window) {
-    window.requestIdleCallback(() => void preloadBloomShaders(), { timeout: 1_000 });
-  } else setTimeout(() => void preloadBloomShaders(), 0);
+	if ('requestIdleCallback' in window) {
+		window.requestIdleCallback(() => void preloadBloomShaders(), { timeout: 1_000 });
+	} else {
+		setTimeout(() => void preloadBloomShaders(), 0);
+	}
 };
-if (document.readyState === 'complete') warmShaders();
-else window.addEventListener('load', warmShaders, { once: true });
+if (document.readyState === 'complete') {
+	warmShaders();
+} else {
+	window.addEventListener('load', warmShaders, { once: true });
+}

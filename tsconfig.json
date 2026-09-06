@@ -1,13 +1,13 @@
 {
-  "extends": "./tsconfig.base.json",
-  "files": [],
-  "references": [
-    { "path": "packages/game-core" },
-    { "path": "packages/coop" },
-    { "path": "packages/web-shared" },
-    { "path": "apps/web-single" },
-    { "path": "apps/web-coop" },
-    { "path": "apps/coop-server" },
-    { "path": "scripts" }
-  ]
+	"extends": "./tsconfig.base.json",
+	"files": [],
+	"references": [
+		{ "path": "packages/game-core" },
+		{ "path": "packages/coop" },
+		{ "path": "packages/web-shared" },
+		{ "path": "apps/web-single" },
+		{ "path": "apps/web-coop" },
+		{ "path": "apps/coop-server" },
+		{ "path": "scripts" }
+	]
 }

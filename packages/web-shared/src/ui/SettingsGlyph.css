@@ -1,2 +1,10 @@
-.settings-glyph { display: grid; flex: none; place-items: center; }
-.settings-glyph svg { display: block; width: 24px; height: 24px; }
+.settings-glyph {
+	display: grid;
+	flex: none;
+	place-items: center;
+}
+.settings-glyph svg {
+	display: block;
+	width: 24px;
+	height: 24px;
+}

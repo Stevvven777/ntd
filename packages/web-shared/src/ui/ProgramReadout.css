@@ -1,45 +1,58 @@
 .program-readout {
-  min-height: 76px;
-  gap: 9px;
-  margin-top: 9px;
-  padding: 10px 12px;
-  border: 1px solid #e2e0e9;
-  border-radius: 9px;
-  background: #faf9fc;
+	min-height: 76px;
+	gap: 9px;
+	margin-top: 9px;
+	padding: 10px 12px;
+	border: 1px solid #e2e0e9;
+	border-radius: 9px;
+	background: #faf9fc;
 }
 
-.program-thought-link { flex: none; min-height: 30px; padding: 4px 8px; border: 1px solid currentColor; border-radius: 0; color: #252134; background: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
-.program-thought-link:hover { background: #ffd447; }
+.program-thought-link {
+	flex: none;
+	min-height: 30px;
+	padding: 4px 8px;
+	border: 1px solid currentColor;
+	border-radius: 0;
+	color: #252134;
+	background: #fff;
+	font-size: 11px;
+	font-weight: 800;
+	cursor: pointer;
+}
+.program-thought-link:hover {
+	background: #ffd447;
+}
 
 .program-readout > div {
-  min-width: 0;
-  flex: 1;
+	min-width: 0;
+	flex: 1;
 }
 
 .program-readout strong,
 .program-readout small {
-  display: block;
-  line-height: 1.45;
+	display: block;
+	line-height: 1.45;
 }
 
 .program-readout strong {
-  margin-bottom: 2px;
-  color: #514c5e;
-  font-size: 15px;
+	margin-bottom: 2px;
+	color: #514c5e;
+	font-size: 15px;
 }
 
 .program-readout strong .energy-bolt {
-  margin: 0 1px;
-  color: #eeb000;
-  font-size: .84em;
+	margin: 0 1px;
+	color: #eeb000;
+	font-size: 0.84em;
 }
 
 .program-readout small {
-  color: #9d99a7;
-  font-size: 15px;
+	color: #9d99a7;
+	font-size: 15px;
 }
 
 .program-readout.warning {
-  border-color: #ffd6dc;
-  background: #fff8f9;
+	border-color: #ffd6dc;
+	background: #fff8f9;
 }

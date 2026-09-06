@@ -24,15 +24,15 @@ Avoid glass panels, blurred backdrops, soft gray card stacks, gradients used as 
 
 The foundation tokens in [`foundation.css`](../../packages/web-shared/src/styles/foundation.css) establish the stable palette:
 
-| Role | Token | Value | Typical use |
-| --- | --- | --- | --- |
-| Construction ink | `--ink` | `#252134` | Shared borders, primary text, active neutral controls |
-| Violet | `--purple` | `#6558e8` | Primary action, program flow, selected global state |
-| Coral | `--coral` | `#ff637a` | interruption, close/exit emphasis, high-energy control fields |
-| Mint | `--mint` | `#13b88e` | module library, available resources, constructive state |
-| Yellow | `--yellow` | `#ffd447` | navigation blocks, headers, identifiers, utility emphasis |
-| Ground | — | `#efedf3` | page outside the composed surface |
-| Paper | — | `#ffffff` | readable content cells and control faces |
+| Role             | Token      | Value     | Typical use                                                   |
+| ---------------- | ---------- | --------- | ------------------------------------------------------------- |
+| Construction ink | `--ink`    | `#252134` | Shared borders, primary text, active neutral controls         |
+| Violet           | `--purple` | `#6558e8` | Primary action, program flow, selected global state           |
+| Coral            | `--coral`  | `#ff637a` | interruption, close/exit emphasis, high-energy control fields |
+| Mint             | `--mint`   | `#13b88e` | module library, available resources, constructive state       |
+| Yellow           | `--yellow` | `#ffd447` | navigation blocks, headers, identifiers, utility emphasis     |
+| Ground           | —          | `#efedf3` | page outside the composed surface                             |
+| Paper            | —          | `#ffffff` | readable content cells and control faces                      |
 
 Treat these as a small construction kit, not a requirement to place every color on every screen. A screen normally needs ink, paper, one structural color, and one contextual accent. The Arc Workshop uses yellow for its header, violet for the program area, and mint for the library; the Signal Compendium replaces most fixed accenting with the selected signal's `--signal-accent`.
 
@@ -205,9 +205,7 @@ Do not add a badge, tooltip, border, and background change for the same state. O
 Declare page ink, paper, and contextual accent at the component root. Pass object identity through a CSS custom property rather than generating per-entity class names:
 
 ```tsx
-<article style={{ '--subject-accent': signal.color } as CSSProperties}>
-  ...
-</article>
+<article style={{ '--subject-accent': signal.color } as CSSProperties}>...</article>
 ```
 
 ```css
