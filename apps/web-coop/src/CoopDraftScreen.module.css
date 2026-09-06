@@ -31,9 +31,9 @@
 .peerIdentity h2 { margin: 5px 0 0; overflow: hidden; font-size: 25px; letter-spacing: -.04em; text-overflow: ellipsis; white-space: nowrap; }
 .peerIdentity .offerRole { color: #087b60; }
 .peerChoices { display: grid; min-width: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); border-inline: 2px solid var(--ink); }
-.peerChoices details { position: relative; display: grid; min-width: 0; }
+.peerChoices details { position: relative; display: block; min-width: 0; }
 .peerChoices details + details { border-left: 1px solid var(--ink); }
-.peerChoices summary { --module-icon-surface: var(--module-tint); display: grid; min-width: 0; min-height: 110px; place-items: center; grid-template-columns: 48px minmax(0, 1fr); gap: 8px; padding: 9px 10px; color: var(--module-color); background: var(--module-tint); cursor: pointer; list-style: none; }
+.peerChoices summary { height: 100%; --module-icon-surface: var(--module-tint); display: grid; min-width: 0; min-height: 110px; place-items: center; grid-template-columns: 48px minmax(0, 1fr); gap: 8px; padding: 9px 10px; color: var(--module-color); background: var(--module-tint); cursor: pointer; list-style: none; }
 .peerChoices summary::-webkit-details-marker { display: none; }
 .peerChoices summary:hover,
 .peerChoices summary:focus-visible,
