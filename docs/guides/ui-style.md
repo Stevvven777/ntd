@@ -47,6 +47,14 @@ The default structural boundary is a `2px solid` ink line. Use `1px` only for su
 
 Keep divider weight consistent within the same grid or visual hierarchy. All peer boundaries must use the same thickness; do not mix `1px` and `2px` lines between equivalent regions. If a subordinate grid uses `1px` lines, the transition to it must be structurally clear, while the surrounding primary divisions remain `2px`.
 
+## Viewport and stable frame sizes
+
+Every page is a viewport-bound application surface. `html`, `body`, and `#app` must never scroll, including mobile and short landscape viewports. Keep page shells within `100dvh`; use `min-height: 0` and `minmax(0, 1fr)` throughout flexible layout chains. Remove content-driven page minimum heights and mobile overrides that restore document scrolling.
+
+Headers, navigation, and primary actions remain in their allocated regions. Long lists, configuration panels, records, and other content own bounded internal scrolling with contained overscroll. Do not solve overflow by clipping controls or making the entire page frame an internal scroll container. The home page has no scrolling modules at all: fit mode controls, difficulty or Creative values, and level selection inside their allocated cells. Use the level carousel for paging, compact secondary copy, and reduce decorative regions on small screens.
+
+A frame's dimensions are determined by viewport and layout role, not by the selected mode, tab, content length, loading state, or error message. Reserve the same region for alternative content: Standard difficulty and Creative calibration share the same home-page allocation. Keep modal outer dimensions stable across categories. Responsive resizing is appropriate when the viewport changes; ordinary selection changes must not move neighboring frames. Reduce decorative regions before reducing usable control space on short screens.
+
 ## Divide rectangles by responsibility
 
 Start from the screen's operating model, then convert it into rectangles:

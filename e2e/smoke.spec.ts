@@ -448,7 +448,7 @@ test('creative economy and signal controls are independent from the workshop', a
   await prepareReturningPlayer(page);
   await page.goto('/');
   await page.getByRole('button', { name: /Creative/ }).click();
-  await expect(page.getByRole('heading', { name: 'Creative Run Calibration' })).toBeVisible();
+  await expect(page.getByRole('spinbutton', { name: 'Core stability' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Creative .* Start deployment/ })).toBeVisible();
   await page.getByRole('spinbutton', { name: 'Core stability' }).fill('35');
   await page.getByRole('spinbutton', { name: 'Wave count' }).fill('5');

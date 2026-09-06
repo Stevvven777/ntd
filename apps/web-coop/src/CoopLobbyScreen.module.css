@@ -64,3 +64,15 @@
   .readyDock { grid-template-columns: 1fr; }
   .readyDock button { min-height: 58px; border-width: 2px 0 0; }
 }
+
+.stageShell { height: 100dvh; min-height: 0; overflow: hidden; }
+.stageConsole { height: 100%; max-height: 760px; min-height: 0; grid-template-rows: auto minmax(0, 1fr) auto auto; }
+.endpointDeck { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 620px) {
+  .stageConsole { max-height: none; }
+  .roomBadge { padding: 10px 20px; }
+  .roomBadge h1 { font-size: 30px; }
+  .stageHeading { padding: 8px 20px; }
+  .stageHeading h2 { font-size: 22px; }
+  .readyDock > div { padding: 10px 20px; }
+}

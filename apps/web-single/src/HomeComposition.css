@@ -1,0 +1,20 @@
+.home-composition { position: relative; display: block; width: 100%; height: 100%; min-height: 0; padding: 0; overflow: hidden; border: 0; border-top: 2px solid var(--select-ink); border-radius: 0; background: #fff; cursor: pointer; }
+.home-composition-grid { position: absolute; inset: 0; display: block; width: 100%; height: 100%; transition: opacity .4s ease; }
+.home-composition-grid--outline { opacity: .65; }
+.home-composition-grid--outline :is(rect, path) { fill: #fff; stroke: #000; stroke-width: 1.1px; stroke-dasharray: none; vector-effect: non-scaling-stroke; }
+.home-composition-grid--color { opacity: 0; background: #fff; }
+.home-composition-notes rect { transition: fill .3s ease; }
+.home-composition:focus-visible { outline: 3px solid var(--purple); outline-offset: -5px; box-shadow: none; }
+.home-composition:focus-visible .home-composition-grid--color { opacity: 1; }
+.home-composition:focus-visible .home-composition-grid--outline { opacity: 0; }
+@media (hover: hover) {
+  .home-composition:hover .home-composition-grid--color { opacity: 1; }
+  .home-composition:hover .home-composition-grid--outline { opacity: 0; }
+}
+@media (hover: none) {
+  .home-composition:focus .home-composition-grid--color { opacity: 1; }
+  .home-composition:focus .home-composition-grid--outline { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-composition-grid, .home-composition-notes rect { transition: none; }
+}

@@ -88,3 +88,15 @@
   .peerChoices summary span { display: none; }
   .peerPopover { position: fixed; inset: auto 10px 10px; width: auto; }
 }
+
+.stageShell { height: 100dvh; min-height: 0; overflow: hidden; }
+.stageConsole.draftConsole { height: 100%; max-height: 900px; min-height: 0; }
+.draftWorkspace { overflow: hidden; grid-template-rows: minmax(0, 130px) minmax(0, 1fr); }
+.peerOffer { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.choiceGrid { overflow-y: auto; overscroll-behavior: contain; align-content: start; }
+@media (max-width: 620px) {
+  .stageConsole.draftConsole { max-height: none; }
+  .draftMasthead > div:first-child { padding: 8px 16px; }
+  .draftHeadActions { min-height: 52px; }
+  .draftWorkspace { grid-template-rows: minmax(0, 100px) minmax(0, 1fr); }
+}

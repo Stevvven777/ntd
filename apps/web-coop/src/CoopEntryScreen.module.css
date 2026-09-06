@@ -243,3 +243,19 @@
   .createPanel { border-right: 0; border-bottom: 2px solid var(--ink); }
   .entryFooter { align-items: flex-start; padding: 14px 20px; flex-direction: column; }
 }
+
+.entryShell { height: 100dvh; min-height: 0; overflow: hidden; }
+.entryConsole { height: 100%; max-height: 760px; min-height: 0; }
+.entryIdentity, .entryOperations { min-height: 0; overflow: hidden; }
+.entryIdentity { overflow-y: auto; overscroll-behavior: contain; }
+.createPanel, .joinPanel { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+@media (max-width: 900px) {
+  .entryConsole { grid-template-rows: 110px minmax(0, 1fr); }
+  .entryIdentity { min-height: 0; padding: 14px 22px; }
+  .entryIdentity h1 { margin: 8px 0 0; font-size: 32px; }
+  .entryIdentity .intro, .entryMark, .voiceNote { display: none; }
+}
+@media (max-width: 620px) {
+  .entryConsole { max-height: none; }
+  .entryOperations { grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) auto auto; }
+}

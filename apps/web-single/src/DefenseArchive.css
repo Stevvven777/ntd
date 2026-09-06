@@ -5,7 +5,8 @@
   --archive-coral: #ff637a;
   width: min(1440px, calc(100% - 40px));
   height: 100dvh;
-  min-height: 600px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .defense-archive-frame {
@@ -318,8 +319,8 @@
 }
 
 @media (max-width: 760px) {
-  .defense-archive-shell { width: calc(100% - 20px); height: auto; min-height: 100dvh; padding: 10px 0; }
-  .defense-archive-frame { min-height: calc(100vh - 20px); border-radius: 12px; }
+  .defense-archive-shell { width: calc(100% - 20px); height: 100dvh; min-height: 0; padding: 10px 0; }
+  .defense-archive-frame { min-height: 0; border-radius: 12px; }
   .defense-archive-tabs button { min-height: 52px; padding: 5px; font-size: 12px; line-height: 1.15; }
   .defense-archive-tabs button::before { display: none; }
   .defense-archive-tabs b { display: none; }
@@ -349,7 +350,7 @@
   .achievement-grid small { font-size: 11px; }
   .defense-archive-content,
   .defense-archive-content[data-tab='sectors'],
-  .defense-archive-content[data-tab='history'] { overflow: visible; }
+  .defense-archive-content[data-tab='history'] { overflow: auto; overscroll-behavior: contain; }
   .history-layout { display: block; height: auto; min-height: 520px; }
   .history-list { border-right: 0; }
   .history-layout.has-detail .history-list { display: none; }
