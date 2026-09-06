@@ -1,3 +1,4 @@
+import { UiIcon } from './UiIcon';
 import { useEffect } from 'react';
 import { getKeybindings, matchesKeybinding, shouldIgnoreGameShortcut, useKeybindings } from './keybindings';
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
@@ -68,12 +69,12 @@ export function GameHeader({
 
       <div className="top-stats" aria-label={t('header.gameStatus')}>
         <div className="metric core-metric">
-          <span className="metric-icon heart-icon">♥</span>
+          <span className="metric-icon heart-icon"><UiIcon name="heart" /></span>
           <div><small>{t('header.core')}</small><strong>{snapshot.core}<em>/{snapshot.maxCore}</em></strong></div>
           <div className="micro-bar"><i style={{ width: `${snapshot.core / snapshot.maxCore * 100}%` }} /></div>
         </div>
         <div className="metric shard-metric">
-          <span className="metric-icon shard-icon">◇</span>
+          <span className="metric-icon shard-icon"><UiIcon name="diamond" /></span>
           <div><small>{t('header.shards')}</small><strong>{engine.rules.economy === 'unlimited' ? '∞' : snapshot.shards}</strong></div>
         </div>
         <div className="metric wave-metric">
@@ -90,7 +91,7 @@ export function GameHeader({
           ))}
         </div>}
         {engine.externallyControlled ? null : <button disabled={drafting} aria-keyshortcuts={bindings.pause ?? undefined} title={bindings.pause ?? undefined} className={`icon-button pause-button ${snapshot.manuallyPaused ? 'active' : ''}`} onClick={() => engine.togglePause()} aria-label={snapshot.manuallyPaused ? t('header.resume') : t('header.pause')}>
-          <span className="pause-glyph">{snapshot.manuallyPaused ? '▶' : 'Ⅱ'}</span>
+          <span className="pause-glyph"><UiIcon name={snapshot.manuallyPaused ? 'play' : 'pause'} /></span>
         </button>}
         <button
           className="launch-button"
@@ -102,7 +103,7 @@ export function GameHeader({
           disabled={launchDisabled ?? waveDisabled}
           aria-label={launchReady ? (launchCancelLabel ?? launchWave) : `${launchLabel} · ${launchWave}`}
         >
-          <span className="launch-icon">{launchReady ? '×' : '▶'}</span>
+          <span className="launch-icon"><UiIcon name={launchReady ? 'close' : 'play'} /></span>
           <span className="launch-copy"><small>{launchLabel}</small><strong>{launchWave}</strong></span>
         </button>
       </div>

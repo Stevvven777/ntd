@@ -1,3 +1,4 @@
+import { UiIcon } from './UiIcon';
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
@@ -28,7 +29,7 @@ export function TowerOverview({ tower, engine }: { tower: Tower; engine: GameEng
       </select></label>
       <button onClick={() => engine.upgradeSelectedTower()} disabled={upgradeCost === 0 || engine.status === 'wave'}
         title={upgradeCost === 0 ? t('tower.maxTitle') : t('tower.upgradeTitle')}>
-        <span>{upgradeCost === 0 ? t('tower.maximum') : t('tower.upgrade', { level: tower.level + 1 })}</span><strong>{upgradeCost === 0 ? t('tower.maxed') : `${upgradeCost} ◇`}</strong>
+        <span>{upgradeCost === 0 ? t('tower.maximum') : t('tower.upgrade', { level: tower.level + 1 })}</span><strong>{upgradeCost === 0 ? t('tower.maxed') : <>{upgradeCost} <UiIcon name="diamond" /></>}</strong>
       </button>
     </div>
   </>;

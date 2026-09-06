@@ -1,3 +1,4 @@
+import { UiIcon } from './UiIcon';
 import { matchesKeybinding, useKeybindings } from './keybindings';
 import type { DragEvent, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -60,7 +61,7 @@ export function ModuleSlot({ index, isLast, definition, selectedModule, onSelect
             title={t('moduleSlot.filledTitle', { module: moduleName(t, definition.id), description: moduleDescription(t, definition), left: bindings.moveLeft ?? t('settings.keys.unbound'), right: bindings.moveRight ?? t('settings.keys.unbound') })}>
             <span className="slot-kind">{KIND_SYMBOL[definition.kind]}</span><span className="slot-icon">{Icon ? <Icon /> : null}</span><small>{moduleShortName(t, definition.id)}</small>
           </button>
-          <button className="slot-remove" onClick={() => engine.installModule(index, null)} aria-label={t('moduleSlot.remove', { slot: index + 1, module: moduleName(t, definition.id) })}>×</button>
+          <button className="slot-remove" onClick={() => engine.installModule(index, null)} aria-label={t('moduleSlot.remove', { slot: index + 1, module: moduleName(t, definition.id) })}><UiIcon name="close" /></button>
         </div>
       )}
       {!isLast ? <span className="flow-arrow">›</span> : null}

@@ -1,3 +1,4 @@
+import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -207,7 +208,7 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
                 onKeyDown={(event) => cycleDifficulty(event, index)}
                 onClick={() => setDifficultyId(difficulty.id)}
               >
-                <span>{difficulty.rank < 0 ? '◇'.repeat(-difficulty.rank) : difficulty.rank > 0 ? '◆'.repeat(difficulty.rank) : '—'}</span>
+                <span>{difficulty.rank < 0 ? Array.from({ length: -difficulty.rank }, (_, index) => <UiIcon key={index} name="diamond" />) : difficulty.rank > 0 ? Array.from({ length: difficulty.rank }, (_, index) => <UiIcon key={index} name="diamondFilled" />) : '—'}</span>
                 <strong>{difficultyName(t, difficulty.id)}</strong>
               </button>
             ))}
@@ -268,7 +269,7 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
           >
             <div className="level-map-wrap"><LevelMap level={level} /><Tag className="level-sector-tag" tone="accent" monospace>{level.sector.replace('SECTOR ', '')}</Tag></div>
             <div className="level-card-copy">
-              <div><small>{'◆'.repeat(level.difficulty)}{'◇'.repeat(3 - level.difficulty)}</small><b>{t('levelSelect.waves', { count: level.waves.length })}</b></div>
+              <div><small>{Array.from({ length: 3 }, (_, index) => <UiIcon key={index} name={index < level.difficulty ? 'diamondFilled' : 'diamond'} />)}</small><b>{t('levelSelect.waves', { count: level.waves.length })}</b></div>
               <h2>{levelName(t, level.id)}</h2>
               <p>{levelDescription(t, level.id)}</p>
               <footer><Tag>{t('levelSelect.towerNodes', { count: level.towerPads.length })}</Tag></footer>
@@ -290,7 +291,7 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
               <div><input aria-label={t('levelSelect.coreStability')} type="number" min="1" value={creative.coreStability} onChange={(event) => {
                 const value = Number(event.currentTarget.value);
                 setCreative((current) => ({ ...current, coreStability: positiveInteger(value, current.coreStability) }));
-              }} /><b>♥</b></div>
+              }} /><b><UiIcon name="heart" /></b></div>
             </label>
             <label className="wave-rule">
               <span>{t('levelSelect.waveCount')}</span>

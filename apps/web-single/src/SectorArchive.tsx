@@ -1,3 +1,4 @@
+import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
 import { useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LEVELS } from '@prism-bastion/game-core/game/config';
@@ -103,7 +104,7 @@ export function SectorArchive({ records }: { records: DefenseRecord[] }) {
 
     <article className="sector-archive-record" aria-live="polite">
       <section className="sector-route-stage" aria-label={t('defenseArchive.sectors.routeAria')}>
-        {config ? <LevelMap level={config} /> : <div className="sector-route-unknown" aria-hidden="true">◇</div>}
+        {config ? <LevelMap level={config} /> : <div className="sector-route-unknown" aria-hidden="true"><UiIcon name="diamond" /></div>}
         <div className="sector-record-code"><span>{t('defenseArchive.sectors.recordLabel')}</span><strong>{sectorCode}</strong></div>
       </section>
 
