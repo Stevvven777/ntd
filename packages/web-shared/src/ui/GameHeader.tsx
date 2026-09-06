@@ -91,7 +91,9 @@ export function GameHeader({
 	return (
 		<header className="topbar">
 			<button className="exit-button" onClick={onExit} aria-label={t('header.exit')}>
-				<span aria-hidden="true">←</span>
+				<span aria-hidden="true">
+					<UiIcon name="arrowLeft" />
+				</span>
 				<strong>{t('header.back')}</strong>
 			</button>
 
@@ -121,7 +123,9 @@ export function GameHeader({
 					</div>
 				</div>
 				<div className="metric wave-metric">
-					<span className="metric-icon wave-icon">≋</span>
+					<span className="metric-icon wave-icon">
+						<UiIcon name="waves" />
+					</span>
 					<div>
 						<small>{t('header.wave')}</small>
 						<strong>

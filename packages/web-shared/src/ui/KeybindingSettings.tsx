@@ -1,4 +1,5 @@
 import { UiIcon } from './UiIcon';
+import { KeybindingDisplay } from './KeybindingDisplay';
 import './KeybindingSettings.css';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -73,6 +74,12 @@ export function KeybindingSettings() {
 							type="button"
 							aria-labelledby={`keybinding-${action}`}
 							aria-pressed={recording === action}
+							aria-description={
+								recording === action
+									? t('settings.keys.listening')
+									: (bindings[action] ?? t('settings.keys.unbound'))
+							}
+							title={bindings[action] ?? undefined}
 							onBlur={() => {
 								if (recording === action) {
 									setRecording(null);
@@ -83,9 +90,11 @@ export function KeybindingSettings() {
 								setMessage('');
 							}}
 						>
-							{recording === action
-								? t('settings.keys.listening')
-								: (bindings[action] ?? t('settings.keys.unbound'))}
+							{recording === action ? (
+								t('settings.keys.listening')
+							) : (
+								<KeybindingDisplay binding={bindings[action] ?? t('settings.keys.unbound')} />
+							)}
 						</button>
 						<button
 							type="button"

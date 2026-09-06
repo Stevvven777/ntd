@@ -1213,5 +1213,7 @@
 	"settings.keys.unbound": "Unbound",
 	"settings.categories.info": "Info",
 	"settings.keys.pageNavigationReserved": "Left and right arrows are reserved for browsing Thought Index records. Choose another key or add a modifier.",
-	"tower.upgradeAria": "Upgrade Lv.{{level}}, cost {{cost}} shards"
+	"tower.upgradeAria": "Upgrade Lv.{{level}}, cost {{cost}} shards",
+	"defenseArchive.previousPage": "Previous records page",
+	"defenseArchive.nextPage": "Next records page"
 }

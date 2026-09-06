@@ -1,3 +1,4 @@
+import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LEVELS, TUTORIAL_LEVEL_ID } from '@prism-bastion/game-core/game/config';
@@ -85,7 +86,9 @@ export function CoopEntryScreen({ connection, error, onCreateRoom, onJoinRoom, o
 								/>
 							</label>
 							<button className={styles.backButton} type="button" onClick={onBack}>
-								<span aria-hidden="true">←</span>
+								<span aria-hidden="true">
+									<UiIcon name="arrowLeft" />
+								</span>
 								{t('coop.singlePlayer')}
 							</button>
 							<div className={styles.screenSettings}>

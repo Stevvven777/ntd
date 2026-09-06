@@ -1,3 +1,4 @@
+import { UiIcon } from './UiIcon';
 import type { ComponentProps, ReactNode } from 'react';
 import { SettingsPanel } from './SettingsPanel';
 import './ArchiveHeader.css';
@@ -25,7 +26,9 @@ export function ArchiveHeader({
 	return (
 		<header className={classes}>
 			<button className="archive-back" onClick={onBack} aria-label={backLabel}>
-				<span aria-hidden="true">←</span>
+				<span aria-hidden="true">
+					<UiIcon name="arrowLeft" />
+				</span>
 			</button>
 			<div className="archive-title">
 				<h1>{title}</h1>

@@ -76,7 +76,16 @@ export function FullSiteApp() {
 			<SinglePlayerApp
 				homeActions={
 					<button type="button" className="coop-home-entry" onClick={enterCoop}>
-						<svg className="coop-home-entry-mark" viewBox="0 0 44 30" aria-hidden="true">
+						<svg
+							className="coop-home-entry-mark"
+							viewBox="0 0 44 30"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2"
+							strokeLinejoin="miter"
+							aria-hidden="true"
+							focusable="false"
+						>
 							<path className="coop-home-entry-link" d="M15 19h14" />
 							<path
 								className="coop-home-entry-player coop-home-entry-player-left"

@@ -1,3 +1,4 @@
+import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getLevel } from '@prism-bastion/game-core/game/config';
@@ -59,7 +60,9 @@ export function LevelSelect({
 							</small>
 							<strong>{t('levelSelect.startAction')}</strong>
 						</span>
-						<b aria-hidden="true">→</b>
+						<b aria-hidden="true">
+							<UiIcon name="arrowRight" />
+						</b>
 					</button>
 				</header>
 				<MissionSetup selection={selection} />

@@ -51,7 +51,15 @@ export function LevelCarousel({
 						aria-label={t('defenseArchive.entryAria')}
 					>
 						<span className={styles['defense-archive-entry-marks']} aria-hidden="true">
-							<svg viewBox="0 0 44 30">
+							<svg
+								viewBox="0 0 44 30"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="2"
+								strokeLinejoin="miter"
+								aria-hidden="true"
+								focusable="false"
+							>
 								<path
 									className={`${styles['defense-archive-sheet']} ${styles.back}`}
 									d="M8 1.5h25l8 8v16H8z"
@@ -108,7 +116,9 @@ export function LevelCarousel({
 					onClick={() => selection.moveCarousel(-1)}
 					disabled={selection.carouselStart === 0}
 					aria-label={t('levelSelect.previousLevels')}
-				/>
+				>
+					<UiIcon name="arrowLeft" />
+				</button>
 				<section
 					key={selection.carouselStart}
 					ref={selection.levelGroupRef}
@@ -164,7 +174,9 @@ export function LevelCarousel({
 					onClick={() => selection.moveCarousel(1)}
 					disabled={selection.carouselStart === selection.maximumCarouselStart}
 					aria-label={t('levelSelect.nextLevels')}
-				/>
+				>
+					<UiIcon name="arrowRight" />
+				</button>
 			</div>
 		</section>
 	);
