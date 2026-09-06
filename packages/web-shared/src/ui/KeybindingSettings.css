@@ -9,6 +9,5 @@
 .keybinding-status { min-height: 2.6em; margin: 10px 0; font-size: 12px; line-height: 1.4; }
 .keybinding-reset { width: 100%; }
 
-.settings-section-copy .keybinding-navigation-hint { padding: 10px 12px; border-left: 3px solid var(--purple, #6558e8); color: var(--ink, #252134); background: #efedf3; font-size: 13px; }
 .keybinding-status:empty { display: none; }
 .keybinding-reset { margin-top: 12px; }

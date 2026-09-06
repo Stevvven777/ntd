@@ -113,7 +113,7 @@
 .settings-auto-pause-section .settings-section-copy { padding-block: 0; }
 .auto-pause-options button > span { font-family: var(--font-mono); font-size: 13px; }
 
-.settings-storage-section { border-top: 2px solid var(--ink, #252134); background: #fff; }
+.settings-storage-section { border-block: 2px solid var(--ink, #252134); background: #fff; }
 .settings-storage-action { display: flex; min-width: 0; flex-direction: column; justify-content: center; }
 .settings-storage-action button {
   min-height: 48px;
