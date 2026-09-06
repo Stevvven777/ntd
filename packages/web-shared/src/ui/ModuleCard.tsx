@@ -44,13 +44,15 @@ export function ModuleCard({
 	};
 	return (
 		<button
-			className={`module-card rarity-${definition.meta.rarity} ${selected ? 'selected' : ''} ${exhausted ? 'exhausted' : ''}`}
+			className={`module-card selection-option rarity-${definition.meta.rarity} ${selected ? 'selected' : ''} ${exhausted ? 'exhausted' : ''}`}
 			data-tutorial-module={tutorialId}
 			data-touch-module={exhausted ? undefined : definition.id}
 			style={moduleVariableStyle(definition)}
 			draggable={!exhausted}
 			onDragStart={dragStart}
 			onClick={onSelect}
+			onFocus={onSelect}
+			aria-pressed={selected}
 			onDoubleClick={quickInstall}
 			title={exhausted ? t('moduleCard.exhaustedTitle') : t('moduleCard.installTitle')}
 		>

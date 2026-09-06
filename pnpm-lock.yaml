@@ -105,6 +105,9 @@ importers:
       '@prism-bastion/web-single':
         specifier: workspace:*
         version: link:../web-single
+      i18next:
+        specifier: ^26.4.0
+        version: 26.4.0(typescript@5.9.3)
       react:
         specifier: ^19.1.1
         version: 19.2.8
@@ -127,6 +130,9 @@ importers:
       '@prism-bastion/web-shared':
         specifier: workspace:*
         version: link:../../packages/web-shared
+      i18next:
+        specifier: ^26.4.0
+        version: 26.4.0(typescript@5.9.3)
       react:
         specifier: ^19.1.1
         version: 19.2.8

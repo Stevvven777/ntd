@@ -171,7 +171,8 @@ describe('workshop slot clicking', () => {
 		fireEvent.click(filledSlot);
 
 		expect(engine.towers[0].slots[1]).toBe('pulse');
-		expect(pulseCard.classList.contains('selected')).toBe(true);
+		expect(pulseCard.classList.contains('selected')).toBe(false);
+		expect(container.querySelector('.module-slot[data-slot="1"]')?.getAttribute('aria-pressed')).toBe('true');
 		expect(arcboltCard.classList.contains('selected')).toBe(false);
 	});
 });

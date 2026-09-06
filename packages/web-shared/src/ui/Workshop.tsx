@@ -1,6 +1,7 @@
+import { useWorkshopSelection, type WorkshopSelection } from './useWorkshopSelection';
 import { UiIcon } from './UiIcon';
 import type { CSSProperties } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
@@ -43,6 +44,7 @@ function WorkshopProgram({
 	kindFilter,
 	transferPending,
 	onSelectModule,
+	selection,
 	onImport,
 	onExport,
 	onOpenThought,
@@ -54,6 +56,7 @@ function WorkshopProgram({
 	kindFilter: KindFilter;
 	transferPending: 'import' | 'export' | null;
 	onSelectModule: (id: ModuleId, kindFilter: KindFilter) => void;
+	selection: WorkshopSelection;
 	onImport: () => Promise<void>;
 	onExport: () => Promise<void>;
 	onOpenThought?: ((thoughtId: string) => void) | undefined;
@@ -105,8 +108,15 @@ function WorkshopProgram({
 						isLast={index === tower.slots.length - 1}
 						definition={moduleId ? engine.modules.get(moduleId) : undefined}
 						selectedModule={selectedModule}
-						onSelectModule={(id) => onSelectModule(id, kindFilter)}
-						engine={engine}
+						selected={selection.activeSlot?.index === index}
+						onSelect={() => {
+							if (moduleId) {
+								onSelectModule(moduleId, kindFilter);
+							}
+							selection.selectSlot(index);
+						}}
+						onInstall={selection.installModule}
+						onSwap={selection.swapModules}
 					/>
 				))}
 			</div>
@@ -214,24 +224,13 @@ export function Workshop({
 }) {
 	const { t } = useTranslation();
 	const workshopRef = useRef<HTMLElement>(null);
-	const installModule = useCallback(
-		(slot: number, moduleId: ModuleId) => {
-			engine.installModule(slot, moduleId);
-		},
-		[engine],
-	);
-	const swapModules = useCallback(
-		(source: number, destination: number) => {
-			engine.swapModules(source, destination);
-		},
-		[engine],
-	);
-	useTouchModuleDrag(workshopRef, installModule, swapModules);
 	const definitions = useMemo(() => {
 		void view.revision;
 		return engine.getLibraryModules();
 	}, [engine, view.revision]);
 	const [selectedModule, setSelectedModule] = useState<ModuleId | null>(() => definitions[0]?.id ?? null);
+	const selection = useWorkshopSelection(engine, tower, view.revision, workshopRef, setSelectedModule);
+	useTouchModuleDrag(workshopRef, selection.installModule, selection.swapModules);
 	const [kindFilter, setKindFilter] = useState<'all' | ModuleKind>('all');
 	const [transferPending, setTransferPending] = useState<'import' | 'export' | null>(null);
 	const visibleDefinitions = useMemo(
@@ -239,10 +238,13 @@ export function Workshop({
 		[definitions, kindFilter],
 	);
 	useEffect(() => {
-		if (!selectedModule || !visibleDefinitions.some((definition) => definition.id === selectedModule)) {
+		if (
+			!selection.activeSlot &&
+			(!selectedModule || !visibleDefinitions.some((definition) => definition.id === selectedModule))
+		) {
 			setSelectedModule(visibleDefinitions[0]?.id ?? null);
 		}
-	}, [selectedModule, visibleDefinitions]);
+	}, [selection.activeSlot, selectedModule, visibleDefinitions]);
 	const selectedDefinition = selectedModule
 		? definitions.find((definition) => definition.id === selectedModule)
 		: undefined;
@@ -253,7 +255,7 @@ export function Workshop({
 	const quickInstall = (id: ModuleId): void => {
 		const empty = tower.slots.findIndex((slot) => slot === null);
 		if (empty >= 0) {
-			engine.installModule(empty, id);
+			selection.installModule(empty, id);
 		}
 	};
 
@@ -323,7 +325,12 @@ export function Workshop({
 	};
 
 	return (
-		<aside ref={workshopRef} className="workshop" aria-label={t('workshop.aria')}>
+		<aside
+			ref={workshopRef}
+			onKeyDown={selection.moveSelectedModule}
+			className="workshop"
+			aria-label={t('workshop.aria')}
+		>
 			<div className="workshop-head">
 				<h2>
 					{t('workshop.title')} <span>{t('workshop.subtitle')}</span>
@@ -358,7 +365,16 @@ export function Workshop({
 
 				<div className="workshop-main">
 					<WorkshopProgram
-						{...{ engine, tower, program, selectedModule, kindFilter, transferPending, onOpenThought }}
+						{...{
+							engine,
+							tower,
+							program,
+							selectedModule,
+							kindFilter,
+							transferPending,
+							onOpenThought,
+							selection,
+						}}
 						onSelectModule={(id, currentFilter) => {
 							const installed = engine.modules.get(id);
 							if (currentFilter !== 'all' && installed?.kind !== currentFilter) {
@@ -374,11 +390,11 @@ export function Workshop({
 						engine={engine}
 						view={view}
 						definitions={visibleDefinitions}
-						selectedModule={selectedModule}
+						selectedModule={selection.activeSlot ? null : selectedModule}
 						kindFilter={kindFilter}
 						filterLabel={filterLabel}
 						onFilter={setKindFilter}
-						onSelect={setSelectedModule}
+						onSelect={selection.selectLibraryModule}
 						onQuickInstall={quickInstall}
 					/>
 				</div>
