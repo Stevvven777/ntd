@@ -73,7 +73,7 @@ export function resolveSpawnEntrances(
   entry: SpawnEntry,
   graph: RouteMap,
 ): readonly NodeId[] {
-  if (entry.entrance) {
+  if (entry.entrance !== undefined) {
     if (!graph.entrances.includes(entry.entrance)) {
       throw new Error(`Unknown entrance ${entry.entrance} for ${entry.type}`);
     }

@@ -53,6 +53,7 @@ describe('multi-entrance spawning and targeting', () => {
       expect(resolveSpawnEntrances({ type }, level.graph)).toEqual(level.graph.entrances);
       expect(resolveSpawnEntrances({ type, entrance }, level.graph)).toEqual([entrance]);
       expect(() => resolveSpawnEntrances({ type, entrance: 'missing' }, level.graph)).toThrow('Unknown entrance');
+      expect(() => resolveSpawnEntrances({ type, entrance: '' }, level.graph)).toThrow('Unknown entrance');
     }
   });
 
