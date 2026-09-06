@@ -1,3 +1,4 @@
+import { UiIcon } from './UiIcon';
 import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -116,7 +117,7 @@ export function Workshop({ engine, tower, view, onOpenThought, onToast }: {
         <h2>{t('workshop.title')} <span>{t('workshop.subtitle')}</span></h2>
         <div className="workshop-head-actions">
           <Tag className="tower-id" tone="yellow">{t('tower.nodeNumber', { id: String(tower.id).padStart(2, '0') })}</Tag>
-          <button className="workshop-close" data-tutorial-workshop-close onClick={() => engine.selectTower(null)} aria-label={t('workshop.close')}>×</button>
+          <button className="workshop-close" data-tutorial-workshop-close onClick={() => engine.selectTower(null)} aria-label={t('workshop.close')}><UiIcon name="close" /></button>
         </div>
       </div>
 

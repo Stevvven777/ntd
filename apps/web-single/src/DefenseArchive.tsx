@@ -1,3 +1,4 @@
+import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LEVELS } from '@prism-bastion/game-core/game/config';
@@ -76,7 +77,7 @@ const Achievements = ({ snapshot }: { snapshot: DefenseArchiveSnapshot }) => {
       <div className="achievement-grid">{achievements.map((achievement) => {
         const unlocked = achievement.unlockedAt !== null;
         return <article key={achievement.id} className={unlocked ? 'unlocked' : ''}>
-          <div className="achievement-mark" aria-hidden="true">{unlocked ? '◆' : '◇'}</div>
+          <div className="achievement-mark" aria-hidden="true"><UiIcon name={unlocked ? 'diamondFilled' : 'diamond'} /></div>
           <div><h3>{t(`defenseArchive.achievements.${achievement.id}.name`)}</h3><p>{t(`defenseArchive.achievements.${achievement.id}.description`)}</p>
             <div className="achievement-progress"><i style={{ width: `${Math.min(100, achievement.current / achievement.target * 100)}%` }} /></div>
             <small>{unlocked && achievement.unlockedAt
@@ -93,7 +94,7 @@ const DefenseDetail = ({ record, onClose }: { record: DefenseRecord; onClose: ()
   const { t } = useTranslation();
   const wallSeconds = (record.endedAt - record.startedAt) / 1000;
   return <article className="defense-detail" data-result={record.result}>
-    <header><div><span>{new Date(record.endedAt).toLocaleString()}</span><h2>{levelName(t, record.levelId)}</h2></div><button onClick={onClose} aria-label={t('defenseArchive.closeDetail')}>×</button></header>
+    <header><div><span>{new Date(record.endedAt).toLocaleString()}</span><h2>{levelName(t, record.levelId)}</h2></div><button onClick={onClose} aria-label={t('defenseArchive.closeDetail')}><UiIcon name="close" /></button></header>
     <div className="defense-result-line"><strong>{t(`defenseArchive.result.${record.result}`)}</strong><span>{difficultyName(t, record.difficultyId)} · {record.waveReached}/{record.maxWaves}</span></div>
     <dl className="defense-facts">
       <div><dt>{t('defenseArchive.detail.core')}</dt><dd>{record.core}/{record.maxCore}</dd></div>
@@ -139,7 +140,7 @@ const History = ({ records }: { records: DefenseRecord[] }) => {
       </button>)}</div>}
       <footer className="history-pages"><button disabled={page === 0} onClick={() => setPage((value) => value - 1)}>←</button><span>{page + 1} / {pageCount}</span><button disabled={page + 1 >= pageCount} onClick={() => setPage((value) => value + 1)}>→</button></footer>
     </section>
-    {selected ? <DefenseDetail record={selected} onClose={() => setSelectedId(null)} /> : <aside className="history-prompt"><div>◇</div><strong>{t('defenseArchive.selectDefense')}</strong><p>{t('defenseArchive.selectDefenseDetail')}</p></aside>}
+    {selected ? <DefenseDetail record={selected} onClose={() => setSelectedId(null)} /> : <aside className="history-prompt"><div><UiIcon name="diamond" /></div><strong>{t('defenseArchive.selectDefense')}</strong><p>{t('defenseArchive.selectDefenseDetail')}</p></aside>}
   </div>;
 };
 

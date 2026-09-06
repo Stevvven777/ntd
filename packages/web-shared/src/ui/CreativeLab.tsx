@@ -1,3 +1,4 @@
+import { UiIcon } from './UiIcon';
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
@@ -20,7 +21,7 @@ export function CreativeLab({ engine, setup, onClose }: { engine: GameEngine; se
         <h2 id="creative-lab-title">{t('creativeLab.title')}</h2>
         <small>{t('creativeLab.description')}</small>
       </div>
-      <button type="button" className="creative-lab-close" onClick={onClose} aria-label={t('creativeLab.close')}>×</button>
+      <button type="button" className="creative-lab-close" onClick={onClose} aria-label={t('creativeLab.close')}><UiIcon name="close" /></button>
     </header>
     <div className="creative-lab-body">
     <div className="creative-signal-grid">{SIGNAL_IDS.map((type) => {

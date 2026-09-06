@@ -159,6 +159,8 @@ Settings interaction and copy follow the same restrained approach:
 
 The existing system sans face carries headings and prose. Use tight, heavy display headings for screen identity, regular compact text for explanation, and `--font-mono` only for IDs, measurements, counts, short codes, and symbolic readouts.
 
+Do not use Unicode emoji in the interface, including symbols that can render as emoji through system font fallback or variation selectors. When an icon is needed, use SVG instead of a Unicode character glyph. Reuse shared SVG components such as `UiIcon` so shape, weight, and alignment remain consistent across platforms. This applies to controls, status indicators, and decorative icons; ordinary text, punctuation, and mathematical notation remain text. Decorative SVGs must be hidden from assistive technology, and icon-only controls must have a localized accessible label.
+
 On desktop and tablet layouts, primary text must be at least `14px`; decorative or supporting text must be at least `13px`. At mobile breakpoints, the minimums become `12px` for primary text and `11px` for decorative or supporting text. These are hard lower bounds, not target sizes: controls, values, body copy, and other text needed to operate or understand the interface should normally remain larger. Placeholder ornament, non-text geometry, and text rendered as part of an imported image are not substitutes for readable interface labels.
 
 Keep labels close to the edge or value they explain. A rectangular UI becomes noisy when every cell repeats a heading, subtitle, border, icon, and badge. In a dense region, choose the smallest combination that still communicates role:
@@ -231,6 +233,7 @@ Keep each component's structural styles in its same-named stylesheet. Shared pri
 - Does the mobile layout become a sensible reading sequence rather than a miniature desktop grid?
 - Are localized labels allowed to truncate or wrap without moving structural boundaries unpredictably?
 - Does primary/supporting text stay at or above `14px`/`13px`, or `12px`/`11px` on mobile?
+- Do interface icons use SVG rather than Unicode emoji or character glyphs?
 - Does the result still read clearly in the Canvas/WebGL-free UI layer and with reduced motion?
 
 The [rendering performance guide](rendering-performance.md) covers Canvas and effects. This page applies only to DOM interface composition and its visual language.

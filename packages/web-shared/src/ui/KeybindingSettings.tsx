@@ -1,3 +1,4 @@
+import { UiIcon } from './UiIcon';
 import './KeybindingSettings.css';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -44,7 +45,7 @@ export function KeybindingSettings() {
         </button>
         <button type="button" className="keybinding-clear" disabled={bindings[action] === null}
           aria-label={t('settings.keys.clear', { action: t(`settings.keys.${action}`) })}
-          onClick={() => { saveKeybindings({ ...bindings, [action]: null }); setRecording(null); setMessage(''); }}>×</button>
+          onClick={() => { saveKeybindings({ ...bindings, [action]: null }); setRecording(null); setMessage(''); }}><UiIcon name="close" /></button>
       </div>)}
       <p className="keybinding-status" role="status">{message}</p>
       <button type="button" className="keybinding-reset" onClick={() => {

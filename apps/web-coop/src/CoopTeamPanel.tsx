@@ -1,3 +1,4 @@
+import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CoopPlayerId, CoopPlayerSnapshot, CoopRoomSnapshot } from '@prism-bastion/coop/types';
@@ -36,11 +37,11 @@ export function CoopTeamPanel({
   return <section className={styles.teamPanel} role="dialog" aria-labelledby="coop-team-console-title">
     <header>
       <div><h2 id="coop-team-console-title">{t('coop.consoleTitle')}</h2><p>{t('coop.room')} <b className={styles.code}>{room.code}</b> · {t(`coop.phase.${room.phase}`)}</p></div>
-      <button onClick={onClose} aria-label={t('coop.closeConsole')}>×</button>
+      <button onClick={onClose} aria-label={t('coop.closeConsole')}><UiIcon name="close" /></button>
     </header>
     <div className={styles.teamRoster}>{room.players.map((player) => <section className={player.id === playerId ? styles.localPlayer : styles.peerPlayer} key={player.id}>
       <div className={styles.playerName}><span>{player.id === playerId ? t('coop.you') : t('coop.friend')}</span><strong>{player.name}</strong></div>
-      <div className={styles.playerStats}><b><small>{t('coop.core')}</small>♥ {player.plan.core}/{player.plan.maxCore}</b><b><small>{t('coop.shards')}</small>◇ {player.plan.shards}</b></div>
+      <div className={styles.playerStats}><b><small>{t('coop.core')}</small><span><UiIcon name="heart" /> {player.plan.core}/{player.plan.maxCore}</span></b><b><small>{t('coop.shards')}</small><span><UiIcon name="diamond" /> {player.plan.shards}</span></b></div>
       <p>{player.eliminated ? t('coop.eliminated') : player.combatSubmitted ? t('coop.defenseDone') : player.ready ? t('coop.ready') : player.connected ? t('coop.connected') : t('coop.reconnecting')}</p>
     </section>)}</div>
     {peer && viewedPlayer ? <div className={styles.viewSwitch} data-peer={viewingPeer}>

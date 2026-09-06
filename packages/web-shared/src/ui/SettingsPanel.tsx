@@ -1,3 +1,4 @@
+import { UiIcon } from './UiIcon';
 import { BUILD_COMMIT, BUILD_COMMIT_DATE } from '../build-info';
 import { KeybindingSettings } from './KeybindingSettings';
 import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
@@ -130,7 +131,7 @@ export function SettingsPanel({
             <div><SettingsGlyph /><h2>{t('settings.title')}</h2></div>
             <button type="button" className="settings-close" onClick={() => {
               closeSettings();
-            }} aria-label={t('settings.close')}>×</button>
+            }} aria-label={t('settings.close')}><UiIcon name="close" /></button>
           </header>
           <div className="settings-categories" role="tablist" aria-label={t('settings.categories.title')}>
             {settingsCategories.map((item) => <button
@@ -204,7 +205,7 @@ export function SettingsPanel({
                   aria-pressed={enabled === autoPauseEnabled}
                   onClick={() => setAutoPauseEnabled(enabled)}
                 >
-                  <span aria-hidden="true">{enabled ? 'Ⅱ' : '▶'}</span>
+                  <span aria-hidden="true"><UiIcon name={enabled ? 'pause' : 'play'} /></span>
                   <b>{t(enabled ? 'settings.autoPauseEnabled' : 'settings.autoPauseDisabled')}</b>
                   <i aria-hidden="true">{enabled === autoPauseEnabled ? '✓' : ''}</i>
                 </button>
@@ -214,8 +215,8 @@ export function SettingsPanel({
           </> : category === 'controls' ? <KeybindingSettings /> : category === 'info' ? (
           <section className="settings-info">
             <header><strong>{t('levelSelect.gameTitle')}</strong><span>{t('levelSelect.version', { date: BUILD_COMMIT_DATE })}</span></header>
-            <a href={`https://github.com/szdytom/ntd/commit/${BUILD_COMMIT}`} target="_blank" rel="noreferrer"><code>{BUILD_COMMIT}</code><span aria-hidden="true">↗</span></a>
-            <a href="https://github.com/szdytom/ntd" target="_blank" rel="noreferrer">{t('levelSelect.projectOpenSource')}<span aria-hidden="true">↗</span></a>
+            <a href={`https://github.com/szdytom/ntd/commit/${BUILD_COMMIT}`} target="_blank" rel="noreferrer"><code>{BUILD_COMMIT}</code><span aria-hidden="true"><UiIcon name="external" /></span></a>
+            <a href="https://github.com/szdytom/ntd" target="_blank" rel="noreferrer">{t('levelSelect.projectOpenSource')}<span aria-hidden="true"><UiIcon name="external" /></span></a>
             <a href="https://github.com/szdytom/ntd" target="_blank" rel="noreferrer">{t('levelSelect.starRequest')}<span aria-hidden="true">☆</span></a>
           </section>
           ) : (
