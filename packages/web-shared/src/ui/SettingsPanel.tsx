@@ -7,8 +7,6 @@ import { defaultLanguage, supportedLanguages, type SupportedLanguage } from '../
 import { setAutoPauseEnabled, useAutoPauseEnabled } from './preferences';
 import './SettingsPanel.css';
 import { SettingsGlyph } from './SettingsGlyph';
-import { BUILD_COMMIT, BUILD_COMMIT_DATE } from '../build-info';
-import { KeybindingSettings } from './KeybindingSettings';
 
 const settingsCategories = ['general', 'controls', 'storage', 'info'] as const;
 type SettingsCategory = (typeof settingsCategories)[number];
@@ -18,9 +16,6 @@ let settingsArchiveRepository: SettingsArchiveRepository = { clearAll: async () 
 export const configureSettingsArchiveRepository = (repository: SettingsArchiveRepository): void => {
   settingsArchiveRepository = repository;
 };
-
-const settingsCategories = ['general', 'controls', 'storage', 'info'] as const;
-type SettingsCategory = (typeof settingsCategories)[number];
 
 export function SettingsPanel({
   disabled = false,
