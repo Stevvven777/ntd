@@ -22,6 +22,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 1133, height: 744
     const modeOptionHeights = await page.locator('.mode-selector button').evaluateAll((buttons) =>
       buttons.map((button) => button.getBoundingClientRect().height));
     expect(Math.max(...modeOptionHeights)).toBeLessThanOrEqual(84);
+    await expect(page.locator('.home-meta')).toHaveCount(0);
     if (viewport.height > 600) {
       const artwork = page.getByRole('button', { name: 'Remix the geometric composition' });
       await expect(artwork).toBeVisible();
