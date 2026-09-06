@@ -1212,5 +1212,6 @@
 	"settings.keys.speed": "切换游戏速度",
 	"settings.keys.unbound": "未绑定",
 	"settings.categories.info": "信息",
-	"settings.keys.pageNavigationReserved": "左右方向键用于浏览思维索引条目。请选择其他按键，或添加修饰键。"
+	"settings.keys.pageNavigationReserved": "左右方向键用于浏览思维索引条目。请选择其他按键，或添加修饰键。",
+	"tower.upgradeAria": "升级至 Lv.{{level}}，花费 {{cost}} 晶片"
 }

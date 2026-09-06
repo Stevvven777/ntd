@@ -1212,5 +1212,6 @@
 	"settings.keys.speed": "Toggle game speed",
 	"settings.keys.unbound": "Unbound",
 	"settings.categories.info": "Info",
-	"settings.keys.pageNavigationReserved": "Left and right arrows are reserved for browsing Thought Index records. Choose another key or add a modifier."
+	"settings.keys.pageNavigationReserved": "Left and right arrows are reserved for browsing Thought Index records. Choose another key or add a modifier.",
+	"tower.upgradeAria": "Upgrade Lv.{{level}}, cost {{cost}} shards"
 }

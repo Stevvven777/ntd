@@ -217,7 +217,7 @@ export function SettingsPanel({
             <header><strong>{t('levelSelect.gameTitle')}</strong><span>{t('levelSelect.version', { date: BUILD_COMMIT_DATE })}</span></header>
             <a href={`https://github.com/szdytom/ntd/commit/${BUILD_COMMIT}`} target="_blank" rel="noreferrer"><code>{BUILD_COMMIT}</code><span aria-hidden="true"><UiIcon name="external" /></span></a>
             <a href="https://github.com/szdytom/ntd" target="_blank" rel="noreferrer">{t('levelSelect.projectOpenSource')}<span aria-hidden="true"><UiIcon name="external" /></span></a>
-            <a href="https://github.com/szdytom/ntd" target="_blank" rel="noreferrer">{t('levelSelect.starRequest')}<span aria-hidden="true">☆</span></a>
+            <a href="https://github.com/szdytom/ntd" target="_blank" rel="noreferrer">{t('levelSelect.starRequest')}<span aria-hidden="true"><UiIcon name="star" /></span></a>
           </section>
           ) : (
           <section className="settings-section settings-storage-section">

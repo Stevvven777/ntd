@@ -28,6 +28,7 @@ export function TowerOverview({ tower, engine }: { tower: Tower; engine: GameEng
         {TARGETING_MODES.map((option) => <option key={option} value={option}>{t(`tower.target.${option}`)}</option>)}
       </select></label>
       <button onClick={() => engine.upgradeSelectedTower()} disabled={upgradeCost === 0 || engine.status === 'wave'}
+        aria-label={upgradeCost === 0 ? undefined : t('tower.upgradeAria', { level: tower.level + 1, cost: upgradeCost })}
         title={upgradeCost === 0 ? t('tower.maxTitle') : t('tower.upgradeTitle')}>
         <span>{upgradeCost === 0 ? t('tower.maximum') : t('tower.upgrade', { level: tower.level + 1 })}</span><strong>{upgradeCost === 0 ? t('tower.maxed') : <>{upgradeCost} <UiIcon name="diamond" /></>}</strong>
       </button>
