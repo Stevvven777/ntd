@@ -203,14 +203,14 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
               <div><input aria-label={t('levelSelect.coreStability')} type="number" min="1" value={creative.coreStability} onChange={(event) => {
                 const value = Number(event.currentTarget.value);
                 setCreative((current) => ({ ...current, coreStability: positiveInteger(value, current.coreStability) }));
-              }} /><b><UiIcon name="heart" /></b></div>
+              }} /><b aria-hidden="true"><UiIcon name="heart" /></b></div>
             </label>
             <label className="wave-rule">
               <span>{t('levelSelect.waveCount')}</span>
               <div><input aria-label={t('levelSelect.waveCount')} type="number" min="1" value={creative.waveCount} onChange={(event) => {
                 const value = Number(event.currentTarget.value);
                 setCreative((current) => ({ ...current, waveCount: positiveInteger(value, current.waveCount) }));
-              }} /><b>≋</b></div>
+              }} /><b aria-hidden="true">≋</b></div>
             </label>
           </div>
           <div className="setup-scales">
