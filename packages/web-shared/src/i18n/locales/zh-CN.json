@@ -1189,6 +1189,7 @@
 	"coop.ended.closed": "房间已关闭。",
 	"settings.keys.reset": "恢复默认键位",
 	"settings.categories.general": "常规",
+	"reward.diagnosticsAria": null,
 	"settings.keys.advancedDraft": "切换选秀详细信息",
 	"settings.keys.thoughtRestart": "图鉴：重新播放",
 	"settings.keys.unsupported": "请使用字母、数字、功能键、方向键或导航键，可搭配修饰键。",
