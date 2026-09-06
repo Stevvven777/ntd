@@ -128,6 +128,33 @@ Internal controls and cards normally use `border-radius: 0`. A modest radius may
 
 Prefer flat state changes: replace a background, add an inset accent bar, reverse foreground/background, or change a border style. Soft drop shadows imply floating layers and are usually wrong here. A small hard offset shadow is acceptable for a deliberately tactile object, such as the Compendium specimen toggle, because it behaves like a physical switch rather than ambient elevation.
 
+## Selection blocks and settings categories
+
+Use the home page's level options as the reference for selection blocks. The style is **flat geometric segmentation** within the larger Mondrian-inspired composition: square cells, shared ink dividers, paper backgrounds, pale accent tints, and a solid accent strip at the bottom. Selection changes the surface's color and edge, without suggesting height above the page.
+
+Source references:
+
+- [`LevelSelect.css`](../../apps/web-single/src/LevelSelect.css): `.level-grid` and `.level-card` establish the home-page pattern, with a contextual tint and an `8px` bottom selection strip.
+- [`SettingsPanel.css`](../../packages/web-shared/src/ui/SettingsPanel.css): `.settings-categories` adapts it to four equal icon cells with a violet tint and a `5px` bottom selection strip.
+
+Preserve these decisions when adding or revising selection blocks:
+
+- Divide the available parent width evenly among peer options. Use a continuous, gap-free row with one owner for each divider; do not cluster small floating buttons in a corner.
+- Keep cell corners square and faces flat. Do not add blurred shadows, hard offset shadows, bevels, or hover elevation to selection blocks or settings categories. The tactile-switch exception elsewhere in this guide does not apply to these controls.
+- Show the selected option with a pale contextual background and a saturated bottom strip. An `inset 0 -5px 0` or `inset 0 -8px 0` CSS shadow is a way to draw that flat strip, not a depth effect.
+- Use a restrained tint for hover. Keep selection geometry stable so interaction does not move the surrounding layout.
+- Use simple geometric line icons for settings categories: sliders for general options, a keyboard for bindings, and an archive box for storage. Center them in equal cells, using consistent size and stroke weight. Provide localized accessible names and hover titles without adding visible category captions.
+- Left/right navigation in settings selects and focuses the category together. The tint and bottom strip are its visible indicator; do not add an extra rectangular focus outline around the selected category. Keep `aria-selected`, roving tab focus, and keyboard operation intact. This exception is limited to these category tabs, not a reason to remove focus indicators from ordinary buttons or inputs.
+- Keep the settings title, close control, and category row outside the scrolling content region. Draw complete section boundaries, including the bottom of the automatic-pause region.
+
+Settings interaction and copy follow the same restrained approach:
+
+- Left/right arrows switch settings categories; up/down arrows scroll their content. During key recording, arrows can instead be captured as bindings.
+- Put reserved-key and navigation instructions at the beginning of the key-binding panel, before the binding list. Esc cancels recording or closes settings, Tab moves focus, and Enter activates a control; these keys cannot be rebound.
+- Do not use function keys for defaults. Draft details default to `V`; users may explicitly assign a function key themselves.
+- Save preference changes implicitly. Do not show routine “saved” or “default bindings restored” messages or repeat an automatic-save explanation. Keep actionable conflict and unsupported-key feedback.
+- Keep storage copy compact: omit the redundant description of deleting every browser record, while preserving the explicit destructive-action confirmation.
+
 ## Type and density within the grid
 
 The existing system sans face carries headings and prose. Use tight, heavy display headings for screen identity, regular compact text for explanation, and `--font-mono` only for IDs, measurements, counts, short codes, and symbolic readouts.
@@ -153,7 +180,7 @@ Use the existing geometry to show interaction state:
 - unavailable inventory: dashed border, desaturation, and reduced opacity;
 - progress: a small rectangular fill inside a bounded track;
 - destructive or interrupting action: coral fill on hover or active state;
-- keyboard focus: the shared high-contrast white/violet outline from `foundation.css`.
+- keyboard focus: the shared high-contrast white/violet outline from `foundation.css`, with the selected-category exception described above.
 
 Do not add a badge, tooltip, border, and background change for the same state. One strong signal plus one accessible semantic attribute (`aria-current`, `aria-pressed`, `aria-selected`, or `disabled`) is normally enough.
 
