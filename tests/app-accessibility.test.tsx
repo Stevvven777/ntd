@@ -44,10 +44,10 @@ describe('level selection accessibility', () => {
 		await user.click(screen.getByRole('button', { name: 'Open signal compendium' }));
 		const signals = Array.from(document.querySelectorAll<HTMLButtonElement>('.signal-archive-index-list button'));
 		await user.keyboard('{ArrowRight}');
-		expect(document.activeElement).toBe(signals[1]);
+		expect(signals[0]?.getAttribute('aria-current')).toBe('true');
 		(document.activeElement as HTMLElement).blur();
 		await user.keyboard('{ArrowRight}');
-		expect(document.activeElement).toBe(signals[2]);
+		expect(signals[0]?.getAttribute('aria-current')).toBe('true');
 		await user.click(screen.getByRole('button', { name: 'Back to sector selection' }));
 		await user.keyboard('{ArrowLeft}');
 		expect(selectedLevel()).toContain('White Prism');

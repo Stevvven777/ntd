@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { TFunction } from 'i18next';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LEVELS, type LevelDefinition } from '@prism-bastion/game-core/game/config';
 import type { SignalId } from '@prism-bastion/game-core/game/types';
@@ -16,7 +16,7 @@ import {
 } from '@prism-bastion/game-core/signals';
 import { ArchiveHeader } from '@prism-bastion/web-shared/ui/ArchiveHeader';
 import { navigateSelectionList } from '@prism-bastion/web-shared/ui/selectionListKeyboard';
-import { navigatePageSelection, usePageArrowNavigation } from '@prism-bastion/web-shared/ui/usePageArrowNavigation';
+import { usePageArrowNavigation } from '@prism-bastion/web-shared/ui/usePageArrowNavigation';
 import { SignalSpecimen } from '@prism-bastion/web-shared/ui/SignalSpecimen';
 import { Tag } from '@prism-bastion/web-shared/ui/Tag';
 import './SignalArchive.css';
@@ -226,9 +226,12 @@ export function SignalArchive({
 	const { t } = useTranslation();
 	const [selectedType, setSelectedType] = useState<SignalId>(initialType);
 	const [demoModeId, setDemoModeId] = useState<string | null>(null);
-	const pageRef = usePageArrowNavigation((direction) =>
-		navigatePageSelection(pageRef.current, '.signal-archive-index-list button', direction),
-	);
+	const indexRef = useRef<HTMLDivElement>(null);
+	const pageRef = usePageArrowNavigation(null, (direction) => {
+		if (indexRef.current) {
+			indexRef.current.scrollTop += direction * 72;
+		}
+	});
 	const definition = signalRegistry.require(selectedType);
 	const demoMode = definition.archive.demo?.modes.find((mode) => mode.id === demoModeId);
 	const split = getSignalCapability(definition, 'split-on-death');
@@ -265,7 +268,7 @@ export function SignalArchive({
 					<div className="signal-archive-index-head">
 						<span>{t('signalArchive.indexTitle')}</span>
 					</div>
-					<div className="signal-archive-index-list" onKeyDown={navigateSelectionList}>
+					<div ref={indexRef} className="signal-archive-index-list" onKeyDown={navigateSelectionList}>
 						{SIGNAL_IDS.map((type) => {
 							const signal = signalRegistry.require(type);
 							const selected = type === selectedType;

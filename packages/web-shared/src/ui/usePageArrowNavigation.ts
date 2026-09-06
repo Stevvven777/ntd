@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react';
 import { moveSelectionIndex } from './selectionListKeyboard';
 
 /** Give the active page one default horizontal selection, even after focus is lost. */
-export function usePageArrowNavigation(navigate: (direction: -1 | 1) => void) {
+export function usePageArrowNavigation(
+	navigate: ((direction: -1 | 1) => void) | null,
+	scroll?: (direction: -1 | 1) => void,
+) {
 	const pageRef = useRef<HTMLElement>(null);
 	useEffect(() => {
 		if (!document.querySelector('[aria-modal="true"]')) {
@@ -33,16 +36,21 @@ export function usePageArrowNavigation(navigate: (direction: -1 | 1) => void) {
 			) {
 				return;
 			}
-			if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+			const vertical = event.key === 'ArrowUp' || event.key === 'ArrowDown';
+			if (vertical ? !scroll : event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
 				return;
 			}
 			event.preventDefault();
 			event.stopPropagation();
-			navigate(event.key === 'ArrowRight' ? 1 : -1);
+			if (vertical) {
+				scroll?.(event.key === 'ArrowDown' ? 1 : -1);
+			} else {
+				navigate?.(event.key === 'ArrowRight' ? 1 : -1);
+			}
 		};
 		window.addEventListener('keydown', onKeyDown, true);
 		return () => window.removeEventListener('keydown', onKeyDown, true);
-	}, [navigate]);
+	}, [navigate, scroll]);
 	return pageRef;
 }
 
