@@ -130,7 +130,9 @@ export function DefenseArchiveHistory({ records }: { records: DefenseRecord[] })
 										{record.maxWaves}
 									</small>
 								</span>
-								<em>→</em>
+								<em>
+									<UiIcon name="arrowRight" />
+								</em>
 							</button>
 						))}
 					</div>
@@ -140,7 +142,7 @@ export function DefenseArchiveHistory({ records }: { records: DefenseRecord[] })
 						disabled={state.page === 0}
 						onClick={() => dispatch({ type: 'page', page: state.page - 1 })}
 					>
-						←
+						<UiIcon name="arrowLeft" />
 					</button>
 					<span>
 						{state.page + 1} / {pageCount}
@@ -149,7 +151,7 @@ export function DefenseArchiveHistory({ records }: { records: DefenseRecord[] })
 						disabled={state.page + 1 >= pageCount}
 						onClick={() => dispatch({ type: 'page', page: state.page + 1 })}
 					>
-						→
+						<UiIcon name="arrowRight" />
 					</button>
 				</footer>
 			</section>

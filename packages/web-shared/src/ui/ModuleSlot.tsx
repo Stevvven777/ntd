@@ -74,7 +74,9 @@ export function ModuleSlot({
 					onDrop={drop}
 					aria-label={t('moduleSlot.emptyAria', { slot: index + 1 })}
 				>
-					<span>+</span>
+					<span>
+						<UiIcon name="plus" />
+					</span>
 					<small>{t('moduleSlot.slot', { slot: index + 1 })}</small>
 				</button>
 			) : (
@@ -122,7 +124,11 @@ export function ModuleSlot({
 					</button>
 				</div>
 			)}
-			{!isLast ? <span className="flow-arrow">›</span> : null}
+			{!isLast ? (
+				<span className="flow-arrow">
+					<UiIcon name="chevronRight" />
+				</span>
+			) : null}
 		</div>
 	);
 }

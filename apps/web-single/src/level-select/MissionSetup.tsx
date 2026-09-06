@@ -78,7 +78,9 @@ export function MissionSetup({ selection }: { selection: LevelSelectionControlle
 										})
 									}
 								/>
-								<b aria-hidden="true">≋</b>
+								<b aria-hidden="true">
+									<UiIcon name="waves" />
+								</b>
 							</div>
 						</label>
 					</div>

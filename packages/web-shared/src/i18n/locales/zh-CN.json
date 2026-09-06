@@ -1213,5 +1213,7 @@
 	"settings.keys.unbound": "未绑定",
 	"settings.categories.info": "信息",
 	"settings.keys.pageNavigationReserved": "左右方向键用于浏览思维索引条目。请选择其他按键，或添加修饰键。",
-	"tower.upgradeAria": "升级至 Lv.{{level}}，花费 {{cost}} 晶片"
+	"tower.upgradeAria": "升级至 Lv.{{level}}，花费 {{cost}} 晶片",
+	"defenseArchive.previousPage": "上一页记录",
+	"defenseArchive.nextPage": "下一页记录"
 }

@@ -410,21 +410,9 @@
 	border-right: 0;
 	border-left: 2px solid var(--select-ink);
 }
-.level-carousel-arrow::before {
-	content: '';
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	width: 11px;
-	height: 11px;
-	border-top: 3px solid currentColor;
-	border-right: 3px solid currentColor;
-}
-.level-carousel-arrow.previous::before {
-	transform: translate(-35%, -50%) rotate(-135deg);
-}
-.level-carousel-arrow.next::before {
-	transform: translate(-65%, -50%) rotate(45deg);
+.level-carousel-arrow svg {
+	width: 22px;
+	height: 22px;
 }
 .level-carousel-arrow:hover:not(:disabled) {
 	color: #fff;

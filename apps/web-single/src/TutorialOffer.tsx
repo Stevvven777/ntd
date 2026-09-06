@@ -1,3 +1,4 @@
+import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SettingsPanel } from '@prism-bastion/web-shared/ui/SettingsPanel';
@@ -61,7 +62,9 @@ export function TutorialOffer({ onAccept, onDecline }: { onAccept: () => void; o
 					</button>
 					<button className="tutorial-offer-accept" onClick={onAccept} autoFocus>
 						<span>{t('tutorialOffer.accept')}</span>
-						<b aria-hidden="true">→</b>
+						<b aria-hidden="true">
+							<UiIcon name="arrowRight" />
+						</b>
 					</button>
 				</footer>
 			</section>
