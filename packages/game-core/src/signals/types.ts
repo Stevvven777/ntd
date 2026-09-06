@@ -5,7 +5,7 @@ export interface SignalStats {
   reward: number;
   coreDamage: number;
   radius: number;
-  boss?: boolean;
+  elite?: boolean;
 }
 
 export interface PulseMovementCapability {

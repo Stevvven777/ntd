@@ -1,4 +1,3 @@
-import { signalRegistry } from '../signals';
 import type { SignalId } from '../signals';
 import type { Point } from './types';
 import { createRouteMap, legacyPathToGraph, type NodeId, type RouteMap } from './path';
@@ -79,9 +78,6 @@ export function resolveSpawnEntrances(
       throw new Error(`Unknown entrance ${entry.entrance} for ${entry.type}`);
     }
     return [entry.entrance];
-  }
-  if (signalRegistry.require(entry.type).stats.boss) {
-    throw new Error(`Boss ${entry.type} must declare a fixed entrance`);
   }
   if (graph.entrances.length === 0) throw new Error('A level requires at least one entrance');
   return graph.entrances;

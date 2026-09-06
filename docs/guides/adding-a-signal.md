@@ -35,7 +35,7 @@ New geometry or compendium demo primitives follow the same rule: extend the shar
 
 ## 4. Put the signal in a level
 
-Add it to one or more wave groups in `packages/game-core/src/game/config.ts`. An entry without an entrance is broadcast to every lane. A boss-marked signal requires an explicit entrance. Signals included in the spectrum achievement must appear in at least one non-tutorial Standard defense.
+Add it to one or more wave groups in `packages/game-core/src/game/config.ts`. An entry without an entrance is broadcast to every lane. Ordinary and elite signals follow the same entrance rules. Set `stats.elite` for an elite signal. Signals included in the spectrum achievement must appear in at least one non-tutorial Standard defense.
 
 ## 5. Verify
 
