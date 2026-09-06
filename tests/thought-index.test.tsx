@@ -31,6 +31,40 @@ afterEach(async () => {
 });
 
 describe('thought index entry points', () => {
+  it('navigates records across chapters without triggering playback shortcuts', async () => {
+    const user = userEvent.setup();
+    const next = vi.spyOn(ThoughtSceneDirector.prototype, 'next');
+    const previous = vi.spyOn(ThoughtSceneDirector.prototype, 'previous');
+    render(<ThoughtIndex onBack={vi.fn()} />);
+    const records = Array.from(document.querySelectorAll<HTMLButtonElement>('.thought-records button'));
+    await user.click(records[0]!);
+    for (let step = 1; step <= records.length; step += 1) {
+      await user.keyboard('{ArrowRight}');
+      const selected = records[step % records.length]!;
+      expect(document.activeElement).toBe(selected);
+      expect(selected.getAttribute('aria-current')).toBe('page');
+      expect(document.querySelector('.thought-stage')?.getAttribute('data-thought-id')).toBe(selected.dataset.thoughtId);
+    }
+    await user.keyboard('{ArrowLeft}');
+    expect(document.activeElement).toBe(records.at(-1));
+    expect(next).not.toHaveBeenCalled();
+    expect(previous).not.toHaveBeenCalled();
+    await user.keyboard('{PageDown}');
+    expect(next).toHaveBeenCalledOnce();
+    await user.keyboard('{PageUp}');
+    expect(previous).toHaveBeenCalledOnce();
+    next.mockRestore();
+    previous.mockRestore();
+    const search = screen.getByPlaceholderText('Module name, short name, or summary');
+    await user.type(search, 'Pulse Round');
+    await user.keyboard('{ArrowLeft}');
+    expect(document.activeElement).toBe(search);
+    const onlyRecord = document.querySelector<HTMLButtonElement>('.thought-records button')!;
+    await user.click(onlyRecord);
+    await user.keyboard('{ArrowDown}{End}{Home}');
+    expect(document.activeElement).toBe(onlyRecord);
+  });
+
   it('searches only record names and summaries', async () => {
     const user = userEvent.setup();
     render(<ThoughtIndex onBack={vi.fn()} />);

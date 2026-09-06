@@ -17,6 +17,13 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
 
+it('migrates index arrow bindings to step keys that leave page navigation available', () => {
+  const bindings = parseKeybindings(JSON.stringify({ thoughtPrevious: 'ArrowLeft', thoughtNext: 'ArrowRight', pause: 'ArrowRight' }));
+  expect(bindings.thoughtPrevious).toBe('PageUp');
+  expect(bindings.thoughtNext).toBe('PageDown');
+  expect(bindings.pause).toBe('ArrowRight');
+});
+
 it('records combinations, rejects conflicts, cancels without closing, clears and restores', async () => {
   const user = userEvent.setup();
   const { unmount } = render(<SettingsPanel />);

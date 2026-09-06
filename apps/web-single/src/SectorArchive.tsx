@@ -1,4 +1,5 @@
 import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
+import { navigateSelectionList } from '@prism-bastion/web-shared/ui/selectionListKeyboard';
 import { useMemo, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LEVELS } from '@prism-bastion/game-core/game/config';
@@ -84,7 +85,7 @@ export function SectorArchive({ records }: { records: DefenseRecord[] }) {
   return <div className="sector-archive" style={{ '--sector-accent': accent, '--level-accent': accent } as CSSProperties}>
     <nav className="sector-archive-index" aria-label={t('defenseArchive.sectors.indexAria')}>
       <header><strong>{t('defenseArchive.sectors.indexTitle')}</strong><span>{analytics.sectors.length}</span></header>
-      <div>{analytics.sectors.map((sector) => {
+      <div onKeyDown={navigateSelectionList}>{analytics.sectors.map((sector) => {
         const level = LEVELS.find((item) => item.id === sector.levelId);
         const selectedSector = sector.levelId === selected.levelId;
         return <button

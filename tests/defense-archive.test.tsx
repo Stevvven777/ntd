@@ -209,7 +209,7 @@ describe('defense archive interface', () => {
   it('shows summary metrics, achievements, filters, and defense detail', async () => {
     const user = userEvent.setup();
     const snapshot: DefenseArchiveSnapshot = {
-      defenses: [record()],
+      defenses: [record(), record({ id: 'run-2', levelId: 'rose-circuit' })],
       achievements: evaluateAchievements(createAchievementState()).progress,
       warningCount: 0,
     };
@@ -222,16 +222,32 @@ describe('defense archive interface', () => {
     expect(await screen.findByText('Completed defenses')).toBeTruthy();
     expect(document.querySelector('.defense-archive-head .defense-archive-mark')?.textContent).toBe('');
     expect(document.querySelector('.signal-ledger-grid .signal-icon')).toBeTruthy();
-    await user.click(screen.getByRole('tab', { name: 'Defense sectors' }));
+    await user.keyboard('{ArrowRight}');
+    expect(document.activeElement).toBe(screen.getByRole('tab', { name: 'Defense sectors' }));
     expect(screen.getByRole('heading', { name: 'White Prism' })).toBeTruthy();
     expect(screen.getByText('Wave performance')).toBeTruthy();
     expect(screen.getByText('Signal outcomes recorded only in this sector')).toBeTruthy();
     expect(document.querySelector('.sector-ledger-section .signal-ledger-grid')).toBeTruthy();
+    const sectors = Array.from(document.querySelectorAll<HTMLButtonElement>('.sector-archive-index button'));
+    await user.click(sectors[0]!);
+    for (let step = 1; step <= sectors.length; step += 1) {
+      await user.keyboard('{ArrowDown}');
+      const selected = sectors[step % sectors.length]!;
+      expect(document.activeElement).toBe(selected);
+      expect(selected.getAttribute('aria-current')).toBe('true');
+    }
     await user.click(screen.getByRole('tab', { name: 'Achievements' }));
     expect(screen.getByText('Field training')).toBeTruthy();
     await user.click(screen.getByRole('tab', { name: /Defense records/ }));
     expect(screen.getByLabelText('Result')).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /White Prism/ }));
+    const selectedRecord = document.activeElement;
+    await user.keyboard('{ArrowDown}');
+    expect(document.activeElement).not.toBe(selectedRecord);
+    expect(document.activeElement?.getAttribute('aria-pressed')).toBe('true');
+    await user.keyboard('{ArrowUp}');
+    expect(document.activeElement).toBe(selectedRecord);
+    expect(selectedRecord?.getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByText('Final module inventory')).toBeTruthy();
     expect(document.querySelector('.inventory-ledger .module-icon')).toBeTruthy();
     expect(screen.getByText('abc1234 · 2026-08-31')).toBeTruthy();

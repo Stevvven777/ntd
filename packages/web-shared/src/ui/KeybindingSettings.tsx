@@ -2,7 +2,7 @@ import { UiIcon } from './UiIcon';
 import './KeybindingSettings.css';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { bindingFromEvent, defaultKeybindings, findKeybindingConflict, getKeybindings, keybindingActions, saveKeybindings, useKeybindings, type KeybindingAction } from './keybindings';
+import { bindingFromEvent, defaultKeybindings, findKeybindingConflict, getKeybindings, isReservedPageBinding, keybindingActions, saveKeybindings, useKeybindings, type KeybindingAction } from './keybindings';
 
 export function KeybindingSettings() {
   const { t } = useTranslation();
@@ -19,6 +19,7 @@ export function KeybindingSettings() {
       if (event.key === 'Escape') { setRecording(null); setMessage(''); return; }
       const binding = bindingFromEvent(event);
       if (!binding) { setMessage(t('settings.keys.unsupported')); return; }
+      if (isReservedPageBinding(recording, binding)) { setMessage(t('settings.keys.pageNavigationReserved')); return; }
       const current = getKeybindings();
       const conflict = findKeybindingConflict(current, recording, binding);
       if (conflict) { setMessage(t('settings.keys.conflict', { action: t(`settings.keys.${conflict}`) })); return; }

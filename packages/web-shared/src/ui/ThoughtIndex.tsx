@@ -7,6 +7,8 @@ import { modulePresentationRegistry } from '../module-presentations';
 import { matchesThoughtSearch } from '../thoughts/search';
 import type { ThoughtChapter } from '../thoughts/types';
 import { ArchiveHeader } from './ArchiveHeader';
+import { navigateSelectionList } from './selectionListKeyboard';
+import { navigatePageSelection, usePageArrowNavigation } from './usePageArrowNavigation';
 import { ThoughtCanvas } from './ThoughtCanvas';
 import { ThoughtFlowOverlay } from './ThoughtFlowOverlay';
 import { moduleUiColor, moduleUiTint } from './modulePresentation';
@@ -39,7 +41,7 @@ export function ThoughtIndex({ initialThoughtId, onBack, backToBattlefield = fal
   };
   const disposalTimers = useRef(new Map<ThoughtSceneDirector, ReturnType<typeof setTimeout>>());
   const autoPausedDirectors = useRef(new WeakSet<ThoughtSceneDirector>());
-  const shellRef = useRef<HTMLElement>(null);
+  const shellRef = usePageArrowNavigation((direction) => navigatePageSelection(shellRef.current, '.thought-records button', direction));
   const progressRef = useRef<HTMLElement>(null);
   const transcript = definition.beats.flatMap((beat) => beat.cues
     ? beat.cues.flatMap((cue) => [
@@ -69,9 +71,6 @@ export function ThoughtIndex({ initialThoughtId, onBack, backToBattlefield = fal
       director.togglePlayback();
     }
   }, [director, initialThoughtId]);
-  useEffect(() => {
-    shellRef.current?.focus();
-  }, []);
   useEffect(() => {
     let frame = 0;
     const updateProgress = (): void => {
@@ -124,7 +123,7 @@ export function ThoughtIndex({ initialThoughtId, onBack, backToBattlefield = fal
           <span>{t('thoughtIndex.searchLabel')}</span>
           <input value={query} onChange={(event) => setQuery(event.currentTarget.value)} placeholder={t('thoughtIndex.searchPlaceholder')} />
         </label>
-        <div className="thought-records">
+        <div className="thought-records" onKeyDown={navigateSelectionList}>
           {CHAPTERS.map((chapter) => {
             const records = visible.filter((candidate) => candidate.chapter === chapter);
             if (records.length === 0) return null;

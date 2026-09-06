@@ -6,6 +6,8 @@ import type { SignalId } from '@prism-bastion/game-core/game/types';
 import { signalName, levelName } from '@prism-bastion/web-shared/i18n/presentation';
 import { DEFAULT_SIGNAL_ID, getSignalCapability, SIGNAL_IDS, signalRegistry } from '@prism-bastion/game-core/signals';
 import { ArchiveHeader } from '@prism-bastion/web-shared/ui/ArchiveHeader';
+import { navigateSelectionList } from '@prism-bastion/web-shared/ui/selectionListKeyboard';
+import { navigatePageSelection, usePageArrowNavigation } from '@prism-bastion/web-shared/ui/usePageArrowNavigation';
 import { SignalSpecimen } from '@prism-bastion/web-shared/ui/SignalSpecimen';
 import { Tag } from '@prism-bastion/web-shared/ui/Tag';
 import './SignalArchive.css';
@@ -25,6 +27,7 @@ export function SignalArchive({ onBack, initialType = DEFAULT_SIGNAL_ID, backToB
   const { t } = useTranslation();
   const [selectedType, setSelectedType] = useState<SignalId>(initialType);
   const [demoModeId, setDemoModeId] = useState<string | null>(null);
+  const pageRef = usePageArrowNavigation((direction) => navigatePageSelection(pageRef.current, '.signal-archive-index-list button', direction));
   const definition = signalRegistry.require(selectedType);
   const demoMode = definition.archive.demo?.modes.find((mode) => mode.id === demoModeId);
   const split = getSignalCapability(definition, 'split-on-death');
@@ -82,7 +85,7 @@ export function SignalArchive({ onBack, initialType = DEFAULT_SIGNAL_ID, backToB
     { key: 'coreDamage', label: t('signalArchive.stats.coreDamage'), display: formatValue(profile.coreDamage), value: profile.coreDamage, maximum: MAXIMUMS.coreDamage },
   ];
 
-  return <main className="archive-shell signal-archive-shell" style={archiveStyle}>
+  return <main ref={pageRef} tabIndex={-1} className="archive-shell signal-archive-shell" style={archiveStyle}>
     <ArchiveHeader
       className="signal-archive-head"
       title={t('signalArchive.title')}
@@ -99,7 +102,7 @@ export function SignalArchive({ onBack, initialType = DEFAULT_SIGNAL_ID, backToB
         <div className="signal-archive-index-head">
           <span>{t('signalArchive.indexTitle')}</span>
         </div>
-        <div className="signal-archive-index-list">
+        <div className="signal-archive-index-list" onKeyDown={navigateSelectionList}>
           {SIGNAL_IDS.map((type) => {
             const signal = signalRegistry.require(type);
             const selected = type === selectedType;

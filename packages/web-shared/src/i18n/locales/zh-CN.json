@@ -1206,10 +1206,11 @@
 	"settings.keys.thoughtPlayback": "图鉴：播放 / 暂停",
 	"settings.categories.controls": "键位",
 	"settings.keys.pause": "暂停 / 继续",
-	"settings.keys.description": "点击键位后，按下按键或组合键。移动模块仅作用于当前聚焦的槽位；图鉴操作仅在思维图鉴内生效。",
+	"settings.keys.description": "点击键位后，按下按键或组合键。移动模块仅作用于当前聚焦的槽位；图鉴操作仅在思维图鉴内生效。 左右方向键浏览索引条目；默认使用 PageUp / PageDown 切换演示步骤。",
 	"settings.keys.clear": "清除键位：{{action}}",
 	"settings.keys.moveRight": "模块右移",
 	"settings.keys.speed": "切换游戏速度",
 	"settings.keys.unbound": "未绑定",
-	"settings.categories.info": "信息"
+	"settings.categories.info": "信息",
+	"settings.keys.pageNavigationReserved": "左右方向键用于浏览思维索引条目。请选择其他按键，或添加修饰键。"
 }
