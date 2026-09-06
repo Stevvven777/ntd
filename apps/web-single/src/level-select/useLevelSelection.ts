@@ -1,3 +1,4 @@
+import { moveSelectionIndex } from '@prism-bastion/web-shared/ui/selectionListKeyboard';
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, type KeyboardEvent } from 'react';
 import { DEFAULT_LEVEL_ID, getLevel, LEVELS } from '@prism-bastion/game-core/game/config';
 import { DEFAULT_DIFFICULTY_ID, DIFFICULTIES } from '@prism-bastion/game-core/game/difficulty';
@@ -167,8 +168,8 @@ export function useLevelSelection() {
 	);
 	const selectRelativeLevel = (offset: number): void => {
 		const index = LEVELS.findIndex((level) => level.id === state.levelId);
-		const next = LEVELS[(index + offset + LEVELS.length) % LEVELS.length];
-		if (!next) {
+		const next = LEVELS[moveSelectionIndex(index, offset, LEVELS.length)];
+		if (!next || next.id === state.levelId) {
 			return;
 		}
 		focusAfterNavigation.current = true;
@@ -180,8 +181,8 @@ export function useLevelSelection() {
 			return;
 		}
 		event.preventDefault();
-		const next = LEVELS[(index + offset + LEVELS.length) % LEVELS.length];
-		if (!next) {
+		const next = LEVELS[moveSelectionIndex(index, offset, LEVELS.length)];
+		if (!next || next.id === state.levelId) {
 			return;
 		}
 		focusAfterNavigation.current = true;
@@ -193,8 +194,8 @@ export function useLevelSelection() {
 			return;
 		}
 		event.preventDefault();
-		const next = DIFFICULTIES[(index + offset + DIFFICULTIES.length) % DIFFICULTIES.length];
-		if (!next) {
+		const next = DIFFICULTIES[moveSelectionIndex(index, offset, DIFFICULTIES.length)];
+		if (!next || next.id === state.difficultyId) {
 			return;
 		}
 		dispatch({ type: 'set-difficulty', difficultyId: next.id });

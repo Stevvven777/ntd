@@ -113,13 +113,14 @@ export function MissionSetup({ selection }: { selection: LevelSelectionControlle
 						{DIFFICULTIES.map((difficulty, index) => (
 							<button
 								key={difficulty.id}
-								className={difficulty.id === selection.difficultyId ? styles.selected : undefined}
+								className={`selection-option ${difficulty.id === selection.difficultyId ? styles.selected : ''}`}
 								data-rank={difficulty.rank}
 								role="radio"
 								aria-checked={difficulty.id === selection.difficultyId}
 								tabIndex={difficulty.id === selection.difficultyId ? 0 : -1}
 								onKeyDown={(event) => selection.cycleDifficulty(event, index)}
 								onClick={() => selection.setDifficultyId(difficulty.id)}
+								onFocus={() => selection.setDifficultyId(difficulty.id)}
 							>
 								<span>
 									{difficulty.rank === 0

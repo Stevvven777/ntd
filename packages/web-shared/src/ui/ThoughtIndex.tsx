@@ -75,7 +75,7 @@ function ThoughtRail({
 									<button
 										key={candidate.id}
 										data-thought-id={candidate.id}
-										className={candidate.id === selectedId ? 'selected' : ''}
+										className={`selection-option ${candidate.id === selectedId ? 'selected' : ''}`}
 										style={
 											{
 												'--record-accent': moduleUiColor(module),
@@ -84,6 +84,7 @@ function ThoughtRail({
 										}
 										aria-current={candidate.id === selectedId ? 'page' : undefined}
 										onClick={() => onSelect(candidate.id)}
+										onFocus={() => onSelect(candidate.id)}
 									>
 										<span className="thought-record-icon" aria-hidden="true">
 											<RecordIcon />

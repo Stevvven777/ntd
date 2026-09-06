@@ -10,7 +10,6 @@ import { LEVEL_SELECTION_STORAGE_KEY } from '@prism-bastion/web-single/LevelSele
 import { AUTO_PAUSE_STORAGE_KEY } from '@prism-bastion/web-shared/ui/preferences';
 import { LEVELS } from '@prism-bastion/game-core/game/config';
 import { levelName } from '@prism-bastion/web-shared/i18n/presentation';
-import { SignalArchive } from '@prism-bastion/web-single/SignalArchive';
 
 beforeEach(() => {
 	try {
@@ -65,27 +64,8 @@ describe('level selection accessibility', () => {
 		expect(selectedLevel()).toContain('Rose Circuit');
 	});
 
-	it('navigates signal records continuously in both directions', async () => {
-		const user = userEvent.setup();
-		render(<SignalArchive onBack={vi.fn()} />);
-		const records = Array.from(document.querySelectorAll<HTMLButtonElement>('.signal-archive-index-list button'));
-		await user.click(records[0]!);
-		for (let step = 1; step <= records.length; step += 1) {
-			await user.keyboard('{ArrowRight}');
-			const selected = records[step % records.length]!;
-			expect(document.activeElement).toBe(selected);
-			expect(selected.getAttribute('aria-current')).toBe('true');
-		}
-		await user.keyboard('{ArrowLeft}');
-		expect(document.activeElement).toBe(records.at(-1));
-		await user.keyboard('{Home}{ArrowDown}{ArrowUp}');
-		expect(document.activeElement).toBe(records[0]);
-		await user.keyboard('{End}');
-		expect(document.activeElement).toBe(records.at(-1));
-	});
-
 	it.each([false, true])(
-		'keeps arrow navigation focused across pages and wraparound (compact: %s)',
+		'keeps arrow navigation focused across pages and stops at boundaries (compact: %s)',
 		async (compact) => {
 			vi.stubGlobal(
 				'matchMedia',
@@ -103,10 +83,11 @@ describe('level selection accessibility', () => {
 			const firstVisible = within(group()).getAllByRole('radio')[0]!;
 			const firstIndex = compact ? 1 : 0;
 			await user.click(firstVisible);
+			let index = firstIndex;
 			for (const direction of [1, -1]) {
 				for (let step = 1; step <= LEVELS.length; step += 1) {
 					await user.keyboard(direction === 1 ? '{ArrowRight}' : '{ArrowLeft}');
-					const index = (firstIndex + direction * step + LEVELS.length) % LEVELS.length;
+					index = Math.max(0, Math.min(LEVELS.length - 1, index + direction));
 					const selected = within(group()).getByRole('radio', { checked: true });
 					expect(selected.textContent).toContain(levelName(i18n.t, LEVELS[index]!.id));
 					expect(document.activeElement).toBe(selected);

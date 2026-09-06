@@ -133,13 +133,14 @@ export function LevelCarousel({
 						return (
 							<button
 								key={level.id}
-								className={`${styles['level-card']} ${level.id === selection.levelId ? styles.selected : ''}`}
+								className={`selection-option ${styles['level-card']} ${level.id === selection.levelId ? styles.selected : ''}`}
 								style={{ '--level-accent': level.accent } as CSSProperties}
 								role="radio"
 								aria-checked={level.id === selection.levelId}
 								tabIndex={level.id === selection.levelId ? 0 : -1}
 								onKeyDown={(event) => selection.cycleLevel(event, index)}
 								onClick={() => selection.selectLevel(level.id, false)}
+								onFocus={() => selection.selectLevel(level.id, false)}
 							>
 								<div className={styles['level-map-wrap']}>
 									<LevelMap level={level} />

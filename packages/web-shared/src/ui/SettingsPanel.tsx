@@ -1,3 +1,4 @@
+import { moveSelectionIndex } from './selectionListKeyboard';
 import { useCallback, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +50,9 @@ export function SettingsPanel({
 		}
 	};
 	const focusCategory = (index: number): void => {
+		if (settingsCategories[index] === category) {
+			return;
+		}
 		chooseCategory(settingsCategories[index]!);
 		dialogRef.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[index]?.focus();
 	};
@@ -72,8 +76,8 @@ export function SettingsPanel({
 		if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
 			event.preventDefault();
 			const index = settingsCategories.indexOf(category);
-			const offset = event.key === 'ArrowRight' ? 1 : settingsCategories.length - 1;
-			focusCategory((index + offset) % settingsCategories.length);
+			const offset = event.key === 'ArrowRight' ? 1 : -1;
+			focusCategory(moveSelectionIndex(index, offset, settingsCategories.length));
 			return;
 		}
 		if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
@@ -144,6 +148,7 @@ export function SettingsPanel({
 							title={t(`settings.categories.${item}`)}
 							tabIndex={category === item ? 0 : -1}
 							onClick={() => chooseCategory(item)}
+							onFocus={() => chooseCategory(item)}
 							onKeyDown={navigateCategory}
 						>
 							<SettingsCategoryIcon category={item} />

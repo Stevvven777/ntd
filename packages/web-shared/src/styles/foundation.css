@@ -40,7 +40,12 @@ button {
 	font: inherit;
 }
 
-button:focus-visible {
+/* Page shells receive focus after navigation; interactive controls show their own indicators. */
+main[tabindex='-1']:focus {
+	outline: none;
+}
+
+button:focus-visible:not(.selection-option) {
 	outline: 3px solid #fff;
 	outline-offset: -5px;
 	box-shadow: 0 0 0 3px var(--purple);
@@ -59,4 +64,9 @@ button:focus-visible {
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
 	}
+}
+
+/* Selection controls use the same persistent indicator for pointer and keyboard. */
+button.selection-option:focus {
+	outline: none;
 }

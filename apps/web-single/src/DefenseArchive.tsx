@@ -1,3 +1,4 @@
+import { moveSelectionIndex } from '@prism-bastion/web-shared/ui/selectionListKeyboard';
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArchiveHeader } from '@prism-bastion/web-shared/ui/ArchiveHeader';
@@ -20,10 +21,10 @@ const tabIndexForKey = (key: string, current: number): number => {
 		return archiveTabs.length - 1;
 	}
 	if (key === 'ArrowRight') {
-		return (current + 1) % archiveTabs.length;
+		return moveSelectionIndex(current, 1, archiveTabs.length);
 	}
 	if (key === 'ArrowLeft') {
-		return (current - 1 + archiveTabs.length) % archiveTabs.length;
+		return moveSelectionIndex(current, -1, archiveTabs.length);
 	}
 	return -1;
 };
@@ -69,6 +70,9 @@ export function DefenseArchive({ repository, onBack }: { repository: DefenseArch
 			return;
 		}
 		event.preventDefault();
+		if (nextIndex === index) {
+			return;
+		}
 		setTab(archiveTabs[nextIndex]!);
 		event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[nextIndex]?.focus();
 	};
@@ -124,12 +128,14 @@ export function DefenseArchive({ repository, onBack }: { repository: DefenseArch
 							key={item}
 							id={`defense-archive-tab-${item}`}
 							data-tab={item}
+							className="selection-option"
 							role="tab"
 							aria-controls="defense-archive-panel"
 							aria-selected={tab === item}
 							tabIndex={tab === item ? 0 : -1}
 							onKeyDown={(event) => moveTabFocus(event, index)}
 							onClick={() => setTab(item)}
+							onFocus={() => setTab(item)}
 						>
 							<span>{t(`defenseArchive.tab.${item}`)}</span>
 							{item === 'history' && snapshot ? <b>{snapshot.defenses.length}</b> : null}

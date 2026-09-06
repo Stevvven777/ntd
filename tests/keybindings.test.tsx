@@ -128,6 +128,8 @@ it('switches icon tabs with keyboard navigation and cancels recording when leavi
 	await user.click(screen.getByRole('button', { name: 'Settings' }));
 	const general = screen.getByRole('tab', { name: 'General' });
 	expect(document.activeElement).toBe(general);
+	await user.keyboard('{ArrowLeft}');
+	expect(document.activeElement).toBe(general);
 	expect(screen.queryByRole('button', { name: 'Pause / resume', exact: true })).toBeNull();
 	await user.keyboard('{ArrowRight}');
 	expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe(
@@ -138,6 +140,10 @@ it('switches icon tabs with keyboard navigation and cancels recording when leavi
 	fireEvent.keyDown(window, { key: 'p' });
 	expect(getKeybindings().pause).toBe('Space');
 	expect(screen.getByRole('button', { name: 'Clear archive' })).toBeTruthy();
+	await user.keyboard('{End}');
+	const lastTab = document.activeElement;
+	await user.keyboard('{ArrowRight}');
+	expect(document.activeElement).toBe(lastTab);
 	await user.keyboard('{Home}');
 	expect(document.activeElement).toBe(general);
 	expect(screen.queryByRole('button', { name: 'Clear archive' })).toBeNull();

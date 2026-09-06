@@ -272,9 +272,13 @@ export function SignalArchive({
 							return (
 								<button
 									key={type}
-									className={selected ? 'selected' : ''}
+									className={`selection-option ${selected ? 'selected' : ''}`}
 									style={{ '--signal-item-color': signal.visual.color } as CSSProperties}
 									onClick={() => {
+										setSelectedType(type);
+										setDemoModeId(null);
+									}}
+									onFocus={() => {
 										setSelectedType(type);
 										setDemoModeId(null);
 									}}

@@ -57,9 +57,11 @@ A frame's dimensions are determined by viewport and layout role, not by the sele
 
 ## Page keyboard navigation
 
-The home page and archive pages own one default horizontal selection. Left/right arrows select levels on the home page, records in the Thought Index and Signal Compendium, and top-level categories in the Defense Archive. This works immediately after entering or returning to a page, including when focus falls back to the document body. Selection and focus move together; a home carousel only moves when the selected level is outside its visible range.
+The home page and archive pages own one default horizontal selection. Left/right arrows select levels on the home page, records in the Thought Index, and top-level categories in the Defense Archive. This works immediately after entering or returning to a page, including when focus falls back to the document body. Selection stops at either end instead of wrapping. Selection and focus move together; a home carousel only moves when the selected level is outside its visible range.
 
-Use `usePageArrowNavigation` for this default. Covered or inert pages must ignore navigation, and modal dialogs and editable controls retain their own keys. Secondary vertical lists use up/down arrows when focused. Thought Index step controls use PageUp/PageDown by default; unmodified left/right arrows are reserved for browsing its records.
+Mouse clicks, Tab focus, and arrow navigation update the same selected option. Selection controls use their persistent tint and accent strip for both input methods; hovering another option must not hide the current selection. In the Workshop, selection identifies an installed module at a tower slot, follows that module through swaps, and clears when the user selects a library module.
+
+Use `usePageArrowNavigation` for this default. Covered or inert pages must ignore navigation, and modal dialogs and editable controls retain their own keys. Signal Compendium uses up/down to scroll the Signal Index by 72px without changing the selection, even when no list item has focus. Left/right does not select or scroll its vertical index. Other secondary vertical lists use up/down arrows when focused. Thought Index step controls use PageUp/PageDown by default; unmodified left/right arrows are reserved for browsing its records.
 
 ## Divide rectangles by responsibility
 
