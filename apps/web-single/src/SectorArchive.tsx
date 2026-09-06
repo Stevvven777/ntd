@@ -136,9 +136,10 @@ export function SectorArchive({ records }: { records: DefenseRecord[] }) {
 								key={sector.levelId}
 								type="button"
 								aria-current={selectedSector ? 'true' : undefined}
-								className={selectedSector ? 'selected' : ''}
+								className={`selection-option ${selectedSector ? 'selected' : ''}`}
 								style={{ '--sector-item-accent': level?.accent ?? '#6558e8' } as CSSProperties}
 								onClick={() => setSelectedId(sector.levelId)}
+								onFocus={() => setSelectedId(sector.levelId)}
 							>
 								<i aria-hidden="true" />
 								<span>

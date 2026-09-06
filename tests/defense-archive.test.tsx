@@ -281,7 +281,7 @@ describe('defense archive interface', () => {
 		await user.click(sectors[0]!);
 		for (let step = 1; step <= sectors.length; step += 1) {
 			await user.keyboard('{ArrowDown}');
-			const selected = sectors[step % sectors.length]!;
+			const selected = sectors[Math.min(step, sectors.length - 1)]!;
 			expect(document.activeElement).toBe(selected);
 			expect(selected.getAttribute('aria-current')).toBe('true');
 		}

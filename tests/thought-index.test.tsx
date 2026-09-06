@@ -43,7 +43,7 @@ describe('thought index entry points', () => {
 		await user.click(records[0]!);
 		for (let step = 1; step <= records.length; step += 1) {
 			await user.keyboard('{ArrowRight}');
-			const selected = records[step % records.length]!;
+			const selected = records[Math.min(step, records.length - 1)]!;
 			expect(document.activeElement).toBe(selected);
 			expect(selected.getAttribute('aria-current')).toBe('page');
 			expect(document.querySelector('.thought-stage')?.getAttribute('data-thought-id')).toBe(
@@ -51,7 +51,7 @@ describe('thought index entry points', () => {
 			);
 		}
 		await user.keyboard('{ArrowLeft}');
-		expect(document.activeElement).toBe(records.at(-1));
+		expect(document.activeElement).toBe(records.at(-2));
 		expect(next).not.toHaveBeenCalled();
 		expect(previous).not.toHaveBeenCalled();
 		await user.keyboard('{PageDown}');

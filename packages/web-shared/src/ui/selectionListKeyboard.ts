@@ -1,5 +1,16 @@
 import type { KeyboardEvent } from 'react';
 
+/** Move within a finite selection without wrapping at either edge. */
+export function moveSelectionIndex(index: number, direction: number, count: number): number {
+	if (count === 0) {
+		return -1;
+	}
+	if (index < 0) {
+		return direction > 0 ? 0 : count - 1;
+	}
+	return Math.max(0, Math.min(count - 1, index + direction));
+}
+
 /** Navigate a bounded list of selection buttons in displayed order. */
 export function navigateSelectionList(event: KeyboardEvent<HTMLElement>): void {
 	if (
@@ -31,13 +42,16 @@ export function navigateSelectionList(event: KeyboardEvent<HTMLElement>): void {
 			? 0
 			: event.key === 'End'
 				? buttons.length - 1
-				: (index + offset + buttons.length) % buttons.length;
+				: moveSelectionIndex(index, offset, buttons.length);
 	const next = buttons[nextIndex];
 	if (!next) {
 		return;
 	}
 	event.preventDefault();
 	event.stopPropagation();
+	if (nextIndex === index) {
+		return;
+	}
 	next.focus();
 	next.click();
 }

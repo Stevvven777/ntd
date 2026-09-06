@@ -114,6 +114,7 @@ export function DefenseArchiveHistory({ records }: { records: DefenseRecord[] })
 						{visible.map((record) => (
 							<button
 								key={record.id}
+								className="selection-option"
 								data-result={record.result}
 								aria-pressed={state.selectedId === record.id}
 								onClick={() => dispatch({ type: 'select', id: record.id })}

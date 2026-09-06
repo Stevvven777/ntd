@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { moveSelectionIndex } from './selectionListKeyboard';
 
 /** Give the active page one default horizontal selection, even after focus is lost. */
 export function usePageArrowNavigation(navigate: (direction: -1 | 1) => void) {
@@ -55,12 +56,10 @@ export function navigatePageSelection(page: HTMLElement | null, selector: string
 	const selected = buttons.findIndex(
 		(button) => button.hasAttribute('aria-current') || button.getAttribute('aria-selected') === 'true',
 	);
-	const index =
-		selected < 0
-			? direction === 1
-				? 0
-				: buttons.length - 1
-			: (selected + direction + buttons.length) % buttons.length;
+	const index = moveSelectionIndex(selected, direction, buttons.length);
+	if (index === selected) {
+		return;
+	}
 	buttons[index]?.focus();
 	buttons[index]?.click();
 }
