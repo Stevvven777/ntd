@@ -32,8 +32,6 @@ export function KeybindingSettings() {
   return <section className="settings-section settings-keybindings-section">
     <div className="settings-section-copy">
       <strong>{t('settings.keys.title')}</strong>
-      <span className="keybinding-navigation-hint">{t('settings.keys.cancelHint')}</span>
-      <span>{t('settings.keys.description')}</span>
     </div>
     <div className="keybinding-list">
       {keybindingActions.map((action) => <div className="keybinding-row" key={action}>
