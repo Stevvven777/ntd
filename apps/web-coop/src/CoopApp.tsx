@@ -68,7 +68,7 @@ export function CoopApp({ onExit }: { onExit: () => void }) {
       self={self}
       peer={peer}
       error={runtime.error}
-      onLeave={leaveRoom}
+      onLeave={exitCoop}
       onSetReady={(ready) => runtime.sendCommand({ type: 'set-ready', expectedRevision: revision, ready })}
     />;
   }
@@ -83,7 +83,7 @@ export function CoopApp({ onExit }: { onExit: () => void }) {
   }
 
   if (room.phase === 'ended') {
-    return <CoopResultScreen room={room} onLeave={leaveRoom} />;
+    return <CoopResultScreen room={room} onLeave={exitCoop} />;
   }
 
   if (!runtime.engine) return null;
@@ -98,7 +98,7 @@ export function CoopApp({ onExit }: { onExit: () => void }) {
     availableEngines={runtime.engines}
     notificationToast={runtime.notificationToast}
     reinforcementNotice={runtime.reinforcementNotice}
-    onLeave={leaveRoom}
+    onLeave={exitCoop}
     onOpenThought={openThought}
     onSetReady={(ready) => runtime.sendCommand({ type: 'set-ready', expectedRevision: revision, ready })}
     onTransferShards={(amount) => runtime.sendCommand({ type: 'transfer-shards', expectedRevision: revision, amount })}
