@@ -19,7 +19,7 @@ import type {
 	CoopServerMessage,
 } from '@prism-bastion/coop/types';
 import { COOP_PLAYER_IDS } from '@prism-bastion/coop/types';
-import { coopDevLog, coopDevWarn } from './dev-log';
+import { logger } from './logger';
 import type {
 	CombatVerificationOutcome,
 	CombatVerificationRequest,
@@ -870,24 +870,30 @@ export class CoopRoom {
 	}
 
 	private log(event: string, details: Readonly<Record<string, unknown>> = {}): void {
-		coopDevLog(event, {
-			room: this.code,
-			phase: this.phase,
-			phaseId: this.phaseId,
-			wave: this.wave,
-			revision: this.revision,
-			...details,
-		});
+		logger.info(
+			{
+				room: this.code,
+				phase: this.phase,
+				phaseId: this.phaseId,
+				wave: this.wave,
+				revision: this.revision,
+				...details,
+			},
+			event,
+		);
 	}
 
 	private warn(event: string, details: Readonly<Record<string, unknown>> = {}): void {
-		coopDevWarn(event, {
-			room: this.code,
-			phase: this.phase,
-			phaseId: this.phaseId,
-			wave: this.wave,
-			revision: this.revision,
-			...details,
-		});
+		logger.warn(
+			{
+				room: this.code,
+				phase: this.phase,
+				phaseId: this.phaseId,
+				wave: this.wave,
+				revision: this.revision,
+				...details,
+			},
+			event,
+		);
 	}
 }

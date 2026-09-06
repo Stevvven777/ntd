@@ -8,7 +8,7 @@ import { parseCoopClientMessage } from '@prism-bastion/coop/protocol';
 import { CoopRoom } from './coop-room';
 import { CombatVerifierPool } from './combat-verifier';
 import { readCoopServerConfig } from './config';
-import { coopDevError, coopDevLog, coopDevWarn } from './dev-log';
+import { logger } from './logger';
 import { createWebSocketOriginPolicy } from './origin-policy';
 
 const { host, port, combatWorkerCount, combatQueueLimit, maxRooms, maxConnections } = readCoopServerConfig();
@@ -69,12 +69,12 @@ const webSocketServer = new WebSocketServer({
 			return false;
 		}
 		if (webSocketServer.clients.size >= maxConnections) {
-			coopDevWarn('connection.rejected', { reason: 'server-capacity', origin: origin || null });
+			logger.warn({ reason: 'server-capacity', origin: origin || null }, 'connection.rejected');
 			return false;
 		}
 		const allowed = originPolicy.allows(origin);
 		if (!allowed) {
-			coopDevWarn('connection.rejected', { reason: 'origin-not-allowed', origin: origin || null });
+			logger.warn({ reason: 'origin-not-allowed', origin: origin || null }, 'connection.rejected');
 		}
 		return allowed;
 	},
@@ -83,42 +83,51 @@ webSocketServer.on('connection', (socket) => {
 	const connectionId = nextConnectionId;
 	nextConnectionId += 1;
 	let session: ConnectionSession | null = null;
-	coopDevLog('connection.opened', { connectionId });
+	logger.info({ connectionId }, 'connection.opened');
 	socket.on('message', (payload) => {
 		const rawText = payload.toString();
 		let raw: unknown;
 		try {
 			raw = JSON.parse(rawText);
 		} catch {
-			coopDevWarn('message.rejected', {
-				connectionId,
-				reason: 'invalid-json',
-				bytes: Buffer.byteLength(rawText),
-			});
+			logger.warn(
+				{
+					connectionId,
+					reason: 'invalid-json',
+					bytes: Buffer.byteLength(rawText),
+				},
+				'message.rejected',
+			);
 			send(socket, { type: 'rejected', reason: 'invalid-json' });
 			return;
 		}
 		const message = parseCoopClientMessage(raw);
 		if (!message) {
 			const receivedType = raw && typeof raw === 'object' && 'type' in raw ? String(raw.type) : null;
-			coopDevWarn('message.rejected', {
-				connectionId,
-				reason: 'invalid-message',
-				receivedType,
-				bytes: Buffer.byteLength(rawText),
-			});
+			logger.warn(
+				{
+					connectionId,
+					reason: 'invalid-message',
+					receivedType,
+					bytes: Buffer.byteLength(rawText),
+				},
+				'message.rejected',
+			);
 			send(socket, { type: 'rejected', reason: 'invalid-message' });
 			return;
 		}
 		if (session) {
 			if (message.type === 'create-room' || message.type === 'join-room' || message.type === 'resume-room') {
-				coopDevWarn('message.rejected', {
-					connectionId,
-					room: session.room.code,
-					playerId: session.playerId,
-					messageType: message.type,
-					reason: 'already-in-room',
-				});
+				logger.warn(
+					{
+						connectionId,
+						room: session.room.code,
+						playerId: session.playerId,
+						messageType: message.type,
+						reason: 'already-in-room',
+					},
+					'message.rejected',
+				);
 				send(socket, { type: 'rejected', reason: 'already-in-room' });
 				return;
 			}
@@ -126,35 +135,41 @@ webSocketServer.on('connection', (socket) => {
 			return;
 		}
 		if (message.type !== 'create-room' && message.type !== 'join-room' && message.type !== 'resume-room') {
-			coopDevWarn('message.rejected', { connectionId, messageType: message.type, reason: 'not-in-room' });
+			logger.warn({ connectionId, messageType: message.type, reason: 'not-in-room' }, 'message.rejected');
 			send(socket, { type: 'rejected', reason: 'not-in-room' });
 			return;
 		}
 		if (message.protocolVersion !== COOP_PROTOCOL_VERSION) {
-			coopDevWarn('message.rejected', {
-				connectionId,
-				messageType: message.type,
-				reason: 'protocol-mismatch',
-				expectedProtocol: COOP_PROTOCOL_VERSION,
-				receivedProtocol: message.protocolVersion,
-			});
+			logger.warn(
+				{
+					connectionId,
+					messageType: message.type,
+					reason: 'protocol-mismatch',
+					expectedProtocol: COOP_PROTOCOL_VERSION,
+					receivedProtocol: message.protocolVersion,
+				},
+				'message.rejected',
+			);
 			send(socket, { type: 'rejected', reason: 'protocol-mismatch' });
 			return;
 		}
 		if (message.type === 'create-room') {
 			if (rooms.size >= maxRooms) {
-				coopDevWarn('message.rejected', { connectionId, messageType: message.type, reason: 'server-capacity' });
+				logger.warn({ connectionId, messageType: message.type, reason: 'server-capacity' }, 'message.rejected');
 				send(socket, { type: 'rejected', reason: 'server-capacity' });
 				return;
 			}
 			const level = LEVELS.find((candidate) => candidate.id === message.levelId);
 			if (!level || level.id === TUTORIAL_LEVEL_ID) {
-				coopDevWarn('message.rejected', {
-					connectionId,
-					messageType: message.type,
-					reason: 'invalid-coop-level',
-					levelId: message.levelId,
-				});
+				logger.warn(
+					{
+						connectionId,
+						messageType: message.type,
+						reason: 'invalid-coop-level',
+						levelId: message.levelId,
+					},
+					'message.rejected',
+				);
 				send(socket, { type: 'rejected', reason: 'invalid-coop-level' });
 				return;
 			}
@@ -172,82 +187,103 @@ webSocketServer.on('connection', (socket) => {
 			});
 			rooms.set(code, room);
 			session = { room, playerId: 'p1' };
-			coopDevLog('room.created', {
-				connectionId,
-				room: code,
-				playerId: session.playerId,
-				levelId: message.levelId,
-				difficultyId: message.difficultyId,
-				roomSeed: seed,
-			});
+			logger.info(
+				{
+					connectionId,
+					room: code,
+					playerId: session.playerId,
+					levelId: message.levelId,
+					difficultyId: message.difficultyId,
+					roomSeed: seed,
+				},
+				'room.created',
+			);
 			room.sendSession(room.players.p1!);
 			return;
 		}
 		const room = rooms.get(message.code.toUpperCase());
 		if (!room) {
-			coopDevWarn('message.rejected', {
-				connectionId,
-				messageType: message.type,
-				reason: 'room-not-found',
-				room: message.code.toUpperCase(),
-			});
+			logger.warn(
+				{
+					connectionId,
+					messageType: message.type,
+					reason: 'room-not-found',
+					room: message.code.toUpperCase(),
+				},
+				'message.rejected',
+			);
 			send(socket, { type: 'rejected', reason: 'room-not-found' });
 			return;
 		}
 		if (message.type === 'join-room') {
 			const player = room.join(message.name, socket);
 			if (!player) {
-				coopDevWarn('message.rejected', {
-					connectionId,
-					messageType: message.type,
-					reason: 'room-unavailable',
-					room: room.code,
-					phase: room.phase,
-				});
+				logger.warn(
+					{
+						connectionId,
+						messageType: message.type,
+						reason: 'room-unavailable',
+						room: room.code,
+						phase: room.phase,
+					},
+					'message.rejected',
+				);
 				send(socket, { type: 'rejected', reason: 'room-unavailable' });
 				return;
 			}
 			session = { room, playerId: player.id };
-			coopDevLog('room.joined', { connectionId, room: room.code, playerId: player.id });
+			logger.info({ connectionId, room: room.code, playerId: player.id }, 'room.joined');
 			room.sendSession(player);
 			return;
 		}
 		const player = room.resume(message.token, socket);
 		if (!player) {
-			coopDevWarn('message.rejected', {
-				connectionId,
-				messageType: message.type,
-				reason: 'resume-unavailable',
-				room: room.code,
-			});
+			logger.warn(
+				{
+					connectionId,
+					messageType: message.type,
+					reason: 'resume-unavailable',
+					room: room.code,
+				},
+				'message.rejected',
+			);
 			send(socket, { type: 'rejected', reason: 'resume-unavailable' });
 			return;
 		}
 		session = { room, playerId: player.id };
-		coopDevLog('room.resumed', {
-			connectionId,
-			room: room.code,
-			playerId: player.id,
-			phase: room.phase,
-			phaseId: room.phaseId,
-			revision: room.revision,
-		});
+		logger.info(
+			{
+				connectionId,
+				room: room.code,
+				playerId: player.id,
+				phase: room.phase,
+				phaseId: room.phaseId,
+				revision: room.revision,
+			},
+			'room.resumed',
+		);
 	});
 	socket.on('error', (error) => {
-		coopDevError('connection.error', {
-			connectionId,
-			room: session?.room.code ?? null,
-			playerId: session?.playerId ?? null,
-			error: error.message,
-		});
+		logger.error(
+			{
+				connectionId,
+				room: session?.room.code ?? null,
+				playerId: session?.playerId ?? null,
+				err: error,
+			},
+			'connection.error',
+		);
 	});
 	socket.on('close', (code) => {
-		coopDevLog('connection.closed', {
-			connectionId,
-			room: session?.room.code ?? null,
-			playerId: session?.playerId ?? null,
-			code,
-		});
+		logger.info(
+			{
+				connectionId,
+				room: session?.room.code ?? null,
+				playerId: session?.playerId ?? null,
+				code,
+			},
+			'connection.closed',
+		);
 		if (!session) {
 			return;
 		}
@@ -260,13 +296,13 @@ webSocketServer.on('connection', (socket) => {
 });
 
 httpServer.on('error', (error) => {
-	coopDevError('server.http-error', { host, port, error: error.message });
+	logger.error({ host, port, err: error }, 'server.http-error');
 	process.exitCode = 1;
 	void combatVerifier.close();
 });
 
 webSocketServer.on('error', (error) => {
-	coopDevError('server.websocket-error', { host, port, error: error.message });
+	logger.error({ host, port, err: error }, 'server.websocket-error');
 });
 
 const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
@@ -274,7 +310,7 @@ const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
 		return;
 	}
 	shuttingDown = true;
-	coopDevLog('server.stopping', { signal, rooms: rooms.size, connections: webSocketServer.clients.size });
+	logger.info({ signal, rooms: rooms.size, connections: webSocketServer.clients.size }, 'server.stopping');
 	if (httpServer.listening) {
 		httpServer.close();
 	}
@@ -293,12 +329,15 @@ httpServer.listen(port, host, () => {
 	const address = httpServer.address();
 	const listeningPort = address && typeof address === 'object' ? address.port : port;
 	process.stdout.write(`Prism Bastion co-op server listening on ws://${host}:${listeningPort}\n`);
-	coopDevLog('server.listening', {
-		host,
-		port: listeningPort,
-		combatWorkerCount,
-		combatQueueLimit,
-		maxRooms,
-		maxConnections,
-	});
+	logger.info(
+		{
+			host,
+			port: listeningPort,
+			combatWorkerCount,
+			combatQueueLimit,
+			maxRooms,
+			maxConnections,
+		},
+		'server.listening',
+	);
 });

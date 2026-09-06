@@ -82,16 +82,16 @@ Then open the CDN page with `?mode=coop&server=hk`, create a room, and join it f
 
 ## Runtime settings
 
-| Variable | Default | Purpose |
-| --- | ---: | --- |
-| `COOP_ALLOWED_ORIGINS` | required | Comma-separated exact CDN origins, including scheme and non-default port |
-| `COOP_HOST` | `0.0.0.0` | Listen address inside the container |
-| `COOP_SERVER_PORT` | `4174` | Plain HTTP/WebSocket port behind the proxy |
-| `COOP_COMBAT_WORKERS` | `1` | Authoritative replay worker threads |
-| `COOP_COMBAT_QUEUE_LIMIT` | `128` | Pending replay jobs before fail-closed rejection |
-| `COOP_MAX_ROOMS` | `64` | In-memory rooms accepted by one node |
-| `COOP_MAX_CONNECTIONS` | `256` | Concurrent upgraded WebSocket connections |
-| `COOP_DEV_LOG` | `0` | Verbose structured diagnostics; fatal server errors are always logged |
+| Variable                  |   Default | Purpose                                                                  |
+| ------------------------- | --------: | ------------------------------------------------------------------------ |
+| `COOP_ALLOWED_ORIGINS`    |  required | Comma-separated exact CDN origins, including scheme and non-default port |
+| `COOP_HOST`               | `0.0.0.0` | Listen address inside the container                                      |
+| `COOP_SERVER_PORT`        |    `4174` | Plain HTTP/WebSocket port behind the proxy                               |
+| `COOP_COMBAT_WORKERS`     |       `1` | Authoritative replay worker threads                                      |
+| `COOP_COMBAT_QUEUE_LIMIT` |     `128` | Pending replay jobs before fail-closed rejection                         |
+| `COOP_MAX_ROOMS`          |      `64` | In-memory rooms accepted by one node                                     |
+| `COOP_MAX_CONNECTIONS`    |     `256` | Concurrent upgraded WebSocket connections                                |
+| `COOP_DEV_LOG`            |       `0` | Enables Pino info and warning diagnostics; errors are always logged      |
 
 For the measured one-core / 2 GiB profile, keep one replay worker, plan around 48 active rooms, and retain 64 as the admission ceiling. Memory is not the expected bottleneck at this size; authoritative replay CPU is. Raise the room ceiling only after running `pnpm perf:coop-report` on the target CPU and observing production latency.
 

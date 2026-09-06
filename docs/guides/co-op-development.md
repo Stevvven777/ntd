@@ -32,8 +32,8 @@ Arbitrary URL overrides are ignored in production. Stored room credentials are
 bound to the node that issued them, so changing the selected node does not send
 an existing resume token to another server.
 
-The development command enables structured coordinator diagnostics by default.
-Each `[coop:dev]` line is JSON and includes the relevant connection, room,
+The development command enables Pino structured coordinator diagnostics by default.
+Each JSON log line includes the relevant connection, room,
 player, phase, revision, and trace context without session tokens or complete
 message payloads. Desynchronization logs distinguish actor, plan-hash, draft,
 and leaked-signal validation failures. Set `COOP_DEV_LOG=0` to silence these
