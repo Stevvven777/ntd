@@ -89,7 +89,7 @@ test('setup and battlefield work in a real browser', async ({ page }) => {
 
   const standardDifficulty = page.getByRole('radio', { name: /Standard/ });
   await standardDifficulty.focus();
-  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowDown');
   await expect(page.getByRole('radio', { name: /^Hard/ })).toHaveAttribute('aria-checked', 'true');
 
   await page.getByRole('button', { name: /Start deployment/ }).click();
@@ -435,6 +435,7 @@ test('defense archive reads, filters, details, and clears IndexedDB records', as
   expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
   await page.getByRole('button', { name: 'Settings' }).click();
   const settings = page.getByRole('dialog', { name: 'Settings' });
+  await settings.getByRole('tab', { name: 'Storage' }).click();
   await settings.getByRole('button', { name: 'Clear archive' }).click();
   await expect(page.getByRole('dialog', { name: 'Clear the defense archive?' })).toHaveCount(0);
   await settings.getByRole('button', { name: 'Click again to clear everything' }).click();
@@ -502,10 +503,14 @@ test('level carousel keeps three cards visible and launches the beginner map', a
   await page.mouse.down();
   await page.mouse.move(dragHandleBox.x + dragHandleBox.width / 2, dragHandleBox.y - 90, { steps: 5 });
   await page.mouse.up();
+  await expect.poll(async () => (await tutorialCard.boundingBox())?.x ?? 0).toBeCloseTo(initialCardBox.x, 0);
   const movedCardBox = await tutorialCard.boundingBox();
-  expect(movedCardBox?.x ?? 0).toBeCloseTo(initialCardBox.x, 0);
   expect(movedCardBox?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(initialCardBox.y - 30);
   await tutorial.getByRole('button', { name: 'Begin calibration' }).click();
+  await expect.poll(async () => {
+    const box = await tutorialCard.boundingBox();
+    return box ? viewport.width - box.x - box.width : Number.POSITIVE_INFINITY;
+  }).toBeCloseTo(20, 0);
   const cornerCardBox = await tutorialCard.boundingBox();
   if (!cornerCardBox) throw new Error('Expected the tutorial card in the lower-right corner');
   expect(viewport.width - cornerCardBox.x - cornerCardBox.width).toBeCloseTo(20, 0);
