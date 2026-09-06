@@ -1,3 +1,5 @@
+import { BUILD_COMMIT, BUILD_COMMIT_DATE } from '../build-info';
+import { KeybindingSettings } from './KeybindingSettings';
 import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +18,9 @@ let settingsArchiveRepository: SettingsArchiveRepository = { clearAll: async () 
 export const configureSettingsArchiveRepository = (repository: SettingsArchiveRepository): void => {
   settingsArchiveRepository = repository;
 };
+
+const settingsCategories = ['general', 'controls', 'storage', 'info'] as const;
+type SettingsCategory = (typeof settingsCategories)[number];
 
 export function SettingsPanel({
   disabled = false,
