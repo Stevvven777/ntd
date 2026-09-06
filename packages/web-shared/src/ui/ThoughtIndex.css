@@ -96,7 +96,7 @@
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-rows: minmax(320px, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   overflow: hidden;
   background: #fff;
 }
@@ -149,8 +149,8 @@
 .thought-transcript li + li { margin-top: 5px; }
 
 @media (max-width: 900px) {
-  .thought-index-shell { position: absolute; display: block; padding: 0; }
-  .thought-index-frame { width: 100%; height: auto; min-height: 100dvh; grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; border: 0; border-radius: 0; }
+  .thought-index-shell { position: fixed; display: block; padding: 0; overflow: hidden; }
+  .thought-index-frame { width: 100%; height: 100dvh; min-height: 0; grid-template-columns: 1fr; grid-template-rows: auto 130px minmax(0, 1fr) auto; border: 0; border-radius: 0; }
   .thought-index-header { grid-column: 1; }
   .thought-index-rail { grid-row: auto; border-right: 0; border-bottom: 2px solid var(--thought-ink); }
   .thought-search { display: grid; grid-template-columns: 90px minmax(0, 1fr); align-items: center; gap: 8px; padding: 8px 10px; }
@@ -159,7 +159,7 @@
   .thought-records section { display: contents; }
   .thought-records h2 { display: none; }
   .thought-records button { min-width: 190px; border-right: 1px solid #d9d5df; border-bottom: 0; }
-  .thought-stage { grid-template-rows: minmax(430px, 62vh) auto; }
+  .thought-stage { grid-template-rows: minmax(0, 1fr) auto; }
   .thought-transcript { grid-column: 1; }
 }
 
@@ -175,4 +175,13 @@
 @media (prefers-reduced-motion: reduce) {
   .thought-progress > i { transition: none; }
   .thought-progress-wait.waiting > i { animation: none; }
+}
+
+.thought-index-shell { min-width: 0; min-height: 0; overflow: hidden; }
+.thought-transcript { max-height: min(150px, 20dvh); overscroll-behavior: contain; }
+@media (max-height: 500px) and (max-width: 900px) {
+  .thought-index-frame { grid-template-rows: auto 80px minmax(0, 1fr) auto; }
+  .thought-index-rail { display: flex; }
+  .thought-search { width: 150px; flex-shrink: 0; grid-template-columns: 1fr; }
+  .thought-records { flex: 1; min-width: 0; }
 }

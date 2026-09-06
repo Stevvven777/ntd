@@ -1,16 +1,16 @@
 import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
+import { SIGNAL_IDS, signalRegistry } from '@prism-bastion/game-core/signals';
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BUILD_COMMIT, BUILD_COMMIT_DATE } from '@prism-bastion/web-shared/build-info';
 import { DEFAULT_LEVEL_ID, getLevel, LEVELS } from '@prism-bastion/game-core/game/config';
 import { DEFAULT_DIFFICULTY_ID, DIFFICULTIES, getDifficulty } from '@prism-bastion/game-core/game/difficulty';
 import type { CreativeSetup, DifficultyId, GameMode } from '@prism-bastion/game-core/game/types';
 import { difficultyName, levelDescription, levelName } from '@prism-bastion/web-shared/i18n/presentation';
-import { SIGNAL_IDS, signalRegistry } from '@prism-bastion/game-core/signals';
 import { CalibrationSlider } from '@prism-bastion/web-shared/ui/CalibrationSlider';
 import { LevelMap } from '@prism-bastion/web-shared/ui/LevelMap';
 import { MobileFullscreenButton } from '@prism-bastion/web-shared/ui/MobileFullscreenButton';
+import { HomeComposition } from './HomeComposition';
 import { SettingsPanel } from '@prism-bastion/web-shared/ui/SettingsPanel';
 import { Tag } from '@prism-bastion/web-shared/ui/Tag';
 import './LevelSelect.css';
@@ -195,6 +195,30 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
           <button aria-pressed={mode === 'creative'} className={mode === 'creative' ? 'active' : ''} onClick={() => setMode('creative')}><strong>{t('levelSelect.creativeTitle')}</strong><small>{t('levelSelect.creativeDetail')}</small></button>
         </div>
 
+        {mode === 'creative' ? (
+        <section className="creative-setup-card" aria-label={t('levelSelect.creativeTitle')}>
+          <div className="setup-rules">
+            <label className="core-rule">
+              <span>{t('levelSelect.coreStability')}</span>
+              <div><input aria-label={t('levelSelect.coreStability')} type="number" min="1" value={creative.coreStability} onChange={(event) => {
+                const value = Number(event.currentTarget.value);
+                setCreative((current) => ({ ...current, coreStability: positiveInteger(value, current.coreStability) }));
+              }} /><b><UiIcon name="heart" /></b></div>
+            </label>
+            <label className="wave-rule">
+              <span>{t('levelSelect.waveCount')}</span>
+              <div><input aria-label={t('levelSelect.waveCount')} type="number" min="1" value={creative.waveCount} onChange={(event) => {
+                const value = Number(event.currentTarget.value);
+                setCreative((current) => ({ ...current, waveCount: positiveInteger(value, current.waveCount) }));
+              }} /><b>≋</b></div>
+            </label>
+          </div>
+          <div className="setup-scales">
+            <CalibrationSlider label={t('levelSelect.healthScale')} min={0.25} max={5} step={0.25} value={creative.healthScale} onChange={(value) => setCreative((current) => ({ ...current, healthScale: value }))} />
+            <CalibrationSlider label={t('levelSelect.speedScale')} min={0.25} max={3} step={0.25} value={creative.speedScale} onChange={(value) => setCreative((current) => ({ ...current, speedScale: value }))} />
+          </div>
+        </section>
+        ) : (
         <section className="difficulty-select" aria-label={t('levelSelect.difficultyLabel')}>
           <div className="difficulty-options" role="radiogroup" aria-label={t('levelSelect.chooseDifficulty')}>
             {DIFFICULTIES.map((difficulty, index) => (
@@ -214,6 +238,7 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
             ))}
           </div>
         </section>
+        )}
       </section>
 
       <section className="sector-selection" aria-label={t('levelSelect.chooseLevel')}>
@@ -282,40 +307,9 @@ export function LevelSelect({ onStart, onOpenArchive, onOpenDefenseArchive, onOp
         </div>
       </section>
 
-      {mode === 'creative' ? (
-        <section className="creative-setup-card">
-          <div className="creative-setup-title"><h2>{t('levelSelect.creativeHeading')}</h2></div>
-          <div className="setup-rules">
-            <label className="core-rule">
-              <span>{t('levelSelect.coreStability')}</span>
-              <div><input aria-label={t('levelSelect.coreStability')} type="number" min="1" value={creative.coreStability} onChange={(event) => {
-                const value = Number(event.currentTarget.value);
-                setCreative((current) => ({ ...current, coreStability: positiveInteger(value, current.coreStability) }));
-              }} /><b><UiIcon name="heart" /></b></div>
-            </label>
-            <label className="wave-rule">
-              <span>{t('levelSelect.waveCount')}</span>
-              <div><input aria-label={t('levelSelect.waveCount')} type="number" min="1" value={creative.waveCount} onChange={(event) => {
-                const value = Number(event.currentTarget.value);
-                setCreative((current) => ({ ...current, waveCount: positiveInteger(value, current.waveCount) }));
-              }} /><b>≋</b></div>
-            </label>
-          </div>
-          <div className="setup-scales">
-            <CalibrationSlider label={t('levelSelect.healthScale')} min={0.25} max={5} step={0.25} value={creative.healthScale} onChange={(value) => setCreative((current) => ({ ...current, healthScale: value }))} />
-            <CalibrationSlider label={t('levelSelect.speedScale')} min={0.25} max={3} step={0.25} value={creative.speedScale} onChange={(value) => setCreative((current) => ({ ...current, speedScale: value }))} />
-          </div>
-        </section>
-      ) : null}
+      <HomeComposition />
+
       </div>
-      <footer className="home-meta">
-        <span>{t('levelSelect.version', { date: BUILD_COMMIT_DATE })}</span>
-        <a href={`https://github.com/szdytom/ntd/commit/${BUILD_COMMIT}`} target="_blank" rel="noreferrer">{BUILD_COMMIT}</a>
-        <span aria-hidden="true">·</span>
-        <a href="https://github.com/szdytom/ntd" target="_blank" rel="noreferrer">{t('levelSelect.projectOpenSource')}</a>
-        <span aria-hidden="true">·</span>
-        <a href="https://github.com/szdytom/ntd" target="_blank" rel="noreferrer">{t('levelSelect.starRequest')}</a>
-      </footer>
     </main>
   );
 }
