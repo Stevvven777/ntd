@@ -128,6 +128,24 @@ export function SettingsPanel({
 		}
 	};
 
+	const navigateCategory = (event: ReactKeyboardEvent<HTMLButtonElement>): void => {
+		let next: number;
+		if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+			return;
+		}
+		if (event.key === 'Home') {
+			next = 0;
+		} else if (event.key === 'End') {
+			next = settingsCategories.length - 1;
+		} else {
+			return;
+		}
+		event.preventDefault();
+		chooseCategory(settingsCategories[next]!);
+		const tabs = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+		tabs?.[next]?.focus();
+	};
+
 	const chooseLanguage = (option: SupportedLanguage): void => {
 		void i18n.changeLanguage(option);
 	};
@@ -213,24 +231,7 @@ export function SettingsPanel({
 											title={t(`settings.categories.${item}`)}
 											tabIndex={category === item ? 0 : -1}
 											onClick={() => chooseCategory(item)}
-											onKeyDown={(event) => {
-												let next: number;
-												if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
-													return;
-												}
-												if (event.key === 'Home') {
-													next = 0;
-												} else if (event.key === 'End') {
-													next = settingsCategories.length - 1;
-												} else {
-													return;
-												}
-												event.preventDefault();
-												chooseCategory(settingsCategories[next]!);
-												event.currentTarget.parentElement
-													?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
-													[next]?.focus();
-											}}
+											onKeyDown={navigateCategory}
 										>
 											<svg
 												viewBox="0 0 24 24"
