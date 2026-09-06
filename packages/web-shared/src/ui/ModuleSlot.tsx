@@ -1,8 +1,7 @@
 import { UiIcon } from './UiIcon';
-import { matchesKeybinding, useKeybindings } from './keybindings';
-import type { DragEvent, KeyboardEvent } from 'react';
+import { useKeybindings } from './keybindings';
+import type { DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { GameEngine } from '@prism-bastion/game-core/game/engine';
 import type { ModuleId } from '@prism-bastion/game-core/game/types';
 import type { ModuleDefinition } from '@prism-bastion/game-core/modules';
 import { moduleDescription, moduleName, moduleShortName } from '../i18n/presentation';
@@ -15,20 +14,25 @@ export function ModuleSlot({
 	isLast,
 	definition,
 	selectedModule,
-	onSelectModule,
-	engine,
+	selected,
+	onSelect,
+	onInstall,
+	onSwap,
 }: {
 	index: number;
 	isLast: boolean;
 	definition: ModuleDefinition | undefined;
 	selectedModule: ModuleId | null;
-	onSelectModule: (moduleId: ModuleId) => void;
-	engine: GameEngine;
+	selected: boolean;
+	onSelect: () => void;
+	onInstall: (index: number, moduleId: ModuleId | null) => void;
+	onSwap: (source: number, destination: number) => void;
 }) {
 	const { t } = useTranslation();
 	const bindings = useKeybindings();
 	const Icon = definition ? modulePresentationRegistry.require(definition.id).icon : undefined;
 	const dragStart = (event: DragEvent<HTMLButtonElement>): void => {
+		onSelect();
 		event.dataTransfer.setData('text/slot', String(index));
 		event.dataTransfer.effectAllowed = 'move';
 	};
@@ -38,21 +42,10 @@ export function ModuleSlot({
 		const incoming = event.dataTransfer.getData('text/module');
 		const source = event.dataTransfer.getData('text/slot');
 		if (incoming) {
-			engine.installModule(index, incoming);
+			onInstall(index, incoming);
 		} else if (source !== '') {
-			engine.swapModules(Number(source), index);
+			onSwap(Number(source), index);
 		}
-	};
-	const keyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
-		if (event.repeat || event.nativeEvent.isComposing) {
-			return;
-		}
-		const left = matchesKeybinding(event, bindings.moveLeft);
-		if (!left && !matchesKeybinding(event, bindings.moveRight)) {
-			return;
-		}
-		event.preventDefault();
-		engine.swapModules(index, index + (left ? -1 : 1));
 	};
 	return (
 		<div className="slot-wrap">
@@ -63,7 +56,7 @@ export function ModuleSlot({
 					data-tutorial-slot={index}
 					onClick={() => {
 						if (selectedModule) {
-							engine.installModule(index, selectedModule);
+							onInstall(index, selectedModule);
 						}
 					}}
 					onDragOver={(event) => {
@@ -82,7 +75,7 @@ export function ModuleSlot({
 			) : (
 				<div className="filled-slot">
 					<button
-						className={`module-slot filled ${definition.kind}`}
+						className={`module-slot filled selection-option ${selected ? 'selected' : ''} ${definition.kind}`}
 						data-slot={index}
 						data-touch-slot={index}
 						data-tutorial-slot={index}
@@ -95,8 +88,9 @@ export function ModuleSlot({
 						}}
 						onDragLeave={(event) => event.currentTarget.classList.remove('drag-over')}
 						onDrop={drop}
-						onKeyDown={keyDown}
-						onClick={() => onSelectModule(definition.id)}
+						onClick={onSelect}
+						onFocus={onSelect}
+						aria-pressed={selected}
 						aria-keyshortcuts={[bindings.moveLeft, bindings.moveRight].filter(Boolean).join(' ')}
 						aria-label={t('moduleSlot.filledAria', {
 							slot: index + 1,
@@ -117,7 +111,7 @@ export function ModuleSlot({
 					</button>
 					<button
 						className="slot-remove"
-						onClick={() => engine.installModule(index, null)}
+						onClick={() => onInstall(index, null)}
 						aria-label={t('moduleSlot.remove', { slot: index + 1, module: moduleName(t, definition.id) })}
 					>
 						<UiIcon name="close" />

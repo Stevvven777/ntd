@@ -739,3 +739,11 @@
 		overflow: visible;
 	}
 }
+
+/* One selected module is shared by mouse, keyboard, and drag operations. */
+.workshop .module-slot.selected,
+.workshop .module-card.selected,
+.workshop .module-card.exhausted.selected {
+	background: var(--module-tint);
+	box-shadow: inset 0 -5px 0 var(--module-color);
+}
