@@ -104,11 +104,11 @@ test('setup and battlefield work in a real browser', async ({ page }) => {
   await expect(page.getByRole('alert')).toHaveCount(0);
 
   const draft = page.getByRole('region', { name: 'Choose initial modules' });
-  const abandon = draft.getByRole('button', { name: /Abandon all/ });
-  await expect(abandon).toHaveText(`Abandon all · ${defaultLevel.moduleDraft.abandonLimit} left`);
-  await abandon.click();
+  const skip = draft.getByRole('button', { name: /Skip all/ });
+  await expect(skip).toHaveText(`Skip all · ${defaultLevel.moduleDraft.skipLimit} left`);
+  await skip.click();
   await expect(draft.getByText('QUALITY BASELINE RAISED')).toBeVisible();
-  await expect(abandon).toBeDisabled();
+  await expect(skip).toBeDisabled();
   for (let round = 1; round < defaultLevel.moduleDraft.initialPicks; round += 1) {
     await draft.locator('.reward-choose').first().click();
   }

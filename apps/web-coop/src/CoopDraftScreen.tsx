@@ -32,11 +32,11 @@ export function CoopDraftScreen({ room, playerId, onChoose, onOpenThought }: Coo
       <div className={styles.draftHeadActions}>
         {progressOffer ? <DraftProgress className={styles.coopProgress} current={progressOffer.pick} total={progressOffer.totalPicks} /> : null}
         <button
-          className={styles.abandonButton}
+          className={styles.skipButton}
           data-selected={self?.draftLocked && self.draftChoice === null}
-          disabled={!self?.draftOffer?.canAbandon || self.draftLocked}
+          disabled={!self?.draftOffer?.canSkip || self.draftLocked}
           onClick={() => onChoose(null)}
-        >{t('coop.abandon')}</button>
+        >{t('coop.skip')}</button>
         <div className={styles.screenSettings}><SettingsPanel /></div>
       </div>
     </header>

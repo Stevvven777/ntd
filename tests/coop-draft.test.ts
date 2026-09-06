@@ -28,7 +28,7 @@ describe('co-op shared draft', () => {
     }
   });
 
-  it('resolves both decisions before the next pick and preserves abandon boost state', () => {
+  it('resolves both decisions before the next pick and preserves skip boost state', () => {
     const pool = createCoopPool();
     const runtime = createCoopDraftRuntime(9, 2);
     const offers = generateCoopDraftOffers(runtime, ['p1', 'p2'], plans, pool, 'white-prism', 0);

@@ -27,7 +27,7 @@ If a page starts answering a different kind of question, follow its link to the 
 | --- | --- |
 | [Internals index](internals/README.md) | Which implementation explanation applies |
 | [Module compiler](internals/module-compiler.md) | Pending modifiers, wraparound, triggers, payloads, and hook dispatch |
-| [Module draft](internals/module-draft.md) | Adaptive quality, compatibility weights, and abandonment state |
+| [Module draft](internals/module-draft.md) | Adaptive quality, compatibility weights, and skipping state |
 | [Session rules](internals/session-rules.md) | The boundary between session identity and executable behavior policies |
 | [Thought Index](internals/thought-index.md) | How live module demonstrations share combat logic and rendering |
 | [Cross-cutting combat mechanics](internals/combat-runtime.md) | Target-effect propagation, damage ordering, spatial queries, and configured signal traits |

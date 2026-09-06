@@ -309,7 +309,7 @@ export interface ModuleDraftDiagnostics {
   appliedBoost: number;
   computedQuality: number;
   highestOfferedQuality: number;
-  abandonedHighestQuality: number | null;
+  skippedHighestQuality: number | null;
   retryCount: number;
   maxRetry: number;
   projectileDeficit: number;
@@ -322,8 +322,8 @@ export interface ModuleDraftSnapshot {
   totalRounds: number;
   choices: ModuleId[];
   boosted: boolean;
-  canAbandon: boolean;
-  abandonsRemaining: number;
+  canSkip: boolean;
+  skipsRemaining: number;
   diagnostics: ModuleDraftDiagnostics;
 }
 

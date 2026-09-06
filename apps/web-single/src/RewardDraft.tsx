@@ -27,12 +27,12 @@ export function RewardDraft({ engine, snapshot, inventory, advancedVisible = fal
   if (!draft) return null;
   const isInitialDraft = snapshot.wave === 0;
   const hasFutureOffer = draft.round < draft.totalRounds || snapshot.wave < snapshot.maxWaves - 1;
-  const abandonUnavailable = draft.abandonsRemaining === 0
-    ? t('reward.abandonUnavailableEmpty')
+  const skipUnavailable = draft.skipsRemaining === 0
+    ? t('reward.skipUnavailableEmpty')
     : !hasFutureOffer
-      ? t('reward.abandonUnavailableFinal')
-      : t('reward.abandonUnavailableConsecutive');
-  const abandonTitle = draft.canAbandon ? t('reward.abandonHint') : abandonUnavailable;
+      ? t('reward.skipUnavailableFinal')
+      : t('reward.skipUnavailableConsecutive');
+  const skipTitle = draft.canSkip ? t('reward.skipHint') : skipUnavailable;
   const quality = (value: number): string => value.toFixed(2);
   const compactWeight = (value: number): string => value.toFixed(2)
     .replace(/^0\./, '.')
@@ -50,17 +50,17 @@ export function RewardDraft({ engine, snapshot, inventory, advancedVisible = fal
         </div>
       </div>
       {advancedVisible ? <div className="reward-debug-summary" aria-label="F3 draft diagnostics">
-        <code className="reward-advanced-inline">s={quality(diagnostics.inventoryAverage)} a={quality(diagnostics.qualityAnchor)} b={quality(diagnostics.computedBaseline)} u=+{quality(diagnostics.appliedBoost)} q={quality(diagnostics.computedQuality)} ({diagnostics.retryCount}/{diagnostics.maxRetry} {diagnostics.highestOfferedQuality}:{diagnostics.abandonedHighestQuality ?? '-'}:{diagnostics.projectileDeficit}:{diagnostics.guaranteedPoolSize})</code>
+        <code className="reward-advanced-inline">s={quality(diagnostics.inventoryAverage)} a={quality(diagnostics.qualityAnchor)} b={quality(diagnostics.computedBaseline)} u=+{quality(diagnostics.appliedBoost)} q={quality(diagnostics.computedQuality)} ({diagnostics.retryCount}/{diagnostics.maxRetry} {diagnostics.highestOfferedQuality}:{diagnostics.skippedHighestQuality ?? '-'}:{diagnostics.projectileDeficit}:{diagnostics.guaranteedPoolSize})</code>
       </div> : null}
       <div className="reward-head-actions">
         <DraftProgress current={draft.round} total={draft.totalRounds} />
         <button
-          className="reward-abandon"
-          disabled={!draft.canAbandon}
-          aria-label={`${t('reward.abandon', { count: draft.abandonsRemaining })}${draft.canAbandon ? '' : `. ${abandonUnavailable}`}`}
-          title={abandonTitle}
-          onClick={() => engine.abandonDraft()}
-        >{t('reward.abandon', { count: draft.abandonsRemaining })}</button>
+          className="reward-skip"
+          disabled={!draft.canSkip}
+          aria-label={`${t('reward.skip', { count: draft.skipsRemaining })}${draft.canSkip ? '' : `. ${skipUnavailable}`}`}
+          title={skipTitle}
+          onClick={() => engine.skipDraft()}
+        >{t('reward.skip', { count: draft.skipsRemaining })}</button>
       </div>
     </header>
     <div className="reward-grid">{draft.choices.map((moduleId) => {

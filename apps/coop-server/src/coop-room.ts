@@ -282,8 +282,8 @@ export class CoopRoom {
     if (message.choice !== null && !player.draftOffer.choices.includes(message.choice)) {
       return this.reject(player, traceId, 'choice-unavailable');
     }
-    if (message.choice === null && !player.draftOffer.canAbandon) {
-      return this.reject(player, traceId, 'abandon-unavailable');
+    if (message.choice === null && !player.draftOffer.canSkip) {
+      return this.reject(player, traceId, 'skip-unavailable');
     }
     player.draftChoice = message.choice;
     player.draftLocked = true;

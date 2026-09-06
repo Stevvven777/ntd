@@ -8,7 +8,7 @@ import type { CoopDraftOffer, CoopPlayerId, CoopPlayerPlan } from './types';
 
 export interface CoopDraftPlayerRuntime {
   previousChoices: Set<ModuleId>;
-  abandonsUsed: number;
+  skipsUsed: number;
   qualityBoostPending: boolean;
 }
 
@@ -21,7 +21,7 @@ export interface CoopDraftRuntime {
 
 const createPlayerRuntime = (): CoopDraftPlayerRuntime => ({
   previousChoices: new Set(),
-  abandonsUsed: 0,
+  skipsUsed: 0,
   qualityBoostPending: false,
 });
 
@@ -68,7 +68,7 @@ export function generateCoopDraftOffers(
       inventoryAverage,
       inventoryInfluence: level.moduleDraft.inventoryInfluence,
       qualityBias: level.moduleDraft.qualityBias,
-      boost: state.qualityBoostPending ? DRAFT_BALANCE.abandonQualityBoost : 0,
+      boost: state.qualityBoostPending ? DRAFT_BALANCE.skipQualityBoost : 0,
     });
     const result = rollModuleDraft({
       definitions: availableDefinitions,
@@ -91,7 +91,7 @@ export function generateCoopDraftOffers(
       pick: runtime.pick,
       totalPicks: runtime.totalPicks,
       choices: result.choices,
-      canAbandon: state.abandonsUsed < level.moduleDraft.abandonLimit,
+      canSkip: state.skipsUsed < level.moduleDraft.skipLimit,
       boosted: state.qualityBoostPending,
     };
   }
@@ -108,8 +108,8 @@ export function resolveCoopDraftDecision(
 ): { ok: true } | { ok: false; reason: string } {
   const state = runtime.players[playerId];
   if (choice === null) {
-    if (!offer.canAbandon) return { ok: false, reason: 'abandon-unavailable' };
-    state.abandonsUsed += 1;
+    if (!offer.canSkip) return { ok: false, reason: 'skip-unavailable' };
+    state.skipsUsed += 1;
     state.qualityBoostPending = true;
     return { ok: true };
   }

@@ -93,13 +93,13 @@ describe('engine command and view boundary', () => {
     })).toBe(true);
   });
 
-  it('limits abandonment, prevents consecutive use, and carries a boost across reward batches', () => {
+  it('limits skipping, prevents consecutive use, and carries a boost across reward batches', () => {
     const engine = new GameEngine({ mode: 'standard', seed: 5 });
     expect(engine.getSnapshot().draft).toMatchObject({
       round: 1,
       boosted: false,
-      canAbandon: true,
-      abandonsRemaining: 2,
+      canSkip: true,
+      skipsRemaining: 2,
       diagnostics: {
         inventoryAverage: 1,
         qualityAnchor: 2,
@@ -111,27 +111,27 @@ describe('engine command and view boundary', () => {
       },
     });
 
-    const abandonedHighestQuality = engine.getSnapshot().draft?.diagnostics.highestOfferedQuality;
-    engine.abandonDraft();
+    const skippedHighestQuality = engine.getSnapshot().draft?.diagnostics.highestOfferedQuality;
+    engine.skipDraft();
     expect(engine.getSnapshot().draft).toMatchObject({
       round: 2,
       boosted: true,
-      canAbandon: false,
-      abandonsRemaining: 1,
+      canSkip: false,
+      skipsRemaining: 1,
       diagnostics: {
-        appliedBoost: DRAFT_BALANCE.abandonQualityBoost,
+        appliedBoost: DRAFT_BALANCE.skipQualityBoost,
         computedQuality: 3.1,
-        abandonedHighestQuality,
+        skippedHighestQuality,
       },
     });
-    engine.abandonDraft();
+    engine.skipDraft();
     expect(engine.getSnapshot().draft?.round).toBe(2);
 
     const choice = engine.getSnapshot().draft?.choices[0];
     if (!choice) throw new Error('Expected a boosted draft choice');
     engine.chooseDraftModule(choice);
-    expect(engine.getSnapshot().draft).toMatchObject({ round: 3, boosted: false, canAbandon: true });
-    engine.abandonDraft();
+    expect(engine.getSnapshot().draft).toMatchObject({ round: 3, boosted: false, canSkip: true });
+    engine.skipDraft();
     expect(engine.getSnapshot()).toMatchObject({ status: 'planning', draft: null });
 
     engine.startWave();
@@ -147,12 +147,12 @@ describe('engine command and view boundary', () => {
     expect(engine.getSnapshot().draft).toMatchObject({
       round: 1,
       boosted: true,
-      canAbandon: false,
-      abandonsRemaining: 0,
+      canSkip: false,
+      skipsRemaining: 0,
     });
   });
 
-  it('never offers an abandonment whose boost cannot reach another draft', () => {
+  it('never offers an skipping whose boost cannot reach another draft', () => {
     const source = new GameEngine({ mode: 'standard', levelId: 'white-prism', seed: 3 }).level;
     const engine = new GameEngine({
       mode: 'standard',
@@ -166,7 +166,7 @@ describe('engine command and view boundary', () => {
           initialPicks: 1,
           wavePicks: 1,
           qualityAnchors: [2, 3],
-          abandonLimit: 1,
+          skipLimit: 1,
         },
       },
     });
@@ -182,18 +182,18 @@ describe('engine command and view boundary', () => {
       status: 'reward',
       wave: 1,
       maxWaves: 2,
-      draft: { round: 1, totalRounds: 1, canAbandon: false, abandonsRemaining: 1 },
+      draft: { round: 1, totalRounds: 1, canSkip: false, skipsRemaining: 1 },
     });
     const terminalOffer = engine.getSnapshot().draft;
-    engine.abandonDraft();
+    engine.skipDraft();
     expect(engine.getSnapshot().draft).toEqual(terminalOffer);
   });
 
-  it('retries a boosted offer when its best quality initially falls below the abandoned offer', () => {
+  it('retries a boosted offer when its best quality initially falls below the skiped offer', () => {
     let retriedDraft: NonNullable<ReturnType<GameEngine['getSnapshot']>['draft']> | null = null;
     for (let seed = 1; seed <= 200 && !retriedDraft; seed += 1) {
       const engine = new GameEngine({ mode: 'standard', seed });
-      engine.abandonDraft();
+      engine.skipDraft();
       const draft = engine.getSnapshot().draft;
       if (draft && draft.diagnostics.retryCount > 0) retriedDraft = draft;
     }
@@ -202,7 +202,7 @@ describe('engine command and view boundary', () => {
     expect(retriedDraft?.diagnostics.retryCount).toBeLessThanOrEqual(DRAFT_BALANCE.maxRetry);
     if ((retriedDraft?.diagnostics.retryCount ?? 0) < DRAFT_BALANCE.maxRetry) {
       expect(retriedDraft?.diagnostics.highestOfferedQuality)
-        .toBeGreaterThanOrEqual(retriedDraft?.diagnostics.abandonedHighestQuality ?? 1);
+        .toBeGreaterThanOrEqual(retriedDraft?.diagnostics.skippedHighestQuality ?? 1);
     }
   });
 

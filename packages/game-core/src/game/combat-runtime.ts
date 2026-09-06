@@ -39,7 +39,7 @@ const levelFromScene = (scene: CombatSceneModel): LevelDefinition => ({
     qualityAnchors: [1],
     qualityBias: 0,
     inventoryInfluence: 0,
-    abandonLimit: 0,
+    skipLimit: 0,
   },
   startingShards: 0,
   signalHealthScale: scene.signalHealthScale ?? 0.72,

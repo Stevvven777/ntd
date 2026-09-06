@@ -15,7 +15,7 @@ export const MODULE_RARITIES: Record<ModuleRarity, ModuleRarityDefinition> = {
 
 export const DRAFT_BALANCE = {
   choicesPerOffer: 4,
-  abandonQualityBoost: 1.5,
+  skipQualityBoost: 1.5,
   maxRetry: 2,
   qualitySharpness: 0.22,
   minimumBaseWeight: 0.01,

@@ -15,7 +15,7 @@ export interface LevelModuleDraft {
   qualityAnchors: readonly number[];
   qualityBias: number;
   inventoryInfluence: number;
-  abandonLimit: number;
+  skipLimit: number;
 }
 
 export interface LevelDefinition {
@@ -59,14 +59,14 @@ export const qualityRamp = (count: number, start = 2, end = 3): readonly number[
 
 const moduleDraft = (
   anchors: readonly number[],
-  abandonLimit: number,
+  skipLimit: number,
   picks: Pick<LevelModuleDraft, 'initialPicks' | 'wavePicks'> = { initialPicks: 3, wavePicks: 3 },
 ): LevelModuleDraft => ({
   ...picks,
   qualityAnchors: anchors,
   qualityBias: 0,
   inventoryInfluence: 0.4,
-  abandonLimit,
+  skipLimit,
 });
 
 export function resolveSpawnEntrances(
@@ -273,8 +273,8 @@ for (const level of LEVELS) {
     || level.moduleDraft.inventoryInfluence > 1) {
     throw new Error(`${level.id} module inventory influence must be between 0 and 1`);
   }
-  if (!Number.isInteger(level.moduleDraft.abandonLimit) || level.moduleDraft.abandonLimit < 0) {
-    throw new Error(`${level.id} module abandon limit must be a non-negative integer`);
+  if (!Number.isInteger(level.moduleDraft.skipLimit) || level.moduleDraft.skipLimit < 0) {
+    throw new Error(`${level.id} module skip limit must be a non-negative integer`);
   }
   for (const entries of level.waves) {
     entries.forEach((entry) => resolveSpawnEntrances(entry, level.graph));

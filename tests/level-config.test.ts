@@ -27,7 +27,7 @@ describe('level configuration', () => {
       expect(level.moduleDraft.inventoryInfluence).toBeGreaterThanOrEqual(0);
       expect(level.moduleDraft.inventoryInfluence).toBeLessThanOrEqual(1);
       expect(Number.isFinite(level.moduleDraft.qualityBias)).toBe(true);
-      expect(level.moduleDraft.abandonLimit).toBe(Math.floor(level.waves.length / 2));
+      expect(level.moduleDraft.skipLimit).toBe(Math.floor(level.waves.length / 2));
       for (const [index, pad] of level.towerPads.entries()) {
         expect(Number.isFinite(pad.x) && pad.x >= 0 && pad.x <= WORLD.width, `${level.id}: pad ${index} x`).toBe(true);
         expect(Number.isFinite(pad.y) && pad.y >= 0 && pad.y <= WORLD.height, `${level.id}: pad ${index} y`).toBe(true);
