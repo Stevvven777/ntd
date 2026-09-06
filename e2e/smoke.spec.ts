@@ -90,7 +90,7 @@ test('setup and battlefield work in a real browser', async ({ page }) => {
   const standardDifficulty = page.getByRole('radio', { name: /Standard/ });
   await standardDifficulty.focus();
   await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('radio', { name: /^◆ Hard/ })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByRole('radio', { name: /^Hard/ })).toHaveAttribute('aria-checked', 'true');
 
   await page.getByRole('button', { name: /Start deployment/ }).click();
   const canvas = page.getByRole('img', { name: 'Tower-defense battlefield' });
