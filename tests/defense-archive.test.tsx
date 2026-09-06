@@ -243,6 +243,7 @@ describe('defense archive interface', () => {
     render(<SettingsPanel defenseArchiveRepository={{ clearAll } as never} />);
 
     await user.click(screen.getByRole('button', { name: 'Settings' }));
+    await user.click(screen.getByRole('tab', { name: 'Storage' }));
     await user.click(screen.getByRole('button', { name: 'Clear archive' }));
     expect(clearAll).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog', { name: 'Clear the defense archive?' })).toBeNull();

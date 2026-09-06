@@ -1,3 +1,4 @@
+import { getKeybindings, matchesKeybinding, shouldIgnoreGameShortcut } from '@prism-bastion/web-shared/ui/keybindings';
 import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './GameSession.module.css';
@@ -71,16 +72,16 @@ export function GameSession({ engine, backgroundEngine, defenseArchive, notifica
   }, [workshopToast]);
   useEffect(() => {
     const toggleAdvancedDraft = (event: KeyboardEvent): void => {
-      if (event.key !== 'F3') return;
+      if (suspended || shouldIgnoreGameShortcut(event) || !matchesKeybinding(event, getKeybindings().advancedDraft)) return;
       event.preventDefault();
       if (!event.repeat) setAdvancedDraftVisible((visible) => !visible);
     };
     window.addEventListener('keydown', toggleAdvancedDraft);
     return () => window.removeEventListener('keydown', toggleAdvancedDraft);
-  }, []);
+  }, [suspended]);
   return <div className={styles.appShell} data-app-shell>
     <div className={styles.gameConsole}>
-      <GameHeader engine={engine} snapshot={snapshot} onExit={onExit} launchReady={launchReady}
+      <GameHeader suspended={suspended} engine={engine} snapshot={snapshot} onExit={onExit} launchReady={launchReady}
         {...(launchReadyLabel ? { launchReadyLabel } : {})} {...(launchCancelLabel ? { launchCancelLabel } : {})}
         {...(onLaunch ? { onLaunch } : {})} {...(launchDisabled !== undefined ? { launchDisabled } : {})} />
       <div className={styles.workspace}>

@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { getKeybindings, matchesKeybinding, shouldIgnoreGameShortcut, useKeybindings } from './keybindings';
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
 import type { GameSnapshot } from '@prism-bastion/game-core/game/types';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +13,7 @@ export function GameHeader({
   onLaunch,
   launchDisabled,
   launchReady = false,
+  suspended = false,
   launchReadyLabel,
   launchCancelLabel,
 }: {
@@ -20,10 +23,12 @@ export function GameHeader({
   onLaunch?: () => void;
   launchDisabled?: boolean;
   launchReady?: boolean;
+  suspended?: boolean;
   launchReadyLabel?: string;
   launchCancelLabel?: string;
 }) {
   const { t } = useTranslation();
+  const bindings = useKeybindings();
   const drafting = Boolean(snapshot.draft);
   const waveDisabled = snapshot.status !== 'planning' || drafting;
   const launchLabel = launchReady
@@ -38,6 +43,22 @@ export function GameHeader({
     : snapshot.wave >= snapshot.maxWaves
       ? t('header.complete')
       : t('header.waveNumber', { wave: String(snapshot.wave + 1).padStart(2, '0') });
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (suspended || shouldIgnoreGameShortcut(event)) return;
+      const keys = getKeybindings();
+      if (matchesKeybinding(event, keys.launch) && !(launchDisabled ?? waveDisabled)) {
+        event.preventDefault();
+        if (onLaunch) onLaunch(); else engine.startWave();
+      } else if (!engine.externallyControlled && !drafting) {
+        if (matchesKeybinding(event, keys.pause)) { event.preventDefault(); engine.togglePause(); }
+        else if (matchesKeybinding(event, keys.speed)) { event.preventDefault(); engine.setSpeed(snapshot.speed === 1 ? 2 : 1); }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [suspended, engine, drafting, launchDisabled, waveDisabled, onLaunch, snapshot.speed]);
 
   return (
     <header className="topbar">
@@ -68,11 +89,13 @@ export function GameHeader({
             <button key={speed} disabled={drafting} className={snapshot.speed === speed ? 'active' : ''} onClick={() => engine.setSpeed(speed)}>{speed}×</button>
           ))}
         </div>}
-        {engine.externallyControlled ? null : <button disabled={drafting} className={`icon-button pause-button ${snapshot.manuallyPaused ? 'active' : ''}`} onClick={() => engine.togglePause()} aria-label={snapshot.manuallyPaused ? t('header.resume') : t('header.pause')}>
+        {engine.externallyControlled ? null : <button disabled={drafting} aria-keyshortcuts={bindings.pause ?? undefined} title={bindings.pause ?? undefined} className={`icon-button pause-button ${snapshot.manuallyPaused ? 'active' : ''}`} onClick={() => engine.togglePause()} aria-label={snapshot.manuallyPaused ? t('header.resume') : t('header.pause')}>
           <span className="pause-glyph">{snapshot.manuallyPaused ? '▶' : 'Ⅱ'}</span>
         </button>}
         <button
           className="launch-button"
+          aria-keyshortcuts={bindings.launch ?? undefined}
+          title={bindings.launch ?? undefined}
           data-tutorial-launch
           data-ready={launchReady || undefined}
           onClick={onLaunch ?? (() => engine.startWave())}

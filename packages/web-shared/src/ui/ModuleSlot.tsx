@@ -1,3 +1,4 @@
+import { matchesKeybinding, useKeybindings } from './keybindings';
 import type { DragEvent, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
@@ -17,6 +18,7 @@ export function ModuleSlot({ index, isLast, definition, selectedModule, onSelect
   engine: GameEngine;
 }) {
   const { t } = useTranslation();
+  const bindings = useKeybindings();
   const Icon = definition ? modulePresentationRegistry.require(definition.id).icon : undefined;
   const dragStart = (event: DragEvent<HTMLButtonElement>): void => {
     event.dataTransfer.setData('text/slot', String(index));
@@ -31,9 +33,11 @@ export function ModuleSlot({ index, isLast, definition, selectedModule, onSelect
     else if (source !== '') engine.swapModules(Number(source), index);
   };
   const keyDown = (event: KeyboardEvent<HTMLButtonElement>): void => {
-    if (!event.altKey || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
+    if (event.repeat || event.nativeEvent.isComposing) return;
+    const left = matchesKeybinding(event, bindings.moveLeft);
+    if (!left && !matchesKeybinding(event, bindings.moveRight)) return;
     event.preventDefault();
-    engine.swapModules(index, index + (event.key === 'ArrowLeft' ? -1 : 1));
+    engine.swapModules(index, index + (left ? -1 : 1));
   };
   return (
     <div className="slot-wrap">
@@ -51,9 +55,9 @@ export function ModuleSlot({ index, isLast, definition, selectedModule, onSelect
             onDragStart={dragStart} onDragOver={(event) => { event.preventDefault(); event.currentTarget.classList.add('drag-over'); }}
             onDragLeave={(event) => event.currentTarget.classList.remove('drag-over')} onDrop={drop} onKeyDown={keyDown}
             onClick={() => onSelectModule(definition.id)}
-            aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight"
-            aria-label={t('moduleSlot.filledAria', { slot: index + 1, module: moduleName(t, definition.id) })}
-            title={t('moduleSlot.filledTitle', { module: moduleName(t, definition.id), description: moduleDescription(t, definition) })}>
+            aria-keyshortcuts={[bindings.moveLeft, bindings.moveRight].filter(Boolean).join(' ')}
+            aria-label={t('moduleSlot.filledAria', { slot: index + 1, module: moduleName(t, definition.id), left: bindings.moveLeft ?? t('settings.keys.unbound'), right: bindings.moveRight ?? t('settings.keys.unbound') })}
+            title={t('moduleSlot.filledTitle', { module: moduleName(t, definition.id), description: moduleDescription(t, definition), left: bindings.moveLeft ?? t('settings.keys.unbound'), right: bindings.moveRight ?? t('settings.keys.unbound') })}>
             <span className="slot-kind">{KIND_SYMBOL[definition.kind]}</span><span className="slot-icon">{Icon ? <Icon /> : null}</span><small>{moduleShortName(t, definition.id)}</small>
           </button>
           <button className="slot-remove" onClick={() => engine.installModule(index, null)} aria-label={t('moduleSlot.remove', { slot: index + 1, module: moduleName(t, definition.id) })}>×</button>

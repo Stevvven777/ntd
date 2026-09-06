@@ -1,3 +1,4 @@
+import { getKeybindings, matchesKeybinding, shouldIgnoreGameShortcut } from './keybindings';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { kindLabel } from '../i18n/presentation';
@@ -82,13 +83,13 @@ export function ThoughtIndex({ initialThoughtId, onBack, backToBattlefield = fal
   }, [director]);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
-      const target = event.target;
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
+      if (shouldIgnoreGameShortcut(event)) return;
+      const bindings = getKeybindings();
       if (event.key === 'Escape') onBack();
-      else if (event.key === ' ') { event.preventDefault(); director.togglePlayback(); }
-      else if (event.key === 'ArrowLeft') director.previous();
-      else if (event.key === 'ArrowRight') director.next();
-      else if (event.key.toLowerCase() === 'r') director.restart();
+      else if (matchesKeybinding(event, bindings.thoughtPlayback)) { event.preventDefault(); director.togglePlayback(); }
+      else if (matchesKeybinding(event, bindings.thoughtPrevious)) { event.preventDefault(); director.previous(); }
+      else if (matchesKeybinding(event, bindings.thoughtNext)) { event.preventDefault(); director.next(); }
+      else if (matchesKeybinding(event, bindings.thoughtRestart)) { event.preventDefault(); director.restart(); }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
