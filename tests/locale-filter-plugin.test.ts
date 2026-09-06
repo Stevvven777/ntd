@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { filterLocaleObject } from '../build/locale-filter-plugin.mjs';
+import { filterLocaleObject } from '../build/locale-filter-plugin';
 
 describe('single-player locale filtering', () => {
   it('removes every co-op key while preserving values and Unicode text', () => {

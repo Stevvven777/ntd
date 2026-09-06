@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { formatLocaleDirectory } from '../scripts/locale-utils.mjs';
+import { formatLocaleDirectory } from '../scripts/locale-utils';
 
 const fixtureDirectories: string[] = [];
 

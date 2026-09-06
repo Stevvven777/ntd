@@ -1,6 +1,6 @@
 import * as esbuild from 'esbuild';
 import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { getBuildInfo } from '../../scripts/build-info.mjs';
+import { getBuildInfo } from '../../scripts/build-info';
 
 const buildInfo = getBuildInfo();
 const rawServers = process.env.COOP_PUBLIC_SERVERS;

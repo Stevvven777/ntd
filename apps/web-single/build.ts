@@ -1,7 +1,7 @@
 import * as esbuild from 'esbuild';
 import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { getBuildInfo } from '../../scripts/build-info.mjs';
-import { localeFilterPlugin } from '../../build/locale-filter-plugin.mjs';
+import { getBuildInfo } from '../../scripts/build-info';
+import { localeFilterPlugin } from '../../build/locale-filter-plugin';
 
 const buildInfo = getBuildInfo();
 await rm('dist', { recursive: true, force: true });

@@ -12,5 +12,5 @@
     "react-i18next": "^17.0.12"
   },
   "devDependencies": { "esbuild": "^0.28.2" },
-  "scripts": { "build": "node build.mjs", "typecheck": "tsc -p tsconfig.json" }
+  "scripts": { "build": "tsx build.ts", "typecheck": "tsc -p tsconfig.json" }
 }
