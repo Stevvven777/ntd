@@ -27,7 +27,7 @@ At wave start, the engine creates an independent queue and timer for every entra
 
 - an entry with an explicit entrance goes only to that queue;
 - an ordinary entry without an entrance is copied to every entrance queue;
-- a signal type marked `boss` must specify an entrance.
+- ordinary and elite signal types share these rules; an elite classification does not impose an entrance restriction.
 
 Because lane timers advance independently, equivalent queue positions can spawn simultaneously. Broadcasting means a three-entrance map creates three instances of each unassigned wave entry; it is not round-robin distribution.
 

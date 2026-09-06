@@ -369,7 +369,7 @@
 	"signalArchive.signals.solar.role": "Regeneration elite",
 	"signalArchive.signals.solar.description": "A smoothly advancing hexagram with extreme continuous health recovery.",
 	"signalArchive.signals.solar.counter": "Deal lethal damage within one attack frame before regeneration can respond.",
-	"signalArchive.signals.crown.role": "Shield commander",
+	"signalArchive.signals.crown.role": "Shield elite",
 	"signalArchive.signals.crown.description": "A command signal protected by a regenerating shield.",
 	"signalArchive.signals.crown.counter": "True single-target efficiency is required. Expiration Trigger works wonders.",
 	"signalArchive.signals.fracture.role": "Splitting elite",

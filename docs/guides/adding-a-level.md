@@ -47,7 +47,7 @@ waves: [
 ],
 ```
 
-An entry without an entrance is copied to every entrance queue. On a three-entrance map, `['spark', 6]` therefore produces six Sparks per entrance. An explicit entrance restricts the entry to that lane. Signal types marked as bosses must always specify an entrance.
+An entry without an entrance is copied to every entrance queue. On a three-entrance map, `['spark', 6]` therefore produces six Sparks per entrance. An explicit entrance restricts the entry to that lane. Ordinary and elite signals follow the same rule; use explicit entrances to control elite placement and counts.
 
 Each entrance has an independent spawn timer, so lane queues advance in parallel rather than sharing one global delay.
 
@@ -68,7 +68,7 @@ Add matching `levels.<id>.name` and `levels.<id>.description` keys to both local
 ## 5. Verify discovery and geometry
 
 1. Update level-count assertions and add a focused case in `tests/level-config.test.ts`.
-2. Test root, entrance, confluence, pad, wave, and boss-placement invariants that are specific to the new map.
+2. Test root, entrance, confluence, pad, wave, and explicit-placement invariants that are specific to the new map.
 3. Run `pnpm check:locales` and the route/level tests.
 4. Play the map in Standard and Creative modes.
 5. Inspect route arrows, entrance markers, core placement, tower selection, and narrow-screen scaling.

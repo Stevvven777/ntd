@@ -2,7 +2,7 @@ import { defineSignal } from './define-signal';
 
 export const fractureSignal = defineSignal({
   id: 'fracture',
-  stats: { health: 360, speed: 35, spawnDelay: 1.35, reward: 32, coreDamage: 7, radius: 32 },
+  stats: { elite: true, health: 360, speed: 35, spawnDelay: 1.35, reward: 32, coreDamage: 7, radius: 32 },
   text: {
     nameKey: 'signals.fracture', roleKey: 'signalArchive.signals.fracture.role',
     descriptionKey: 'signalArchive.signals.fracture.description', counterKey: 'signalArchive.signals.fracture.counter',

@@ -2,7 +2,7 @@ import { defineSignal } from './define-signal';
 
 export const crownSignal = defineSignal({
   id: 'crown',
-  stats: { health: 420, speed: 31, spawnDelay: 1.4, reward: 52, coreDamage: 8, radius: 29, boss: true },
+  stats: { health: 420, speed: 31, spawnDelay: 1.4, reward: 52, coreDamage: 8, radius: 29, elite: true },
   text: {
     nameKey: 'signals.crown', roleKey: 'signalArchive.signals.crown.role',
     descriptionKey: 'signalArchive.signals.crown.description', counterKey: 'signalArchive.signals.crown.counter',

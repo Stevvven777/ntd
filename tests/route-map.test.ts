@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { getLevel, LEVELS, resolveSpawnEntrances } from '@prism-bastion/game-core/game/config';
+import { getLevel, resolveSpawnEntrances } from '@prism-bastion/game-core/game/config';
 import { FIXED_SIMULATION_STEP, GameEngine } from '@prism-bastion/game-core/game/engine';
 import { createRouteMap, legacyPathToGraph, resolveRoute } from '@prism-bastion/game-core/game/path';
 import { selectTowerTarget } from '@prism-bastion/game-core/game/targeting';
-import { SIGNAL_IDS, signalRegistry } from '@prism-bastion/game-core/signals';
+import { SIGNAL_IDS } from '@prism-bastion/game-core/signals';
 
 describe('route map model', () => {
   it('resolves each leaf through its unique parent chain to the root', () => {
@@ -46,20 +46,13 @@ describe('route map model', () => {
 describe('multi-entrance spawning and targeting', () => {
   const level = getLevel('triune-delta');
 
-  it('broadcasts ordinary entries and keeps configured bosses on fixed entrances', () => {
-    const ordinaryType = SIGNAL_IDS.find((type) => !signalRegistry.require(type).stats.boss);
-    const bossType = SIGNAL_IDS.find((type) => signalRegistry.require(type).stats.boss);
+  it('broadcasts all signal types unless a fixed entrance is configured', () => {
     const entrance = level.graph.entrances[0];
-    if (!ordinaryType || !bossType || !entrance) throw new Error('Expected ordinary and boss test fixtures');
-
-    expect(resolveSpawnEntrances({ type: ordinaryType }, level.graph)).toEqual(level.graph.entrances);
-    expect(resolveSpawnEntrances({ type: bossType, entrance }, level.graph)).toEqual([entrance]);
-    expect(() => resolveSpawnEntrances({ type: bossType }, level.graph)).toThrow('must declare a fixed entrance');
-    expect(() => resolveSpawnEntrances({ type: ordinaryType, entrance: 'missing' }, level.graph)).toThrow('Unknown entrance');
-    for (const configuredLevel of LEVELS) {
-      for (const entry of configuredLevel.waves.flat()) {
-        if (signalRegistry.require(entry.type).stats.boss) expect(entry.entrance, `${configuredLevel.id}: ${entry.type}`).toBeTruthy();
-      }
+    if (!entrance) throw new Error('Expected an entrance fixture');
+    for (const type of SIGNAL_IDS) {
+      expect(resolveSpawnEntrances({ type }, level.graph)).toEqual(level.graph.entrances);
+      expect(resolveSpawnEntrances({ type, entrance }, level.graph)).toEqual([entrance]);
+      expect(() => resolveSpawnEntrances({ type, entrance: 'missing' }, level.graph)).toThrow('Unknown entrance');
     }
   });
 
@@ -67,7 +60,7 @@ describe('multi-entrance spawning and targeting', () => {
     const engine = new GameEngine({ mode: 'creative', levelId: 'triune-delta', seed: 211 });
     const broadcastWaveIndex = level.waves.findIndex((wave) => {
       const first = wave[0];
-      return first && !first.entrance && !signalRegistry.require(first.type).stats.boss;
+      return first && !first.entrance;
     });
     if (broadcastWaveIndex < 0) throw new Error('Expected a wave beginning with a broadcast entry');
     engine.wave = broadcastWaveIndex;

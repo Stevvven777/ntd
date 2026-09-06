@@ -2,7 +2,7 @@ import { defineSignal } from './define-signal';
 
 export const radiantSignal = defineSignal({
   id: 'radiant',
-  stats: { health: 390, speed: 30, spawnDelay: 1.4, reward: 46, coreDamage: 7, radius: 31 },
+  stats: { elite: true, health: 390, speed: 30, spawnDelay: 1.4, reward: 46, coreDamage: 7, radius: 31 },
   text: {
     nameKey: 'signals.radiant', roleKey: 'signalArchive.signals.radiant.role',
     descriptionKey: 'signalArchive.signals.radiant.description', counterKey: 'signalArchive.signals.radiant.counter',

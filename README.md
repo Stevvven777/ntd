@@ -16,7 +16,7 @@ Prism Bastion is a geometric tower-defense game built around modular programming
 - **Order is the rule:** modifiers and logic affect the next projectile to their right, while an unfinished cast block may wrap once to the beginning.
 - **Two game modes:** Standard mode includes inventory limits, opening drafts, post-wave rewards, and economic progression. Creative mode provides unlimited modules and shards plus a custom signal console.
 - **Five distinct sectors and five difficulties:** every sector has its own route, deployment nodes, enemy multipliers, and wave plan.
-- **Mechanically distinct bosses:** shields, death splitting, and local cooldown suppression are introduced separately and later combined.
+- **Mechanically distinct elites:** shields, death splitting, and local cooldown suppression are introduced separately and later combined.
 - **Reliable ballistics:** fixed-step simulation, continuous collision detection, path interception, piercing, and seeker retargeting support fast combat.
 - **Lightweight rendering stack:** React drives the interface, Canvas 2D renders the battlefield, and WebGL adds optional bloom and shield refraction with automatic fallback.
 - **English and Simplified Chinese UI:** powered by `i18next` and `react-i18next`, with a persistent in-game language switcher.
