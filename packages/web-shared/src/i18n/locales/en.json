@@ -1189,6 +1189,7 @@
 	"coop.ended.closed": "The room was closed.",
 	"settings.keys.reset": "Restore default bindings",
 	"settings.categories.general": "General",
+	"reward.diagnosticsAria": "Draft diagnostics",
 	"settings.keys.advancedDraft": "Toggle draft details",
 	"settings.keys.thoughtRestart": "Index: restart",
 	"settings.keys.unsupported": "Use a letter, number, function key, arrow, or navigation key, optionally with modifiers.",

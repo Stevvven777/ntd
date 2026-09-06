@@ -49,7 +49,7 @@ export function RewardDraft({ engine, snapshot, inventory, advancedVisible = fal
             : t('reward.waveDescription')}</p>
         </div>
       </div>
-      {advancedVisible ? <div className="reward-debug-summary" aria-label="F3 draft diagnostics">
+      {advancedVisible ? <div className="reward-debug-summary" aria-label={t('reward.diagnosticsAria')}>
         <code className="reward-advanced-inline">s={quality(diagnostics.inventoryAverage)} a={quality(diagnostics.qualityAnchor)} b={quality(diagnostics.computedBaseline)} u=+{quality(diagnostics.appliedBoost)} q={quality(diagnostics.computedQuality)} ({diagnostics.retryCount}/{diagnostics.maxRetry} {diagnostics.highestOfferedQuality}:{diagnostics.skippedHighestQuality ?? '-'}:{diagnostics.projectileDeficit}:{diagnostics.guaranteedPoolSize})</code>
       </div> : null}
       <div className="reward-head-actions">
