@@ -37,8 +37,8 @@ export default tseslint.config(
 	{
 		files: ['packages/web-shared/src/**/*.tsx', 'apps/web-single/src/**/*.tsx', 'apps/web-coop/src/**/*.tsx'],
 		rules: {
-			complexity: ['warn', 20],
-			'max-lines-per-function': ['warn', { max: 180, skipBlankLines: true, skipComments: true }],
+			complexity: ['error', 20],
+			'max-lines-per-function': ['error', { max: 180, skipBlankLines: true, skipComments: true }],
 			'no-nested-ternary': 'error',
 		},
 	},

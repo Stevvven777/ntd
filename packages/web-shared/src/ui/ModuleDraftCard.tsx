@@ -18,6 +18,15 @@ export interface ModuleDraftCardReadout {
 	value: ReactNode;
 }
 
+const draftCardClassName = (compact: boolean, selected: boolean, dimmed: boolean, rarity: string): string => {
+	if (!compact) {
+		return `reward-card rarity-${rarity}`;
+	}
+	return [styles.draftCard, selected ? styles.selectedCard : '', dimmed ? styles.dimmedCard : '']
+		.filter(Boolean)
+		.join(' ');
+};
+
 export function ModuleDraftCard({
 	definition,
 	readouts,
@@ -43,11 +52,7 @@ export function ModuleDraftCard({
 	const compact = density === 'compact';
 	const thought = thoughtRegistry.forModule(definition.id);
 	const Icon = modulePresentationRegistry.require(definition.id).icon;
-	const rootClass = compact
-		? [styles.draftCard, selected ? styles.selectedCard : '', dimmed ? styles.dimmedCard : '']
-				.filter(Boolean)
-				.join(' ')
-		: `reward-card rarity-${definition.meta.rarity}`;
+	const rootClass = draftCardClassName(compact, selected, dimmed, definition.meta.rarity);
 
 	return (
 		<article className={rootClass} style={moduleVariableStyle(definition)}>
