@@ -1,0 +1,27 @@
+.level-map {
+	position: absolute;
+	z-index: 1;
+	inset: 12px;
+	width: calc(100% - 24px);
+	height: calc(100% - 24px);
+}
+
+.route-edge {
+	stroke: var(--level-accent);
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke-width: 28;
+	opacity: 0.72;
+}
+
+.tower-pad {
+	fill: #fff;
+	stroke: var(--level-accent);
+	stroke-width: 7;
+}
+
+.route-junction {
+	fill: #fff;
+	stroke: var(--level-accent);
+	stroke-width: 8;
+}

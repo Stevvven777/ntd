@@ -109,7 +109,7 @@ describe('thought index entry points', () => {
 		await user.click(screen.getByRole('button', { name: 'Open the thought index' }));
 		expect(screen.getByRole('main', { name: 'Thought Index' })).toBeTruthy();
 		expect(document.querySelector('.thought-module-badge')).toBeTruthy();
-		expect(document.querySelector('.thought-scene-overlay')).toBeTruthy();
+		expect(document.querySelector('[data-thought-scene-overlay]')).toBeTruthy();
 		const timeline = screen.getByRole('navigation', { name: 'Thought timeline' });
 		const units = within(timeline).getAllByRole('button');
 		const beats = thoughtRegistry.require('pulse').beats;

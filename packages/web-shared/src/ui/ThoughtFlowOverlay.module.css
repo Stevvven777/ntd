@@ -183,7 +183,7 @@
 	animation: thought-loadout-module-in 0.46s 0.3s cubic-bezier(0.12, 0.78, 0.22, 1) both;
 }
 
-.thought-loadout-dialog .module-icon {
+.thought-loadout-dialog :global(.module-icon) {
 	width: 36px;
 	height: 36px;
 }
@@ -225,7 +225,7 @@
 	box-shadow: inset 0 0 0 2px #fff;
 }
 
-.thought-compact-loadout .module-icon {
+.thought-compact-loadout :global(.module-icon) {
 	width: 20px;
 	height: 20px;
 }
@@ -466,7 +466,7 @@
 	.thought-loadout-module {
 		grid-template-columns: 40px minmax(42px, auto);
 	}
-	.thought-loadout-dialog .module-icon {
+	.thought-loadout-dialog :global(.module-icon) {
 		width: 30px;
 		height: 30px;
 	}

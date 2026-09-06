@@ -1,5 +1,4 @@
 {
-	"plugins": ["prettier-plugin-curly"],
 	"useTabs": true,
 	"tabWidth": 4,
 	"semi": true,

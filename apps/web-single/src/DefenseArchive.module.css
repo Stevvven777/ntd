@@ -9,6 +9,10 @@
 	overflow: hidden;
 }
 
+.defense-archive-head {
+	min-width: 0;
+}
+
 .defense-archive-frame {
 	display: grid;
 	height: 100%;
@@ -715,7 +719,7 @@
 	align-items: center;
 	gap: 9px;
 }
-.defense-wave-signal .signal-icon {
+.defense-wave-signal :global(.signal-icon) {
 	width: 30px;
 	height: 30px;
 }
@@ -752,7 +756,7 @@
 	background: #fff;
 	font-style: normal;
 }
-.archive-module > i .module-icon {
+.archive-module > i :global(.module-icon) {
 	width: 29px;
 	height: 29px;
 }
@@ -817,7 +821,7 @@
 	width: 36px;
 	height: 36px;
 }
-.tower-records .archive-module > i .module-icon {
+.tower-records .archive-module > i :global(.module-icon) {
 	width: 26px;
 	height: 26px;
 }

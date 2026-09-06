@@ -144,14 +144,14 @@
 	border-radius: 50%;
 	transform: translate(-50%, -50%);
 }
-.sector-route-stage .level-map {
+.sector-route-stage [data-level-map] {
 	z-index: 2;
 	inset: 66px 28px 34px;
 	width: calc(100% - 56px);
 	height: calc(100% - 100px);
 	filter: saturate(1.2);
 }
-.sector-route-stage .level-map .route-edge {
+.sector-route-stage [data-route-edge] {
 	opacity: 0.92;
 }
 .sector-record-code {
@@ -518,7 +518,7 @@
 		min-height: 270px;
 		border-right: 0;
 	}
-	.sector-route-stage .level-map {
+	.sector-route-stage [data-level-map] {
 		inset: 58px 20px 24px;
 		width: calc(100% - 40px);
 		height: calc(100% - 82px);

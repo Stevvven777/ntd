@@ -9,6 +9,11 @@ export default tseslint.config(
 	eslint.configs.recommended,
 	...tseslint.configs.recommended,
 	{
+		rules: {
+			curly: ['error', 'all'],
+		},
+	},
+	{
 		files: [
 			'packages/web-shared/src/**/*.{ts,tsx}',
 			'apps/web-single/src/**/*.{ts,tsx}',
@@ -21,6 +26,14 @@ export default tseslint.config(
 			'@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
 			'@typescript-eslint/no-explicit-any': 'error',
 			'no-console': 'error',
+		},
+	},
+	{
+		files: ['packages/web-shared/src/**/*.tsx', 'apps/web-single/src/**/*.tsx', 'apps/web-coop/src/**/*.tsx'],
+		rules: {
+			complexity: ['warn', 20],
+			'max-lines-per-function': ['warn', { max: 180, skipBlankLines: true, skipComments: true }],
+			'no-nested-ternary': 'warn',
 		},
 	},
 	{

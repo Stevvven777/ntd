@@ -24,9 +24,10 @@ for (const viewport of [
 		await page.setViewportSize(viewport);
 		await page.addInitScript(() => localStorage.setItem('prism-bastion-tutorial-offer-resolved', '1'));
 		await page.goto('/');
-		await expectViewportFrame(page, '.level-select-frame');
+		await expectViewportFrame(page, '[data-level-select-frame]');
 		const modeOptionHeights = await page
-			.locator('.mode-selector button')
+			.getByRole('group', { name: 'Game mode' })
+			.getByRole('button')
 			.evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
 		expect(Math.max(...modeOptionHeights)).toBeLessThanOrEqual(84);
 		await expect(page.locator('.home-meta')).toHaveCount(0);
@@ -48,18 +49,18 @@ for (const viewport of [
 		}
 		await page.getByRole('button', { name: 'Settings', exact: true }).click();
 		await page.keyboard.press('Escape');
-		const initial = await page.locator('.level-select-frame').boundingBox();
-		const setup = await page.locator('.mission-controls').boundingBox();
+		const initial = await page.locator('[data-level-select-frame]').boundingBox();
+		const setup = await page.locator('[data-mission-controls]').boundingBox();
 		await page
 			.getByRole('group', { name: 'Game mode' })
 			.getByRole('button', { name: /Creative/ })
 			.click();
-		expect(await page.locator('.level-select-frame').boundingBox()).toEqual(initial);
-		expect(await page.locator('.mission-controls').boundingBox()).toEqual(setup);
+		expect(await page.locator('[data-level-select-frame]').boundingBox()).toEqual(initial);
+		expect(await page.locator('[data-mission-controls]').boundingBox()).toEqual(setup);
 		await expect(page.getByRole('spinbutton', { name: 'Core stability' })).toBeVisible();
-		const calibration = await page.locator('.creative-setup-card').boundingBox();
-		const rules = await page.locator('.setup-rules').boundingBox();
-		const scales = await page.locator('.setup-scales').boundingBox();
+		const calibration = await page.locator('[data-creative-setup]').boundingBox();
+		const rules = await page.locator('[data-setup-rules]').boundingBox();
+		const scales = await page.locator('[data-setup-scales]').boundingBox();
 		expect(Math.abs(rules!.y + rules!.height / 2 - (calibration!.y + calibration!.height / 2))).toBeLessThanOrEqual(
 			4,
 		);
@@ -67,9 +68,9 @@ for (const viewport of [
 			Math.abs(scales!.y + scales!.height / 2 - (calibration!.y + calibration!.height / 2)),
 		).toBeLessThanOrEqual(4);
 		await expect(page.getByRole('slider', { name: 'Speed multiplier' })).toBeInViewport();
-		expect(await page.locator('.mission-controls').boundingBox()).toEqual(setup);
+		expect(await page.locator('[data-mission-controls]').boundingBox()).toEqual(setup);
 		await expect(page.getByRole('spinbutton', { name: 'Wave count' })).toBeInViewport();
-		const scrollable = await page.locator('.level-select-frame *').evaluateAll((elements) =>
+		const scrollable = await page.locator('[data-level-select-frame] *').evaluateAll((elements) =>
 			elements
 				.filter((element) => {
 					const style = getComputedStyle(element);
@@ -82,14 +83,14 @@ for (const viewport of [
 		);
 		expect(scrollable).toEqual([]);
 		await page.screenshot({ path: `/tmp/ntd-home-${viewport.width}.png` });
-		await page.locator('.signal-archive-entry').click();
+		await page.locator('[data-signal-archive-entry]').click();
 		await expectViewportFrame(page, '.signal-archive-console');
 		await expect(page.locator('.archive-back')).toBeInViewport();
 		await page.locator('.archive-back').click();
-		await page.locator('.defense-archive-entry').click();
-		await expectViewportFrame(page, '.defense-archive-frame');
+		await page.getByRole('button', { name: 'Open defense archive' }).click();
+		await expectViewportFrame(page, '[data-defense-archive-frame]');
 		await page.locator('.archive-back').click();
-		await page.locator('.thought-index-entry').click();
+		await page.locator('[data-thought-index-entry]').click();
 		await expectViewportFrame(page, '.thought-index-frame');
 		await expect(page.locator('.thought-controls')).toBeInViewport();
 		await page.screenshot({ path: `/tmp/ntd-thought-${viewport.width}.png` });

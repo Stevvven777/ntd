@@ -1,85 +1,19 @@
-import { UiIcon } from '@prism-bastion/web-shared/ui/UiIcon';
-import { usePageArrowNavigation } from '@prism-bastion/web-shared/ui/usePageArrowNavigation';
-import { SIGNAL_IDS, signalRegistry } from '@prism-bastion/game-core/signals';
-import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DEFAULT_LEVEL_ID, getLevel, LEVELS } from '@prism-bastion/game-core/game/config';
-import { DEFAULT_DIFFICULTY_ID, DIFFICULTIES, getDifficulty } from '@prism-bastion/game-core/game/difficulty';
-import type { CreativeSetup, DifficultyId, GameMode } from '@prism-bastion/game-core/game/types';
-import { difficultyName, levelDescription, levelName } from '@prism-bastion/web-shared/i18n/presentation';
-import { CalibrationSlider } from '@prism-bastion/web-shared/ui/CalibrationSlider';
-import { LevelMap } from '@prism-bastion/web-shared/ui/LevelMap';
-import { MobileFullscreenButton } from '@prism-bastion/web-shared/ui/MobileFullscreenButton';
-import { HomeComposition } from './HomeComposition';
+import { getLevel } from '@prism-bastion/game-core/game/config';
+import { getDifficulty } from '@prism-bastion/game-core/game/difficulty';
+import { difficultyName, levelName } from '@prism-bastion/web-shared/i18n/presentation';
 import { SettingsPanel } from '@prism-bastion/web-shared/ui/SettingsPanel';
-import { Tag } from '@prism-bastion/web-shared/ui/Tag';
-import './LevelSelect.css';
+import { usePageArrowNavigation } from '@prism-bastion/web-shared/ui/usePageArrowNavigation';
+import { HomeComposition } from './HomeComposition';
+import { LevelCarousel } from './level-select/LevelCarousel';
+import { MissionSetup } from './level-select/MissionSetup';
+import { useLevelSelection } from './level-select/useLevelSelection';
+import styles from './LevelSelect.module.css';
 
-const DESKTOP_VISIBLE_LEVEL_COUNT = 3;
-const COMPACT_VISIBLE_LEVEL_COUNT = 1;
-const COMPACT_LEVEL_QUERY = '(max-width: 980px)';
-export const LEVEL_SELECTION_STORAGE_KEY = 'prism-bastion-level-selection';
-const visibleLevelCountForViewport = (): number =>
-	globalThis.matchMedia?.(COMPACT_LEVEL_QUERY).matches ? COMPACT_VISIBLE_LEVEL_COUNT : DESKTOP_VISIBLE_LEVEL_COUNT;
-const positiveInteger = (value: number, fallback: number): number =>
-	Number.isFinite(value) ? Math.max(1, Math.min(Number.MAX_SAFE_INTEGER, Math.round(value))) : fallback;
-const initialCreativeSetup = (levelId: string): CreativeSetup => ({
-	healthScale: 1,
-	speedScale: 1,
-	coreStability: 20,
-	waveCount: getLevel(levelId).waves.length,
-});
-
-interface RememberedLevelSelection {
-	levelId: string;
-	mode: GameMode;
-	difficultyId: DifficultyId;
-}
-
-const isGameMode = (value: unknown): value is GameMode => value === 'standard' || value === 'creative';
-const isDifficultyId = (value: unknown): value is DifficultyId =>
-	DIFFICULTIES.some((difficulty) => difficulty.id === value);
-const isLevelId = (value: unknown): value is string => LEVELS.some((level) => level.id === value);
-
-const readRememberedSelection = (): RememberedLevelSelection | null => {
-	try {
-		const raw = globalThis.localStorage?.getItem(LEVEL_SELECTION_STORAGE_KEY);
-		if (!raw) {
-			return null;
-		}
-		const parsed: unknown = JSON.parse(raw);
-		if (typeof parsed !== 'object' || parsed === null) {
-			return null;
-		}
-		const selection = parsed as Record<string, unknown>;
-		if (!isLevelId(selection.levelId) || !isGameMode(selection.mode) || !isDifficultyId(selection.difficultyId)) {
-			return null;
-		}
-		return {
-			levelId: selection.levelId,
-			mode: selection.mode,
-			difficultyId: selection.difficultyId,
-		};
-	} catch {
-		return null;
-	}
-};
-
-const rememberSelection = (selection: RememberedLevelSelection): void => {
-	try {
-		globalThis.localStorage?.setItem(LEVEL_SELECTION_STORAGE_KEY, JSON.stringify(selection));
-	} catch {
-		// Storage may be unavailable in privacy-restricted browser contexts.
-	}
-};
-
-export interface LevelSelection {
-	levelId: string;
-	mode: GameMode;
-	creative: CreativeSetup;
-	difficultyId: DifficultyId;
-}
+export type { LevelSelection } from './level-select/model';
+export { LEVEL_SELECTION_STORAGE_KEY } from './level-select/storage';
+import type { LevelSelection } from './level-select/model';
 
 export function LevelSelect({
 	onStart,
@@ -95,172 +29,30 @@ export function LevelSelect({
 	homeActions?: ReactNode;
 }) {
 	const { t } = useTranslation();
-	const [rememberedSelection] = useState(readRememberedSelection);
-	const [levelId, setLevelId] = useState<string>(rememberedSelection?.levelId ?? DEFAULT_LEVEL_ID);
-	const [mode, setMode] = useState<GameMode>(rememberedSelection?.mode ?? 'standard');
-	const [difficultyId, setDifficultyId] = useState<DifficultyId>(
-		rememberedSelection?.difficultyId ?? DEFAULT_DIFFICULTY_ID,
-	);
-	const [creative, setCreative] = useState<CreativeSetup>(() =>
-		initialCreativeSetup(rememberedSelection?.levelId ?? DEFAULT_LEVEL_ID),
-	);
-	const [visibleLevelCount, setVisibleLevelCount] = useState(visibleLevelCountForViewport);
-	const [carouselStart, setCarouselStart] = useState(() => {
-		const selectedIndex = Math.max(
-			0,
-			LEVELS.findIndex((level) => level.id === (rememberedSelection?.levelId ?? DEFAULT_LEVEL_ID)),
-		);
-		if (visibleLevelCount === COMPACT_VISIBLE_LEVEL_COUNT) {
-			return selectedIndex;
-		}
-		return Math.min(
-			Math.max(0, selectedIndex - Math.floor(visibleLevelCount / 2)),
-			Math.max(0, LEVELS.length - visibleLevelCount),
-		);
-	});
-	const [carouselDirection, setCarouselDirection] = useState<'next' | 'previous' | null>(null);
-	const pageRef = usePageArrowNavigation((direction) => {
-		const index = LEVELS.findIndex((level) => level.id === levelId);
-		const next = LEVELS[(index + direction + LEVELS.length) % LEVELS.length];
-		if (!next) {
-			return;
-		}
-		focusLevelAfterNavigation.current = true;
-		selectLevel(next.id);
-	});
-	const levelGroupRef = useRef<HTMLElement>(null);
-	const focusLevelAfterNavigation = useRef(false);
-	useLayoutEffect(() => {
-		if (!focusLevelAfterNavigation.current) {
-			return;
-		}
-		focusLevelAfterNavigation.current = false;
-		levelGroupRef.current?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
-	}, [levelId, carouselStart]);
-	const selectedLevel = getLevel(levelId);
-	const selectedDifficulty = getDifficulty(difficultyId);
-	useEffect(() => {
-		rememberSelection({ levelId, mode, difficultyId });
-	}, [difficultyId, levelId, mode]);
-	const maximumCarouselStart = Math.max(0, LEVELS.length - visibleLevelCount);
-	const visibleLevels = LEVELS.slice(carouselStart, carouselStart + visibleLevelCount);
-	useEffect(() => {
-		const mediaQuery = globalThis.matchMedia?.(COMPACT_LEVEL_QUERY);
-		if (!mediaQuery) {
-			return;
-		}
-		const updateVisibleLevelCount = (event: MediaQueryListEvent): void => {
-			const nextCount = event.matches ? COMPACT_VISIBLE_LEVEL_COUNT : DESKTOP_VISIBLE_LEVEL_COUNT;
-			setVisibleLevelCount(nextCount);
-			setCarouselStart((current) => {
-				const maximumStart = Math.max(0, LEVELS.length - nextCount);
-				if (nextCount !== COMPACT_VISIBLE_LEVEL_COUNT) {
-					return Math.min(current, maximumStart);
-				}
-				const selectedIndex = LEVELS.findIndex((level) => level.id === levelId);
-				return selectedIndex < 0 ? Math.min(current, maximumStart) : selectedIndex;
-			});
-			setCarouselDirection(null);
-		};
-		mediaQuery.addEventListener('change', updateVisibleLevelCount);
-		return () => mediaQuery.removeEventListener('change', updateVisibleLevelCount);
-	}, [levelId]);
-	const selectLevel = (nextLevelId: string, reveal = true): void => {
-		setLevelId(nextLevelId);
-		setCreative((current) => ({ ...current, waveCount: getLevel(nextLevelId).waves.length }));
-		if (!reveal) {
-			return;
-		}
-		const nextIndex = LEVELS.findIndex((level) => level.id === nextLevelId);
-		if (nextIndex < 0) {
-			return;
-		}
-		const nextStart = Math.max(
-			0,
-			Math.min(
-				maximumCarouselStart,
-				nextIndex < carouselStart ? nextIndex : Math.max(carouselStart, nextIndex - visibleLevelCount + 1),
-			),
-		);
-		if (nextStart === carouselStart) {
-			return;
-		}
-		setCarouselDirection(nextStart > carouselStart ? 'next' : 'previous');
-		setCarouselStart(nextStart);
-	};
-	const focusSelectedOption = (element: HTMLElement): void => {
-		const group = element.parentElement;
-		requestAnimationFrame(() => {
-			if (!group?.contains(document.activeElement)) {
-				return;
-			}
-			group.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
+	const selection = useLevelSelection();
+	const selectedLevel = getLevel(selection.levelId);
+	const selectedDifficulty = getDifficulty(selection.difficultyId);
+	const pageRef = usePageArrowNavigation(selection.selectRelativeLevel);
+	const start = (): void =>
+		onStart({
+			levelId: selection.levelId,
+			mode: selection.mode,
+			creative: selection.creative,
+			difficultyId: selection.difficultyId,
 		});
-	};
-	const cycleDifficulty = (event: KeyboardEvent<HTMLButtonElement>, index: number): void => {
-		const offset =
-			event.key === 'ArrowRight' || event.key === 'ArrowDown'
-				? 1
-				: event.key === 'ArrowLeft' || event.key === 'ArrowUp'
-					? -1
-					: 0;
-		if (offset === 0) {
-			return;
-		}
-		event.preventDefault();
-		const next = DIFFICULTIES[(index + offset + DIFFICULTIES.length) % DIFFICULTIES.length];
-		if (!next) {
-			return;
-		}
-		setDifficultyId(next.id);
-		focusSelectedOption(event.currentTarget);
-	};
-	const cycleLevel = (event: KeyboardEvent<HTMLButtonElement>, index: number): void => {
-		const offset =
-			event.key === 'ArrowRight' || event.key === 'ArrowDown'
-				? 1
-				: event.key === 'ArrowLeft' || event.key === 'ArrowUp'
-					? -1
-					: 0;
-		if (offset === 0) {
-			return;
-		}
-		event.preventDefault();
-		const next = LEVELS[(index + offset + LEVELS.length) % LEVELS.length];
-		if (!next) {
-			return;
-		}
-		focusLevelAfterNavigation.current = true;
-		selectLevel(next.id);
-	};
-	const moveCarousel = (offset: number): void => {
-		const nextStart = Math.max(0, Math.min(maximumCarouselStart, carouselStart + offset));
-		if (nextStart === carouselStart) {
-			return;
-		}
-		setCarouselDirection(offset > 0 ? 'next' : 'previous');
-		setCarouselStart(nextStart);
-		const selectedIndex = LEVELS.findIndex((level) => level.id === levelId);
-		if (selectedIndex < nextStart || selectedIndex >= nextStart + visibleLevelCount) {
-			const nextSelection = LEVELS[nextStart];
-			if (nextSelection) {
-				selectLevel(nextSelection.id, false);
-			}
-		}
-	};
 
 	return (
-		<main ref={pageRef} tabIndex={-1} className="level-select-shell">
-			<div className="level-select-frame">
-				<header className="level-select-head">
-					<section className="level-select-intro">
+		<main ref={pageRef} tabIndex={-1} className={styles['level-select-shell']}>
+			<div className={styles['level-select-frame']} data-level-select-frame>
+				<header className={styles['level-select-head']}>
+					<section className={styles['level-select-intro']}>
 						<h1>{t('levelSelect.gameTitle')}</h1>
 						<SettingsPanel />
 					</section>
-					<button className="begin-run" onClick={() => onStart({ levelId, mode, creative, difficultyId })}>
+					<button className={styles['begin-run']} onClick={start}>
 						<span>
 							<small>
-								{mode === 'creative'
+								{selection.mode === 'creative'
 									? t('levelSelect.creativeTitle')
 									: difficultyName(t, selectedDifficulty.id)}{' '}
 								· {levelName(t, selectedLevel.id)}
@@ -270,255 +62,14 @@ export function LevelSelect({
 						<b aria-hidden="true">→</b>
 					</button>
 				</header>
-
-				<section className="mission-controls" aria-label={t('levelSelect.missionSetup')}>
-					<div className="mode-selector" role="group" aria-label={t('levelSelect.modeLabel')}>
-						<button
-							aria-pressed={mode === 'standard'}
-							className={mode === 'standard' ? 'active' : ''}
-							onClick={() => setMode('standard')}
-						>
-							<strong>{t('levelSelect.standardTitle')}</strong>
-							<small>{t('levelSelect.standardDetail')}</small>
-						</button>
-						<button
-							aria-pressed={mode === 'creative'}
-							className={mode === 'creative' ? 'active' : ''}
-							onClick={() => setMode('creative')}
-						>
-							<strong>{t('levelSelect.creativeTitle')}</strong>
-							<small>{t('levelSelect.creativeDetail')}</small>
-						</button>
-					</div>
-
-					{mode === 'creative' ? (
-						<section className="creative-setup-card" aria-label={t('levelSelect.creativeTitle')}>
-							<div className="setup-rules">
-								<label className="core-rule">
-									<span>{t('levelSelect.coreStability')}</span>
-									<div>
-										<input
-											aria-label={t('levelSelect.coreStability')}
-											type="number"
-											min="1"
-											value={creative.coreStability}
-											onChange={(event) => {
-												const value = Number(event.currentTarget.value);
-												setCreative((current) => ({
-													...current,
-													coreStability: positiveInteger(value, current.coreStability),
-												}));
-											}}
-										/>
-										<b aria-hidden="true">
-											<UiIcon name="heart" />
-										</b>
-									</div>
-								</label>
-								<label className="wave-rule">
-									<span>{t('levelSelect.waveCount')}</span>
-									<div>
-										<input
-											aria-label={t('levelSelect.waveCount')}
-											type="number"
-											min="1"
-											value={creative.waveCount}
-											onChange={(event) => {
-												const value = Number(event.currentTarget.value);
-												setCreative((current) => ({
-													...current,
-													waveCount: positiveInteger(value, current.waveCount),
-												}));
-											}}
-										/>
-										<b aria-hidden="true">≋</b>
-									</div>
-								</label>
-							</div>
-							<div className="setup-scales">
-								<CalibrationSlider
-									label={t('levelSelect.healthScale')}
-									min={0.25}
-									max={5}
-									step={0.25}
-									value={creative.healthScale}
-									onChange={(value) => setCreative((current) => ({ ...current, healthScale: value }))}
-								/>
-								<CalibrationSlider
-									label={t('levelSelect.speedScale')}
-									min={0.25}
-									max={3}
-									step={0.25}
-									value={creative.speedScale}
-									onChange={(value) => setCreative((current) => ({ ...current, speedScale: value }))}
-								/>
-							</div>
-						</section>
-					) : (
-						<section className="difficulty-select" aria-label={t('levelSelect.difficultyLabel')}>
-							<div
-								className="difficulty-options"
-								role="radiogroup"
-								aria-label={t('levelSelect.chooseDifficulty')}
-							>
-								{DIFFICULTIES.map((difficulty, index) => (
-									<button
-										key={difficulty.id}
-										className={difficulty.id === difficultyId ? 'selected' : ''}
-										data-rank={difficulty.rank}
-										role="radio"
-										aria-checked={difficulty.id === difficultyId}
-										tabIndex={difficulty.id === difficultyId ? 0 : -1}
-										onKeyDown={(event) => cycleDifficulty(event, index)}
-										onClick={() => setDifficultyId(difficulty.id)}
-									>
-										<span>
-											{difficulty.rank < 0
-												? Array.from({ length: -difficulty.rank }, (_, index) => (
-														<UiIcon key={index} name="diamond" />
-													))
-												: difficulty.rank > 0
-													? Array.from({ length: difficulty.rank }, (_, index) => (
-															<UiIcon key={index} name="diamondFilled" />
-														))
-													: '—'}
-										</span>
-										<strong>{difficultyName(t, difficulty.id)}</strong>
-									</button>
-								))}
-							</div>
-						</section>
-					)}
-				</section>
-
-				<section className="sector-selection" aria-label={t('levelSelect.chooseLevel')}>
-					<header className="selection-section-head">
-						<div className="selection-heading-copy">
-							<strong>{t('levelSelect.sectorSelectionHeading')}</strong>
-							<span>{t('levelSelect.sectorHint')}</span>
-						</div>
-						<div className="level-select-utilities">
-							{homeActions}
-							<button
-								className="thought-index-entry"
-								onClick={onOpenThought}
-								aria-label={t('thoughtIndex.entryAria')}
-							>
-								<span className="thought-index-entry-trace" aria-hidden="true">
-									<i />
-									<i />
-									<i />
-								</span>
-								<strong>{t('thoughtIndex.entry')}</strong>
-							</button>
-							<button
-								className="defense-archive-entry"
-								onClick={onOpenDefenseArchive}
-								aria-label={t('defenseArchive.entryAria')}
-							>
-								<span className="defense-archive-entry-marks" aria-hidden="true">
-									<svg viewBox="0 0 44 30">
-										<path className="defense-archive-sheet back" d="M8 1.5h25l8 8v16H8z" />
-										<path className="defense-archive-sheet middle" d="M4.5 4.5h25l8 8v16h-33z" />
-										<path className="defense-archive-sheet front" d="M1.5 7.5h25l8 8v13h-33z" />
-										<path className="defense-archive-index" d="M6 12v12" />
-										<path className="defense-archive-data primary" d="M12 13.5h11" />
-										<path className="defense-archive-data secondary" d="M12 18h16" />
-										<path className="defense-archive-data tertiary" d="M12 22.5h8" />
-									</svg>
-								</span>
-								<strong>{t('defenseArchive.entry')}</strong>
-							</button>
-							<button
-								className="signal-archive-entry"
-								onClick={onOpenArchive}
-								aria-label={t('signalArchive.entryAria')}
-							>
-								<span className="signal-archive-entry-spectrum" aria-hidden="true">
-									{SIGNAL_IDS.map((type) => (
-										<i
-											key={type}
-											style={
-												{
-													'--signal-color': signalRegistry.require(type).visual.color,
-												} as CSSProperties
-											}
-										/>
-									))}
-								</span>
-								<strong>{t('signalArchive.entry')}</strong>
-							</button>
-							<MobileFullscreenButton />
-						</div>
-					</header>
-					<div className="level-carousel">
-						<button
-							className="level-carousel-arrow previous"
-							onClick={() => moveCarousel(-1)}
-							disabled={carouselStart === 0}
-							aria-label={t('levelSelect.previousLevels')}
-						/>
-						<section
-							key={carouselStart}
-							ref={levelGroupRef}
-							className={`level-grid ${carouselDirection ? `slide-${carouselDirection}` : ''}`}
-							role="radiogroup"
-							aria-label={t('levelSelect.chooseLevel')}
-						>
-							{visibleLevels.map((level, visibleIndex) => {
-								const index = carouselStart + visibleIndex;
-								return (
-									<button
-										key={level.id}
-										className={`level-card ${level.id === levelId ? 'selected' : ''}`}
-										style={{ '--level-accent': level.accent } as CSSProperties}
-										role="radio"
-										aria-checked={level.id === levelId}
-										tabIndex={level.id === levelId ? 0 : -1}
-										onKeyDown={(event) => cycleLevel(event, index)}
-										onClick={() => selectLevel(level.id, false)}
-									>
-										<div className="level-map-wrap">
-											<LevelMap level={level} />
-											<Tag className="level-sector-tag" tone="accent" monospace>
-												{level.sector.replace('SECTOR ', '')}
-											</Tag>
-										</div>
-										<div className="level-card-copy">
-											<div>
-												<small>
-													{Array.from({ length: 3 }, (_, index) => (
-														<UiIcon
-															key={index}
-															name={
-																index < level.difficulty ? 'diamondFilled' : 'diamond'
-															}
-														/>
-													))}
-												</small>
-												<b>{t('levelSelect.waves', { count: level.waves.length })}</b>
-											</div>
-											<h2>{levelName(t, level.id)}</h2>
-											<p>{levelDescription(t, level.id)}</p>
-											<footer>
-												<Tag>
-													{t('levelSelect.towerNodes', { count: level.towerPads.length })}
-												</Tag>
-											</footer>
-										</div>
-									</button>
-								);
-							})}
-						</section>
-						<button
-							className="level-carousel-arrow next"
-							onClick={() => moveCarousel(1)}
-							disabled={carouselStart === maximumCarouselStart}
-							aria-label={t('levelSelect.nextLevels')}
-						/>
-					</div>
-				</section>
-
+				<MissionSetup selection={selection} />
+				<LevelCarousel
+					selection={selection}
+					homeActions={homeActions}
+					onOpenArchive={onOpenArchive}
+					onOpenDefenseArchive={onOpenDefenseArchive}
+					onOpenThought={onOpenThought}
+				/>
 				<HomeComposition />
 			</div>
 		</main>

@@ -39,7 +39,7 @@ describe('level selection accessibility', () => {
 		const user = userEvent.setup();
 		render(<App />);
 		await user.click(screen.getByRole('button', { name: 'No, thanks' }));
-		const selectedLevel = () => document.querySelector('.level-grid [aria-checked="true"]')?.textContent;
+		const selectedLevel = () => document.querySelector('[data-level-grid] [aria-checked="true"]')?.textContent;
 		await user.keyboard('{ArrowRight}');
 		expect(selectedLevel()).toContain('Rose Circuit');
 		await user.click(screen.getByRole('button', { name: 'Open signal compendium' }));
@@ -223,7 +223,7 @@ describe('level selection accessibility', () => {
 		await user.click(screen.getByRole('button', { name: 'Show next levels' }));
 		group = screen.getByRole('radiogroup', { name: 'Choose defense sector' });
 		expect(group.querySelectorAll('[role="radio"]')).toHaveLength(3);
-		expect(group.classList.contains('slide-next')).toBe(true);
+		expect(group.getAttribute('data-carousel-direction')).toBe('next');
 		expect(group.textContent).not.toContain('Launch Elbow');
 		expect(group.textContent).toContain('Verdant Fold');
 	});

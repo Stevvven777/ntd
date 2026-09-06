@@ -1,167 +1,41 @@
-import type { CSSProperties, KeyboardEvent, PointerEvent } from 'react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { WORLD } from '@prism-bastion/game-core/game/config';
 import type { GameEngine } from '@prism-bastion/game-core/game/engine';
 import type { GameViewSnapshot } from '@prism-bastion/game-core/game/types';
-import './TutorialGuide.css';
+import { resolveTutorialStep, tutorialStepCompleted, TUTORIAL_STEPS, type TutorialStep } from './tutorial/model';
+import { useDraggablePanel } from './tutorial/useDraggablePanel';
+import { spotlightStyle, useTutorialTargets } from './tutorial/useTutorialTargets';
+import styles from './TutorialGuide.module.css';
 
-type TutorialAction = 'select-tower' | 'place-tower' | 'click-element';
+type StepField = 'eyebrow' | 'title' | 'body' | 'instruction' | 'continue';
 
-interface TutorialDrag {
-	sourceSelector: string;
-	targetSelector: string;
-	moduleId: string;
-	targetSlot: number;
-	sourceSlot?: number;
-}
-
-interface TutorialStep {
-	id: string;
-	selector?: string;
-	action?: TutorialAction;
-	drag?: TutorialDrag;
-}
-
-const STEPS: readonly TutorialStep[] = [
-	{
-		id: 'welcome',
-	},
-	{
-		id: 'tower',
-		action: 'select-tower',
-	},
-	{
-		id: 'frost-drag',
-		drag: {
-			sourceSelector: '[data-tutorial-module="frost"]',
-			targetSelector: '[data-tutorial-slot="0"]',
-			moduleId: 'frost',
-			targetSlot: 0,
-		},
-	},
-	{
-		id: 'pulse-drag-first',
-		drag: {
-			sourceSelector: '[data-tutorial-module="pulse"]',
-			targetSelector: '[data-tutorial-slot="1"]',
-			moduleId: 'pulse',
-			targetSlot: 1,
-		},
-	},
-	{
-		id: 'first-program',
-		selector: '[data-tutorial-program]',
-	},
-	{
-		id: 'close-first-workshop',
-		selector: '[data-tutorial-workshop-close]',
-		action: 'click-element',
-	},
-	{
-		id: 'build-second-tower',
-		action: 'place-tower',
-	},
-	{
-		id: 'second-pulse-drag',
-		drag: {
-			sourceSelector: '[data-tutorial-module="pulse"]',
-			targetSelector: '[data-tutorial-slot="0"]',
-			moduleId: 'pulse',
-			targetSlot: 0,
-		},
-	},
-	{
-		id: 'close-second-workshop',
-		selector: '[data-tutorial-workshop-close]',
-		action: 'click-element',
-	},
-	{
-		id: 'launch-one',
-		selector: '[data-tutorial-launch]',
-		action: 'click-element',
-	},
-	{
-		id: 'wait-first-wave',
-	},
-	{
-		id: 'ensure-tower',
-		action: 'select-tower',
-	},
-	{
-		id: 'move-pulse',
-		drag: {
-			sourceSelector: '[data-tutorial-slot="1"]',
-			targetSelector: '[data-tutorial-slot="2"]',
-			moduleId: 'pulse',
-			sourceSlot: 1,
-			targetSlot: 2,
-		},
-	},
-	{
-		id: 'trigger-drag',
-		drag: {
-			sourceSelector: '[data-tutorial-module="impact-trigger"]',
-			targetSelector: '[data-tutorial-slot="1"]',
-			moduleId: 'impact-trigger',
-			targetSlot: 1,
-		},
-	},
-	{
-		id: 'static-drag',
-		drag: {
-			sourceSelector: '[data-tutorial-module="proximity-mine"]',
-			targetSelector: '[data-tutorial-slot="3"]',
-			moduleId: 'proximity-mine',
-			targetSlot: 3,
-		},
-	},
-	{
-		id: 'final-program',
-		selector: '[data-tutorial-program]',
-	},
-	{
-		id: 'close-final-workshop',
-		selector: '[data-tutorial-workshop-close]',
-		action: 'click-element',
-	},
-	{
-		id: 'launch-two',
-		selector: '[data-tutorial-launch]',
-		action: 'click-element',
-	},
-] as const;
-
-const WRONG_TOWER_STEP: TutorialStep = {
-	id: 'ensure-wrong-tower',
-	selector: '[data-tutorial-workshop-close]',
-	action: 'click-element',
+const activateTutorialTarget = (step: TutorialStep, engine: GameEngine): void => {
+	switch (step.action) {
+		case 'select-tower': {
+			const tower = engine.towers[0];
+			if (tower) {
+				engine.selectTower(tower.id);
+			}
+			return;
+		}
+		case 'place-tower':
+			engine.placeTower(1);
+			return;
+		case 'click-element':
+			if (step.selector) {
+				document.querySelector<HTMLElement>(step.selector)?.click();
+			}
+			return;
+		default:
+			return;
+	}
 };
 
-interface TargetBox {
-	top: number;
-	left: number;
-	width: number;
-	height: number;
-}
-
-interface PanelPosition {
-	x: number;
-	y: number;
-}
-
-interface PanelDrag {
-	pointerId: number;
-	offsetX: number;
-	offsetY: number;
-	width: number;
-	height: number;
-}
-
-const elementBox = (element: Element): TargetBox => {
-	const rect = element.getBoundingClientRect();
-	return { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
-};
+const tutorialIsActive = (
+	tutorialEnabled: boolean,
+	dismissed: boolean,
+	step: TutorialStep | undefined,
+): step is TutorialStep => tutorialEnabled && !dismissed && step !== undefined;
 
 export function TutorialGuide({
 	engine,
@@ -175,262 +49,63 @@ export function TutorialGuide({
 	const { t, i18n } = useTranslation();
 	const [stepIndex, setStepIndex] = useState(0);
 	const [dismissed, setDismissed] = useState(false);
-	const [target, setTarget] = useState<TargetBox | null>(null);
-	const [secondaryTarget, setSecondaryTarget] = useState<TargetBox | null>(null);
-	const [panelPosition, setPanelPosition] = useState<PanelPosition | null>(null);
 	const primaryRef = useRef<HTMLButtonElement>(null);
-	const panelRef = useRef<HTMLElement>(null);
-	const panelDragRef = useRef<PanelDrag | null>(null);
-	const rawStep = STEPS[stepIndex];
+	const panel = useDraggablePanel();
+	const rawStep = TUTORIAL_STEPS[stepIndex];
 	const tutorialTowerId = engine.towers[0]?.id;
-	const wrongTowerSelected =
-		rawStep?.id === 'ensure-tower' && view.selectedTower !== null && view.selectedTower.id !== tutorialTowerId;
-	const step = wrongTowerSelected ? WRONG_TOWER_STEP : rawStep;
-	const stepKey = (field: 'eyebrow' | 'title' | 'body' | 'instruction' | 'continue'): string =>
-		`tutorial.steps.${step?.id}.${field}`;
-	const stepText = (field: 'eyebrow' | 'title' | 'body' | 'instruction' | 'continue'): string => t(stepKey(field));
+	const step = resolveTutorialStep(rawStep, view, tutorialTowerId);
+	const active = tutorialIsActive(engine.tutorialEnabled, dismissed, step);
+	const { target, secondaryTarget } = useTutorialTargets(step, engine, active, view.revision);
+	const stepKey = (field: StepField): string => `tutorial.steps.${step?.id}.${field}`;
+	const stepText = (field: StepField): string => t(stepKey(field));
 	const hasStepText = (field: 'instruction' | 'continue'): boolean => i18n.exists(stepKey(field));
 
 	useEffect(() => {
-		if (rawStep?.id === 'wait-first-wave' && view.game.wave >= 1 && view.game.status === 'planning') {
+		if (tutorialStepCompleted(rawStep, view, tutorialTowerId)) {
 			setStepIndex((index) => index + 1);
-			return;
 		}
-		if (rawStep?.id === 'ensure-tower' && view.selectedTower?.id === tutorialTowerId) {
-			setStepIndex((index) => index + 1);
-			return;
-		}
-		if (rawStep?.drag && view.selectedTower?.slots[rawStep.drag.targetSlot] === rawStep.drag.moduleId) {
-			const sourceCleared =
-				rawStep.drag.sourceSlot === undefined || view.selectedTower.slots[rawStep.drag.sourceSlot] === null;
-			if (sourceCleared) {
-				setStepIndex((index) => index + 1);
-			}
-		}
-	}, [rawStep, tutorialTowerId, view.game.status, view.game.wave, view.revision, view.selectedTower]);
-
-	useLayoutEffect(() => {
-		if (!step || dismissed || step.id === 'welcome' || step.id === 'wait-first-wave') {
-			setTarget(null);
-			setSecondaryTarget(null);
-			return;
-		}
-		const updateTarget = (): void => {
-			if (step.drag) {
-				const source = document.querySelector(step.drag.sourceSelector);
-				const destination = document.querySelector(step.drag.targetSelector);
-				setTarget(source ? elementBox(source) : null);
-				setSecondaryTarget(destination ? elementBox(destination) : null);
-				return;
-			}
-			setSecondaryTarget(null);
-			if (step.action === 'select-tower' || step.action === 'place-tower') {
-				const canvas = document.querySelector<HTMLCanvasElement>('#game-canvas');
-				const worldTarget =
-					step.action === 'select-tower' ? engine.towers[0]?.position : engine.level.towerPads[1];
-				if (!canvas || !worldTarget) {
-					return setTarget(null);
-				}
-				const bounds = canvas.getBoundingClientRect();
-				const scale = Math.min(bounds.width / WORLD.width, bounds.height / WORLD.height);
-				const offsetX = (bounds.width - WORLD.width * scale) / 2;
-				const offsetY = (bounds.height - WORLD.height * scale) / 2;
-				const size = Math.max(58, 76 * scale);
-				setTarget({
-					left: bounds.left + offsetX + worldTarget.x * scale - size / 2,
-					top: bounds.top + offsetY + worldTarget.y * scale - size / 2,
-					width: size,
-					height: size,
-				});
-				return;
-			}
-			const element = step.selector ? document.querySelector(step.selector) : null;
-			setTarget(element ? elementBox(element) : null);
-		};
-		updateTarget();
-		const observer = new ResizeObserver(updateTarget);
-		observer.observe(document.documentElement);
-		const mutationObserver = new MutationObserver(updateTarget);
-		mutationObserver.observe(document.body, { childList: true, subtree: true });
-		window.addEventListener('resize', updateTarget);
-		return () => {
-			observer.disconnect();
-			mutationObserver.disconnect();
-			window.removeEventListener('resize', updateTarget);
-		};
-	}, [dismissed, engine, step, view.revision]);
-
+	}, [rawStep, tutorialTowerId, view]);
 	useEffect(() => primaryRef.current?.focus(), [stepIndex, target]);
 
-	useEffect(() => {
-		const keepPanelOnScreen = (): void => {
-			const panel = panelRef.current;
-			if (!panel) {
-				return;
-			}
-			const bounds = panel.getBoundingClientRect();
-			setPanelPosition((position) =>
-				position
-					? {
-							x: Math.max(8, Math.min(window.innerWidth - bounds.width - 8, position.x)),
-							y: Math.max(8, Math.min(window.innerHeight - bounds.height - 8, position.y)),
-						}
-					: null,
-			);
-		};
-		window.addEventListener('resize', keepPanelOnScreen);
-		return () => window.removeEventListener('resize', keepPanelOnScreen);
-	}, []);
-
-	const clampPanelPosition = (x: number, y: number, width: number, height: number): PanelPosition => ({
-		x: Math.max(8, Math.min(window.innerWidth - width - 8, x)),
-		y: Math.max(8, Math.min(window.innerHeight - height - 8, y)),
-	});
-	const beginPanelDrag = (event: PointerEvent<HTMLButtonElement>): void => {
-		const panel = panelRef.current;
-		if (!panel) {
-			return;
-		}
-		const bounds = panel.getBoundingClientRect();
-		panelDragRef.current = {
-			pointerId: event.pointerId,
-			offsetX: event.clientX - bounds.left,
-			offsetY: event.clientY - bounds.top,
-			width: bounds.width,
-			height: bounds.height,
-		};
-		setPanelPosition({ x: bounds.left, y: bounds.top });
-		event.currentTarget.setPointerCapture(event.pointerId);
-		event.preventDefault();
-	};
-	const dragPanel = (event: PointerEvent<HTMLButtonElement>): void => {
-		const drag = panelDragRef.current;
-		if (!drag || drag.pointerId !== event.pointerId) {
-			return;
-		}
-		setPanelPosition(
-			clampPanelPosition(event.clientX - drag.offsetX, event.clientY - drag.offsetY, drag.width, drag.height),
-		);
-	};
-	const endPanelDrag = (event: PointerEvent<HTMLButtonElement>): void => {
-		if (panelDragRef.current?.pointerId !== event.pointerId) {
-			return;
-		}
-		panelDragRef.current = null;
-		if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-			event.currentTarget.releasePointerCapture(event.pointerId);
-		}
-	};
-	const nudgePanel = (event: KeyboardEvent<HTMLButtonElement>): void => {
-		const directions: Readonly<Record<string, readonly [number, number]>> = {
-			ArrowLeft: [-1, 0],
-			ArrowRight: [1, 0],
-			ArrowUp: [0, -1],
-			ArrowDown: [0, 1],
-		};
-		const direction = directions[event.key];
-		if (!direction) {
-			return;
-		}
-		event.preventDefault();
-		const panel = panelRef.current;
-		if (!panel) {
-			return;
-		}
-		const bounds = panel.getBoundingClientRect();
-		const distance = event.shiftKey ? 40 : 12;
-		const current = panelPosition ?? { x: bounds.left, y: bounds.top };
-		setPanelPosition(
-			clampPanelPosition(
-				current.x + direction[0] * distance,
-				current.y + direction[1] * distance,
-				bounds.width,
-				bounds.height,
-			),
-		);
-	};
-	const dragHandle = (
-		<button
-			className="tutorial-drag-handle"
-			aria-label={t('tutorial.dragAria')}
-			title={t('tutorial.dragTitle')}
-			onPointerDown={beginPanelDrag}
-			onPointerMove={dragPanel}
-			onPointerUp={endPanelDrag}
-			onPointerCancel={endPanelDrag}
-			onKeyDown={nudgePanel}
-		>
-			⠿
-		</button>
-	);
-	const panelStyle: CSSProperties | undefined = panelPosition
-		? { top: panelPosition.y, right: 'auto', bottom: 'auto', left: panelPosition.x, transform: 'none' }
-		: undefined;
-
-	if (!engine.tutorialEnabled || dismissed || !step) {
+	if (!active || !step) {
 		return null;
 	}
-
 	const advance = (): void => {
 		if (step.id === 'welcome') {
-			setPanelPosition(null);
+			panel.reset();
 		}
-		if (stepIndex === STEPS.length - 1) {
+		if (stepIndex === TUTORIAL_STEPS.length - 1) {
 			onResolved();
 		}
 		setStepIndex((index) => index + 1);
 	};
-	const skipTutorial = (): void => {
+	const skip = (): void => {
 		onResolved();
 		setDismissed(true);
 	};
 	const activateTarget = (): void => {
-		if (step.action === 'select-tower') {
-			const tower = engine.towers[0];
-			if (tower) {
-				engine.selectTower(tower.id);
-			}
-		} else if (step.action === 'place-tower') {
-			engine.placeTower(1);
-		} else if (step.selector) {
-			document.querySelector<HTMLElement>(step.selector)?.click();
+		activateTutorialTarget(step, engine);
+		if (step.id !== 'ensure-wrong-tower') {
+			advance();
 		}
-		if (step.id === 'ensure-wrong-tower') {
-			return;
-		}
-		advance();
 	};
-	const targetStyle = target
-		? {
-				top: target.top - 7,
-				left: target.left - 7,
-				width: target.width + 14,
-				height: target.height + 14,
-			}
-		: undefined;
-	const secondaryTargetStyle = secondaryTarget
-		? {
-				top: secondaryTarget.top - 7,
-				left: secondaryTarget.left - 7,
-				width: secondaryTarget.width + 14,
-				height: secondaryTarget.height + 14,
-			}
-		: undefined;
 	const instruction = hasStepText('instruction') ? stepText('instruction') : undefined;
+	const targetCss = spotlightStyle(target);
 	return (
-		<div className="tutorial-layer" role="region" aria-label={t('tutorial.aria')}>
+		<div className={styles['tutorial-layer']} role="region" aria-label={t('tutorial.aria')}>
 			{target ? (
 				<>
 					<div
-						className={`tutorial-spotlight ${step.drag ? 'drag-source' : ''}`}
+						className={`${styles['tutorial-spotlight']} ${step.drag ? styles['drag-source'] : ''}`}
+						data-tutorial-spotlight={step.drag ? 'source' : 'target'}
 						data-label={step.drag ? t('tutorial.dragSource') : undefined}
-						style={targetStyle}
+						style={targetCss}
 					/>
 					{step.action ? (
 						<button
 							ref={primaryRef}
-							className="tutorial-hit-target"
-							style={targetStyle}
+							className={styles['tutorial-hit-target']}
+							style={targetCss}
 							onClick={activateTarget}
 							aria-label={instruction ?? stepText('title')}
 						/>
@@ -439,44 +114,52 @@ export function TutorialGuide({
 			) : null}
 			{secondaryTarget ? (
 				<div
-					className="tutorial-spotlight drag-destination"
+					className={`${styles['tutorial-spotlight']} ${styles['drag-destination']}`}
+					data-tutorial-spotlight="destination"
 					data-label={t('tutorial.dragDestination')}
-					style={secondaryTargetStyle}
+					style={spotlightStyle(secondaryTarget)}
 				/>
 			) : null}
 			<section
-				ref={panelRef}
+				ref={panel.panelRef}
 				data-tutorial-panel
-				className={`tutorial-card ${step.id === 'welcome' ? 'tutorial-card-welcome' : ''}`}
-				style={panelStyle}
+				className={`${styles['tutorial-card']} ${step.id === 'welcome' ? styles['tutorial-card-welcome'] : ''}`}
+				style={panel.style}
 				aria-live={step.id === 'wait-first-wave' ? 'polite' : undefined}
 			>
-				<div className="tutorial-card-head">
+				<div className={styles['tutorial-card-head']}>
 					<span>{stepText('eyebrow')}</span>
-					{dragHandle}
-					<button className="tutorial-skip" onClick={skipTutorial}>
+					<button
+						className={styles['tutorial-drag-handle']}
+						aria-label={t('tutorial.dragAria')}
+						title={t('tutorial.dragTitle')}
+						{...panel.handleProps}
+					>
+						⠿
+					</button>
+					<button className={styles['tutorial-skip']} onClick={skip}>
 						{t('tutorial.skip')}
 					</button>
 				</div>
 				<h2>{stepText('title')}</h2>
 				<p>{stepText('body')}</p>
 				{instruction ? (
-					<div className="tutorial-instruction">
+					<div className={styles['tutorial-instruction']}>
 						<i />
 						{instruction}
 					</div>
 				) : null}
 				{step.id !== 'wait-first-wave' && !step.action && !step.drag ? (
-					<button ref={primaryRef} className="tutorial-continue" onClick={advance}>
+					<button ref={primaryRef} className={styles['tutorial-continue']} onClick={advance}>
 						{hasStepText('continue') ? stepText('continue') : t('common.continue')}
 					</button>
 				) : null}
 				<div
-					className="tutorial-progress"
-					aria-label={t('tutorial.progress', { current: stepIndex + 1, total: STEPS.length })}
+					className={styles['tutorial-progress']}
+					aria-label={t('tutorial.progress', { current: stepIndex + 1, total: TUTORIAL_STEPS.length })}
 				>
-					{STEPS.map((item, index) => (
-						<i key={item.id} className={index <= stepIndex ? 'active' : ''} />
+					{TUTORIAL_STEPS.map((item, index) => (
+						<i key={item.id} className={index <= stepIndex ? styles.active : undefined} />
 					))}
 				</div>
 			</section>

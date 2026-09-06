@@ -81,7 +81,7 @@
 	font-size: 22px;
 	letter-spacing: -0.03em;
 }
-.settings-dialog header .settings-glyph {
+.settings-dialog header :global(.settings-glyph) {
 	width: 34px;
 	height: 34px;
 	border: 2px solid var(--ink, #252134);
@@ -243,13 +243,7 @@
 	line-height: 1.25;
 }
 
-.level-select-utilities > .settings-panel .settings-trigger {
-	width: 40px;
-	height: 40px;
-	border-radius: 0;
-}
-
-.top-actions > .settings-panel .settings-trigger {
+:global(.top-actions) > .settings-panel .settings-trigger {
 	width: 100%;
 	height: 100%;
 	border: 0;
@@ -257,7 +251,7 @@
 }
 
 @media (max-width: 620px) {
-	.top-actions > .settings-panel .settings-trigger {
+	:global(.top-actions) > .settings-panel .settings-trigger {
 		width: 100%;
 		height: 100%;
 		border-radius: 0;

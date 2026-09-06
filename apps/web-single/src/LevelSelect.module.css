@@ -72,16 +72,16 @@
 	min-width: 0;
 	padding: 16px 24px 16px 38px;
 }
-.level-select-intro > .settings-panel {
+.level-select-intro > [data-settings-panel] {
 	border-left: 2px solid var(--select-ink);
 }
-.level-select-intro .settings-trigger {
+.level-select-intro [data-settings-trigger] {
 	width: 100%;
 	height: 100%;
 	border: 0;
 	border-radius: 0;
 }
-.level-select-intro .settings-trigger:active {
+.level-select-intro [data-settings-trigger]:active {
 	transform: none;
 }
 
@@ -482,6 +482,30 @@
 	box-shadow: inset 0 -8px 0 var(--level-accent);
 }
 
+.level-map-wrap {
+	position: relative;
+	height: 158px;
+	overflow: hidden;
+	background: #fafafe;
+}
+
+.level-map-wrap::before {
+	position: absolute;
+	inset: 0;
+	background-image: radial-gradient(#d8d5e0 1px, transparent 1px);
+	background-size: 17px 17px;
+	content: '';
+	opacity: 0.45;
+}
+
+.level-map-wrap > .level-sector-tag {
+	--tag-accent: var(--level-accent);
+	position: absolute;
+	z-index: 2;
+	top: 12px;
+	left: 13px;
+}
+
 @media (min-width: 981px) and (max-width: 1200px) and (max-height: 800px) {
 	.level-select-shell {
 		padding: 8px 0;
@@ -559,7 +583,7 @@
 .level-card-copy footer {
 	justify-content: flex-start;
 }
-.level-card-copy footer .ui-tag {
+.level-card-copy footer :global(.ui-tag) {
 	font-size: 13px;
 }
 
@@ -568,6 +592,7 @@
 	min-width: 0;
 	grid-template-columns: minmax(0, 1fr) minmax(240px, 0.85fr);
 	align-items: start;
+	align-content: center;
 	gap: 10px 18px;
 	padding: 12px 16px;
 	background: #fff;
@@ -979,23 +1004,23 @@
 		grid-row: 1;
 		gap: 6px;
 	}
-	.setup-scales .calibration-slider {
+	.setup-scales :global(.calibration-slider) {
 		grid-template-columns: minmax(0, 1fr) auto;
 		gap: 4px;
 		align-items: start;
 		font-size: 12px;
 	}
-	.setup-scales .calibration-slider > span {
+	.setup-scales :global(.calibration-slider) > span {
 		overflow: hidden;
 		font-size: 11px;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
-	.setup-scales .calibration-slider > input {
+	.setup-scales :global(.calibration-slider) > input {
 		grid-column: 1 / -1;
 		grid-row: 2;
 	}
-	.setup-scales .calibration-slider > b {
+	.setup-scales :global(.calibration-slider) > b {
 		grid-column: 2;
 		grid-row: 1;
 		font-size: 11px;
@@ -1015,7 +1040,7 @@
 	.level-select-intro {
 		padding-block: 8px;
 	}
-	.home-composition {
+	:global(.home-composition) {
 		display: none;
 	}
 	.selection-section-head {

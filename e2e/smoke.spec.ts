@@ -142,11 +142,14 @@ test('thought index plays real scenes and returns to deployment', async ({ page 
 	await expect(index.locator('.thought-stage')).toHaveAttribute('data-thought-id', 'frost');
 	await index.locator('.thought-progress > button').nth(7).click();
 	await index.getByRole('button', { name: 'Play' }).click();
-	await index.locator('.thought-scene-overlay[data-cue="replace-area-carrier"]').waitFor();
-	await expect(index.locator('.thought-loadout-module--incoming')).toHaveCSS('display', 'grid');
+	await index.locator('[data-thought-scene-overlay][data-cue="replace-area-carrier"]').waitFor();
+	await expect(index.locator('[data-thought-loadout-module][data-transition="incoming"]')).toHaveCSS(
+		'display',
+		'grid',
+	);
 	await index.locator('.thought-progress > button').nth(10).click();
-	await index.locator('.thought-scene-overlay[data-cue="show-static-payload"]').waitFor();
-	const revealedModules = index.locator('.thought-loadout-dialog .thought-loadout-module-reveal');
+	await index.locator('[data-thought-scene-overlay][data-cue="show-static-payload"]').waitFor();
+	const revealedModules = index.locator('[data-thought-loadout-dialog] [data-thought-loadout-reveal]');
 	await expect(revealedModules).toHaveCount(4);
 	await revealedModules.last().evaluate(async (element) => {
 		await Promise.all(element.getAnimations().map((animation) => animation.finished));
@@ -158,7 +161,7 @@ test('thought index plays real scenes and returns to deployment', async ({ page 
 		}),
 	);
 	expect(Math.max(...moduleGaps) - Math.min(...moduleGaps)).toBeLessThan(0.5);
-	const highlightedModule = revealedModules.nth(2).locator('.thought-loadout-module');
+	const highlightedModule = revealedModules.nth(2).locator('[data-thought-loadout-module]');
 	const restingHighlightGeometry = await revealedModules.evaluateAll((elements) => ({
 		gaps: elements.slice(1).map((element, index) => {
 			const previous = elements[index]!.getBoundingClientRect();
@@ -178,7 +181,7 @@ test('thought index plays real scenes and returns to deployment', async ({ page 
 		};
 	});
 	await index.locator('.thought-progress > button').nth(11).click();
-	await index.locator('.thought-scene-overlay[data-cue="point-static-modifier"]').waitFor();
+	await index.locator('[data-thought-scene-overlay][data-cue="point-static-modifier"]').waitFor();
 	await highlightedModule.evaluate(async (element) => {
 		await Promise.all(element.getAnimations().map((animation) => animation.finished));
 	});
@@ -300,9 +303,9 @@ test('the multi-entrance sector renders its route tree and all battlefield entra
 	const triune = page.getByRole('radio', { name: /Triune Delta/ });
 	await expect(triune).toBeVisible();
 	await expect(triune.getByText(`${triuneLevel.waves.length} waves`)).toBeVisible();
-	await expect(triune.locator('.route-edge')).toHaveCount(triuneLevel.graph.edges.length);
+	await expect(triune.locator('[data-route-edge]')).toHaveCount(triuneLevel.graph.edges.length);
 	const junctionCount = [...triuneLevel.graph.nodes.values()].filter((node) => node.children.length > 1).length;
-	await expect(triune.locator('.route-junction')).toHaveCount(junctionCount);
+	await expect(triune.locator('[data-route-junction]')).toHaveCount(junctionCount);
 	await triune.click();
 	await page.getByRole('button', { name: /Creative/ }).click();
 	await page.getByRole('button', { name: /Start deployment/ }).click();
@@ -478,7 +481,7 @@ test('defense archive reads, filters, details, and clears IndexedDB records', as
 	await expect(page.getByRole('heading', { name: 'Defense Archive' })).toBeVisible();
 	expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
 	await expect(page.getByText('Defense sectors')).toBeVisible();
-	await expect(page.locator('.defense-archive-metric.metric-1 strong')).toHaveText('1');
+	await expect(page.locator('[data-defense-metric="defenses"] strong')).toHaveText('1');
 	await page.getByRole('tab', { name: 'Defense sectors' }).click();
 	await expect(page.getByRole('heading', { name: 'White Prism' })).toBeVisible();
 	expect(
@@ -498,7 +501,7 @@ test('defense archive reads, filters, details, and clears IndexedDB records', as
 	await page.getByRole('button', { name: /White Prism/ }).click();
 	await expect(page.getByText('e2e1234 · 2026-08-31')).toBeVisible();
 	await expect(page.getByText('Final module inventory')).toBeVisible();
-	expect(await page.locator('.defense-detail').evaluate((element) => getComputedStyle(element).overflowY)).toBe(
+	expect(await page.locator('[data-defense-detail]').evaluate((element) => getComputedStyle(element).overflowY)).toBe(
 		'auto',
 	);
 	expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
@@ -560,7 +563,7 @@ test('level carousel keeps three cards visible and launches the beginner map', a
 	await expect(page.getByRole('heading', { name: 'Launch Elbow T-0', level: 1 })).toBeVisible();
 	const tutorial = page.getByRole('region', { name: 'Launch Elbow tutorial' });
 	await expect(tutorial.getByRole('heading', { name: 'Welcome to Launch Elbow' })).toBeVisible();
-	const tutorialCard = tutorial.locator('.tutorial-card');
+	const tutorialCard = tutorial.locator('[data-tutorial-panel]');
 	const initialCardBox = await tutorialCard.boundingBox();
 	const dragHandleBox = await tutorial.getByRole('button', { name: 'Move tutorial panel' }).boundingBox();
 	if (!initialCardBox || !dragHandleBox) {
@@ -594,8 +597,8 @@ test('level carousel keeps three cards visible and launches the beginner map', a
 	expect(viewport.height - cornerCardBox.y - cornerCardBox.height).toBeCloseTo(20, 0);
 	await tutorial.getByRole('button', { name: 'Click the highlighted tower' }).click();
 	let workshop = page.getByLabel('Tower module workshop');
-	await expect(tutorial.locator('.tutorial-spotlight.drag-source')).toHaveCount(1);
-	await expect(tutorial.locator('.tutorial-spotlight.drag-destination')).toHaveCount(1);
+	await expect(tutorial.locator('[data-tutorial-spotlight="source"]')).toHaveCount(1);
+	await expect(tutorial.locator('[data-tutorial-spotlight="destination"]')).toHaveCount(1);
 	await workshop.locator('[data-tutorial-module="frost"]').dragTo(workshop.locator('[data-tutorial-slot="0"]'));
 	await expect(tutorial.getByRole('heading', { name: 'Drag Pulse into slot 2' })).toBeVisible();
 	await workshop.locator('[data-tutorial-module="pulse"]').dragTo(workshop.locator('[data-tutorial-slot="1"]'));

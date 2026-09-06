@@ -269,7 +269,7 @@ describe('defense archive interface', () => {
 		render(<DefenseArchive repository={repository as never} onBack={() => undefined} />);
 
 		expect(await screen.findByText('Completed defenses')).toBeTruthy();
-		expect(document.querySelector('.defense-archive-head .defense-archive-mark')?.textContent).toBe('');
+		expect(document.querySelector('[data-defense-archive-mark]')?.textContent).toBe('');
 		expect(document.querySelector('.signal-ledger-grid .signal-icon')).toBeTruthy();
 		await user.keyboard('{ArrowRight}');
 		expect(document.activeElement).toBe(screen.getByRole('tab', { name: 'Defense sectors' }));
@@ -298,7 +298,7 @@ describe('defense archive interface', () => {
 		expect(document.activeElement).toBe(selectedRecord);
 		expect(selectedRecord?.getAttribute('aria-pressed')).toBe('true');
 		expect(screen.getByText('Final module inventory')).toBeTruthy();
-		expect(document.querySelector('.inventory-ledger .module-icon')).toBeTruthy();
+		expect(document.querySelector('[data-defense-inventory] .module-icon')).toBeTruthy();
 		expect(screen.getByText('abc1234 · 2026-08-31')).toBeTruthy();
 	});
 
