@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CoopClient } from './client';
 import { COOP_PROTOCOL_VERSION } from '@prism-bastion/coop/types';
@@ -70,16 +70,19 @@ export function useCoopRuntime(): CoopRuntime {
 	const [notificationToast, setNotificationToast] = useState<ToastState | null>(null);
 	const [reinforcementNotice, setReinforcementNotice] = useState<CoopPhaseStart | null>(null);
 
-	const sendCommand = (message: CoopClientMessage): void => {
-		if (client.send(message)) {
-			return;
-		}
-		const disconnected = t('coop.error.disconnected');
-		setError(disconnected);
-		setNotificationToast({ message: disconnected, tone: 'warn', nonce: Date.now() });
-	};
+	const sendCommand = useCallback(
+		(message: CoopClientMessage): void => {
+			if (client.send(message)) {
+				return;
+			}
+			const disconnected = t('coop.error.disconnected');
+			setError(disconnected);
+			setNotificationToast({ message: disconnected, tone: 'warn', nonce: Date.now() });
+		},
+		[client, t],
+	);
 
-	const clearEngines = (): void => {
+	const clearEngines = useCallback((): void => {
 		for (const unsubscribe of Object.values(engineUnsubscribesRef.current)) {
 			unsubscribe?.();
 		}
@@ -89,9 +92,9 @@ export function useCoopRuntime(): CoopRuntime {
 		lastLocalWavesRef.current = {};
 		setEngine(null);
 		setEngineRevision((revision) => revision + 1);
-	};
+	}, []);
 
-	const viewPlayer = (nextPlayerId: CoopPlayerId): void => {
+	const viewPlayer = useCallback((nextPlayerId: CoopPlayerId): void => {
 		const nextEngine = enginesRef.current[nextPlayerId];
 		if (!nextEngine) {
 			return;
@@ -99,163 +102,168 @@ export function useCoopRuntime(): CoopRuntime {
 		viewedPlayerIdRef.current = nextPlayerId;
 		setViewedPlayerId(nextPlayerId);
 		setEngine(nextEngine);
-	};
+	}, []);
 
-	const installEngine = (
-		nextRoom: CoopRoomSnapshot,
-		planPlayerId: CoopPlayerId,
-		applyPlan = true,
-	): GameEngine | null => {
-		const player = nextRoom.players.find((candidate) => candidate.id === planPlayerId);
-		if (!player) {
-			return null;
-		}
-		let nextEngine = enginesRef.current[planPlayerId];
-		if (
-			!nextEngine ||
-			nextEngine.level.id !== nextRoom.levelId ||
-			nextEngine.difficulty.id !== nextRoom.difficultyId
-		) {
-			engineUnsubscribesRef.current[planPlayerId]?.();
-			nextEngine = new CoopGameController({
-				levelId: nextRoom.levelId,
-				difficultyId: nextRoom.difficultyId,
-				seed: 0,
-				visuals: createWebVisualFeedback(),
-			}).engine;
-			nextEngine.setCommandSink((command) => {
-				const currentRoom = roomRef.current;
-				if (!currentRoom || planPlayerId !== playerIdRef.current) {
-					return;
-				}
-				sendCommand({
-					type: 'plan-command',
-					expectedRevision: currentRoom.revision,
-					command,
-				});
-			});
-			engineUnsubscribesRef.current[planPlayerId] = nextEngine.subscribe((event: GameEvent) => {
-				if (event.type !== 'combat-phase-completed') {
-					return;
-				}
-				const phase = event.result;
-				if (replayingPlayersRef.current.has(planPlayerId)) {
-					return;
-				}
-				const currentRoom = roomRef.current;
-				const currentPlayerId = playerIdRef.current;
-				if (!currentRoom || !currentPlayerId) {
-					return;
-				}
-				if (currentRoom.phase === 'local-defense') {
-					lastLocalWavesRef.current[planPlayerId] = currentRoom.wave;
-				}
-				if (planPlayerId !== currentPlayerId) {
-					return;
-				}
-				sendCommand({
-					type: 'combat-result',
-					expectedRevision: currentRoom.revision,
-					result: {
-						phaseId: phase.phaseId,
-						planHash: phase.planHash,
-						shardsEarned: phase.shardsEarned,
-						leaks: phase.leaks,
-					},
-				});
-			});
-			enginesRef.current[planPlayerId] = nextEngine;
-			setEngineRevision((revision) => revision + 1);
-		}
-		if (applyPlan) {
-			nextEngine.applyGamePlan(player.plan);
-		}
-		const locallyOwned = planPlayerId === playerIdRef.current;
-		nextEngine.setPlanningEnabled(
-			locallyOwned && nextRoom.phase === 'planning' && !player.ready && !player.eliminated,
-		);
-		if (viewedPlayerIdRef.current === planPlayerId) {
-			setEngine(nextEngine);
-		}
-		return nextEngine;
-	};
-
-	const startPhase = (message: CoopPhaseStart): void => {
-		const currentRoom = roomRef.current;
-		const currentPlayerId = playerIdRef.current;
-		if (!currentRoom || !currentPlayerId) {
-			return;
-		}
-		const self = currentRoom.players.find((player) => player.id === currentPlayerId);
-		if (!self) {
-			return;
-		}
-		const nextEngine = installEngine(currentRoom, message.actorId);
-		if (!nextEngine) {
-			return;
-		}
-		if (message.kind === 'reinforcement') {
-			replayingPlayersRef.current.add(message.actorId);
-			try {
-				nextEngine.startCombatPhase({
-					phaseId: Math.max(1, message.phaseId - 1),
-					planHash: message.planHash,
-					wave: message.wave,
-					kind: 'local-defense',
-				});
-				nextEngine.fastForwardCombatPhase();
-			} finally {
-				replayingPlayersRef.current.delete(message.actorId);
+	const installEngine = useCallback(
+		(nextRoom: CoopRoomSnapshot, planPlayerId: CoopPlayerId, applyPlan = true): GameEngine | null => {
+			const player = nextRoom.players.find((candidate) => candidate.id === planPlayerId);
+			if (!player) {
+				return null;
 			}
-			lastLocalWavesRef.current[message.actorId] = message.wave;
-			const actor = currentRoom.players.find((player) => player.id === message.actorId);
-			if (actor) {
-				nextEngine.synchronizeShards(actor.plan.shards);
+			let nextEngine = enginesRef.current[planPlayerId];
+			if (
+				!nextEngine ||
+				nextEngine.level.id !== nextRoom.levelId ||
+				nextEngine.difficulty.id !== nextRoom.difficultyId
+			) {
+				engineUnsubscribesRef.current[planPlayerId]?.();
+				nextEngine = new CoopGameController({
+					levelId: nextRoom.levelId,
+					difficultyId: nextRoom.difficultyId,
+					seed: 0,
+					visuals: createWebVisualFeedback(),
+				}).engine;
+				nextEngine.setCommandSink((command) => {
+					const currentRoom = roomRef.current;
+					if (!currentRoom || planPlayerId !== playerIdRef.current) {
+						return;
+					}
+					sendCommand({
+						type: 'plan-command',
+						expectedRevision: currentRoom.revision,
+						command,
+					});
+				});
+				engineUnsubscribesRef.current[planPlayerId] = nextEngine.subscribe((event: GameEvent) => {
+					if (event.type !== 'combat-phase-completed') {
+						return;
+					}
+					const phase = event.result;
+					if (replayingPlayersRef.current.has(planPlayerId)) {
+						return;
+					}
+					const currentRoom = roomRef.current;
+					const currentPlayerId = playerIdRef.current;
+					if (!currentRoom || !currentPlayerId) {
+						return;
+					}
+					if (currentRoom.phase === 'local-defense') {
+						lastLocalWavesRef.current[planPlayerId] = currentRoom.wave;
+					}
+					if (planPlayerId !== currentPlayerId) {
+						return;
+					}
+					sendCommand({
+						type: 'combat-result',
+						expectedRevision: currentRoom.revision,
+						result: {
+							phaseId: phase.phaseId,
+							planHash: phase.planHash,
+							shardsEarned: phase.shardsEarned,
+							leaks: phase.leaks,
+						},
+					});
+				});
+				enginesRef.current[planPlayerId] = nextEngine;
+				setEngineRevision((revision) => revision + 1);
 			}
-		}
-		nextEngine.startCombatPhase({
-			phaseId: message.phaseId,
-			planHash: message.planHash,
-			wave: message.wave,
-			kind: message.kind,
-			signals: message.signals,
-		});
-		if (message.kind === 'reinforcement') {
-			setReinforcementNotice(message);
-			viewPlayer(message.actorId);
-		} else if (self.eliminated) {
-			viewPlayer(message.actorId);
-		}
-	};
-
-	const receiveRoom = (nextRoom: CoopRoomSnapshot): void => {
-		const previousRoom = roomRef.current;
-		roomRef.current = nextRoom;
-		setRoom(nextRoom);
-		setError(null);
-		const currentPlayerId = playerIdRef.current;
-		const currentPlayer = nextRoom.players.find((player) => player.id === currentPlayerId);
-		for (const [ownerId, ownerEngine] of Object.entries(enginesRef.current)) {
-			ownerEngine?.setPlanningEnabled(
-				ownerId === currentPlayerId &&
-					nextRoom.phase === 'planning' &&
-					!currentPlayer?.ready &&
-					!currentPlayer?.eliminated,
+			if (applyPlan) {
+				nextEngine.applyGamePlan(player.plan);
+			}
+			const locallyOwned = planPlayerId === playerIdRef.current;
+			nextEngine.setPlanningEnabled(
+				locallyOwned && nextRoom.phase === 'planning' && !player.ready && !player.eliminated,
 			);
-		}
-		if (currentPlayerId && ['lobby', 'draft', 'planning', 'ended'].includes(nextRoom.phase)) {
-			for (const player of nextRoom.players) {
-				installEngine(nextRoom, player.id);
+			if (viewedPlayerIdRef.current === planPlayerId) {
+				setEngine(nextEngine);
 			}
-			if (nextRoom.phase === 'draft') {
-				viewPlayer(currentPlayerId);
+			return nextEngine;
+		},
+		[sendCommand],
+	);
+
+	const startPhase = useCallback(
+		(message: CoopPhaseStart): void => {
+			const currentRoom = roomRef.current;
+			const currentPlayerId = playerIdRef.current;
+			if (!currentRoom || !currentPlayerId) {
+				return;
 			}
-		}
-		const peerToFollow = peerDefenseToFollow(previousRoom, nextRoom, currentPlayerId ?? null);
-		if (peerToFollow) {
-			viewPlayer(peerToFollow);
-		}
-	};
+			const self = currentRoom.players.find((player) => player.id === currentPlayerId);
+			if (!self) {
+				return;
+			}
+			const nextEngine = installEngine(currentRoom, message.actorId);
+			if (!nextEngine) {
+				return;
+			}
+			if (message.kind === 'reinforcement') {
+				replayingPlayersRef.current.add(message.actorId);
+				try {
+					nextEngine.startCombatPhase({
+						phaseId: Math.max(1, message.phaseId - 1),
+						planHash: message.planHash,
+						wave: message.wave,
+						kind: 'local-defense',
+					});
+					nextEngine.fastForwardCombatPhase();
+				} finally {
+					replayingPlayersRef.current.delete(message.actorId);
+				}
+				lastLocalWavesRef.current[message.actorId] = message.wave;
+				const actor = currentRoom.players.find((player) => player.id === message.actorId);
+				if (actor) {
+					nextEngine.synchronizeShards(actor.plan.shards);
+				}
+			}
+			nextEngine.startCombatPhase({
+				phaseId: message.phaseId,
+				planHash: message.planHash,
+				wave: message.wave,
+				kind: message.kind,
+				signals: message.signals,
+			});
+			if (message.kind === 'reinforcement') {
+				setReinforcementNotice(message);
+				viewPlayer(message.actorId);
+			} else if (self.eliminated) {
+				viewPlayer(message.actorId);
+			}
+		},
+		[installEngine, viewPlayer],
+	);
+
+	const receiveRoom = useCallback(
+		(nextRoom: CoopRoomSnapshot): void => {
+			const previousRoom = roomRef.current;
+			roomRef.current = nextRoom;
+			setRoom(nextRoom);
+			setError(null);
+			const currentPlayerId = playerIdRef.current;
+			const currentPlayer = nextRoom.players.find((player) => player.id === currentPlayerId);
+			for (const [ownerId, ownerEngine] of Object.entries(enginesRef.current)) {
+				ownerEngine?.setPlanningEnabled(
+					ownerId === currentPlayerId &&
+						nextRoom.phase === 'planning' &&
+						!currentPlayer?.ready &&
+						!currentPlayer?.eliminated,
+				);
+			}
+			if (currentPlayerId && ['lobby', 'draft', 'planning', 'ended'].includes(nextRoom.phase)) {
+				for (const player of nextRoom.players) {
+					installEngine(nextRoom, player.id);
+				}
+				if (nextRoom.phase === 'draft') {
+					viewPlayer(currentPlayerId);
+				}
+			}
+			const peerToFollow = peerDefenseToFollow(previousRoom, nextRoom, currentPlayerId ?? null);
+			if (peerToFollow) {
+				viewPlayer(peerToFollow);
+			}
+		},
+		[installEngine, viewPlayer],
+	);
 
 	useEffect(
 		() =>
@@ -332,7 +340,7 @@ export function useCoopRuntime(): CoopRuntime {
 				},
 				(status) => setConnection(status),
 			),
-		[client, t],
+		[clearEngines, client, installEngine, receiveRoom, startPhase, t],
 	);
 
 	useEffect(() => {

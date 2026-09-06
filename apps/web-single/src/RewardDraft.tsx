@@ -23,15 +23,16 @@ export function RewardDraft({
 }) {
 	const { t } = useTranslation();
 	const draft = snapshot.draft;
+	const draftRound = draft?.round;
 	const panelRef = useRef<HTMLElement>(null);
 	useEffect(() => {
-		if (!draft) {
+		if (draftRound === undefined) {
 			return;
 		}
 		const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 		panelRef.current?.querySelector<HTMLButtonElement>('.reward-choose')?.focus();
 		return () => previousFocus?.focus();
-	}, [draft?.round]);
+	}, [draftRound]);
 	if (!draft) {
 		return null;
 	}

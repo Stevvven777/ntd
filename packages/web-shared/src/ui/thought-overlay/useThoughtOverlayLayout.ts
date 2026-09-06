@@ -347,7 +347,16 @@ export function useThoughtOverlayLayout(
 			cancelAnimationFrame(layoutFrame);
 			observer?.disconnect();
 		};
-	}, [director, overlay, snapshot.cueId, snapshot.loadoutMode, snapshot.loadoutPlacement, snapshot.loadoutTargets]);
+	}, [
+		director,
+		overlay,
+		snapshot.cueId,
+		snapshot.loadoutMode,
+		snapshot.loadoutPlacement,
+		snapshot.loadoutTargets,
+		snapshot.placementBurst,
+		snapshot.placementBurstTowerIndex,
+	]);
 
 	return {
 		rootRef,

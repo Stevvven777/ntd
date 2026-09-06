@@ -46,8 +46,10 @@ export function Workshop({
 		[engine],
 	);
 	useTouchModuleDrag(workshopRef, installModule, swapModules);
-	const { revision } = view;
-	const definitions = useMemo(() => engine.getLibraryModules(), [engine, revision]);
+	const definitions = useMemo(() => {
+		void view.revision;
+		return engine.getLibraryModules();
+	}, [engine, view.revision]);
 	const [selectedModule, setSelectedModule] = useState<ModuleId | null>(() => definitions[0]?.id ?? null);
 	const [kindFilter, setKindFilter] = useState<'all' | ModuleKind>('all');
 	const [transferPending, setTransferPending] = useState<'import' | 'export' | null>(null);
