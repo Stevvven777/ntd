@@ -8,6 +8,7 @@ const prepare = async (page: import('@playwright/test').Page) => {
 
 test('module selection follows repeated moves and pointer changes in the workshop', async ({ page }) => {
 	await prepare(page);
+	await page.getByRole('radio', { name: /White Prism/ }).click();
 	await page.getByRole('button', { name: /Creative/ }).click();
 	await page.getByRole('button', { name: /Start deployment/ }).click();
 	const canvas = page.getByRole('img', { name: 'Tower-defense battlefield' });
