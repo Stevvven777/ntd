@@ -43,7 +43,7 @@ function WorkshopProgram({
 	selectedModule,
 	kindFilter,
 	transferPending,
-	onSelectModule,
+	onFilter,
 	selection,
 	onImport,
 	onExport,
@@ -55,7 +55,7 @@ function WorkshopProgram({
 	selectedModule: ModuleId | null;
 	kindFilter: KindFilter;
 	transferPending: 'import' | 'export' | null;
-	onSelectModule: (id: ModuleId, kindFilter: KindFilter) => void;
+	onFilter: (kind: KindFilter) => void;
 	selection: WorkshopSelection;
 	onImport: () => Promise<void>;
 	onExport: () => Promise<void>;
@@ -110,8 +110,8 @@ function WorkshopProgram({
 						selectedModule={selectedModule}
 						selected={selection.activeSlot?.index === index}
 						onSelect={() => {
-							if (moduleId) {
-								onSelectModule(moduleId, kindFilter);
+							if (moduleId && kindFilter !== 'all' && engine.modules.get(moduleId)?.kind !== kindFilter) {
+								onFilter('all');
 							}
 							selection.selectSlot(index);
 						}}
@@ -375,13 +375,7 @@ export function Workshop({
 							onOpenThought,
 							selection,
 						}}
-						onSelectModule={(id, currentFilter) => {
-							const installed = engine.modules.get(id);
-							if (currentFilter !== 'all' && installed?.kind !== currentFilter) {
-								setKindFilter('all');
-							}
-							setSelectedModule(id);
-						}}
+						onFilter={setKindFilter}
 						onImport={importOrchestration}
 						onExport={exportOrchestration}
 					/>
