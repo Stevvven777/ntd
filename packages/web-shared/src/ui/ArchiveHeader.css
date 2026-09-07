@@ -80,19 +80,21 @@
 	letter-spacing: -0.055em;
 }
 
-.archive-header > .settings-panel {
+.archive-header > [data-settings-panel] {
 	grid-column: 3;
 	grid-row: 1;
 	border-right: 2px solid var(--archive-ink, #252134);
 	background: var(--archive-yellow, #ffd447);
 }
 
-.archive-header > .settings-panel .settings-trigger {
+.archive-header > [data-settings-panel] [data-settings-trigger] {
+	width: 100%;
+	height: 100%;
 	border-radius: 0;
 	background: var(--archive-yellow, #ffd447);
 }
-.archive-header > .settings-panel .settings-trigger:hover,
-.archive-header > .settings-panel .settings-trigger[aria-expanded='true'] {
+.archive-header > [data-settings-panel] [data-settings-trigger]:hover,
+.archive-header > [data-settings-panel] [data-settings-trigger][aria-expanded='true'] {
 	background: var(--purple, #6558e8);
 }
 

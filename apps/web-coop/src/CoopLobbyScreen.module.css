@@ -37,11 +37,11 @@
 	border-left: 2px solid var(--ink);
 	background: #fff;
 }
-.screenSettings :global(.settings-panel) {
+.screenSettings [data-settings-panel] {
 	width: 100%;
 	height: 100%;
 }
-.screenSettings :global(.settings-trigger) {
+.screenSettings [data-settings-trigger] {
 	width: 100%;
 	height: 100%;
 	border: 0;
