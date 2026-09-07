@@ -10,16 +10,15 @@
 	height: 46px;
 	padding: 0;
 	place-items: center;
-	border: 2px solid var(--ink, #252134);
-	border-radius: 9px;
+	border: 0;
+	border-radius: 0;
 	color: var(--ink, #252134);
 	background: #fff;
 	cursor: pointer;
 	line-height: 1;
 	transition:
 		color 0.14s ease,
-		background 0.14s ease,
-		transform 0.14s ease;
+		background 0.14s ease;
 }
 
 .settings-trigger:hover,
@@ -32,9 +31,6 @@
 	color: #8c8793;
 	background: #e7e4ea;
 	cursor: not-allowed;
-}
-.settings-trigger:active {
-	transform: translateY(1px);
 }
 
 .settings-backdrop {
@@ -109,6 +105,9 @@
 	grid-template-columns: 150px minmax(0, 1fr);
 	gap: 16px;
 	padding: 18px;
+}
+.settings-keybindings-section {
+	grid-template-columns: minmax(0, 1fr);
 }
 .settings-section-copy {
 	padding: 9px 3px;

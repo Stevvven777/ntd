@@ -1,18 +1,14 @@
-.settings-keybindings-section {
-	grid-template-columns: 1fr;
-	border-top: 2px solid var(--ink, #252134);
-}
 .keybinding-list {
 	min-width: 0;
 }
 .keybinding-row {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(105px, auto) 30px;
+	grid-template-columns: minmax(0, 1fr) 112px 34px;
 	gap: 8px;
 	align-items: center;
-	padding: 6px 0;
+	padding: 10px 0;
 	border-bottom: 1px solid #dedbe5;
-	font-size: 13px;
+	font-size: 14px;
 }
 .keybinding-list button {
 	min-height: 34px;
@@ -40,7 +36,7 @@
 .keybinding-status {
 	min-height: 2.6em;
 	margin: 10px 0;
-	font-size: 12px;
+	font-size: 13px;
 	line-height: 1.4;
 }
 .keybinding-reset {
@@ -52,4 +48,11 @@
 }
 .keybinding-reset {
 	margin-top: 12px;
+}
+
+@media (max-width: 620px) {
+	.keybinding-row {
+		grid-template-columns: minmax(0, 1fr) 94px 34px;
+		font-size: 12px;
+	}
 }

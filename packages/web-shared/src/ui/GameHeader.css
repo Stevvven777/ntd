@@ -1,5 +1,6 @@
 .topbar {
 	--bar-ink: #252134;
+	--bar-control-width: 56px;
 	display: grid;
 	grid-template-columns: 154px minmax(420px, 1fr) auto;
 	width: 100%;
@@ -133,12 +134,13 @@
 	gap: 0;
 	background: #fff;
 }
-.top-actions > .settings-panel {
-	width: 62px;
+.top-actions > [data-settings-panel] {
+	width: var(--bar-control-width);
 	flex: 0 0 auto;
 	border-right: 2px solid var(--bar-ink);
 }
 .speed-switch {
+	flex: 0 0 auto;
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	height: auto;
@@ -149,14 +151,14 @@
 	background: #fff;
 }
 .speed-switch button {
-	width: 45px;
+	width: var(--bar-control-width);
 	border: 0;
 	border-right: 1px solid var(--bar-ink);
 	color: #6f6977;
 	background: #fff;
 	cursor: pointer;
 	font-family: var(--font-mono);
-	font-size: 13px;
+	font-size: 14px;
 	font-weight: 800;
 }
 .speed-switch button:last-child {
@@ -173,7 +175,8 @@
 }
 
 .icon-button {
-	width: 62px;
+	flex: 0 0 auto;
+	width: var(--bar-control-width);
 	height: auto;
 	border: 0;
 	border-right: 2px solid var(--bar-ink);
@@ -325,6 +328,7 @@
 
 @media (max-width: 620px) {
 	.topbar {
+		--bar-control-width: 46px;
 		grid-template-columns: 42px minmax(0, 1fr);
 		grid-template-rows: 52px 64px;
 		height: 118px;
@@ -334,7 +338,7 @@
 		font-size: 20px;
 	}
 	.icon-button {
-		width: 42px;
+		width: var(--bar-control-width);
 		height: auto;
 		border-radius: 0;
 	}

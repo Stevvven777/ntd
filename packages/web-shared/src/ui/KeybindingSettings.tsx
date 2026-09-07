@@ -1,6 +1,7 @@
 import { UiIcon } from './UiIcon';
 import { KeybindingDisplay } from './KeybindingDisplay';
 import './KeybindingSettings.css';
+import styles from './SettingsPanel.module.css';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -62,8 +63,8 @@ export function KeybindingSettings() {
 		return () => window.removeEventListener('keydown', capture, true);
 	}, [recording, t]);
 	return (
-		<section className="settings-section settings-keybindings-section">
-			<div className="settings-section-copy">
+		<section className={`${styles['settings-section']} ${styles['settings-keybindings-section']}`}>
+			<div className={styles['settings-section-copy']}>
 				<strong>{t('settings.keys.title')}</strong>
 			</div>
 			<div className="keybinding-list">
