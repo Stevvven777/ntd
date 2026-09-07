@@ -26,14 +26,14 @@ test('module selection follows repeated moves and pointer changes in the worksho
 	});
 	const workshop = page.getByLabel('Tower module workshop');
 	await workshop.locator('.orchestration-clear').click();
-	await workshop.locator('[data-tutorial-module="frost"]').dblclick();
 	await workshop.locator('[data-tutorial-module="pulse"]').dblclick();
+	await workshop.locator('[data-tutorial-module="frost"]').dblclick();
 	const slot = (index: number) => workshop.locator(`.module-slot[data-slot="${index}"]`);
-	await slot(1).click();
+	await slot(0).click();
 	for (const [key, destination] of [
+		['Alt+ArrowRight', 1],
 		['Alt+ArrowRight', 2],
-		['Alt+ArrowRight', 3],
-		['Alt+ArrowLeft', 2],
+		['Alt+ArrowLeft', 1],
 	] as const) {
 		await page.keyboard.press(key);
 		await expect(slot(destination)).toBeFocused();
