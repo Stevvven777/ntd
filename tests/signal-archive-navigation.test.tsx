@@ -27,3 +27,14 @@ it('scrolls the signal index without arrow selection changes', async () => {
 	await user.keyboard('{Home}');
 	expect(document.activeElement).toBe(records[0]);
 });
+
+it('leaves modified arrow keys to the browser', async () => {
+	const user = userEvent.setup();
+	render(<SignalArchive onBack={vi.fn()} />);
+	const list = document.querySelector<HTMLElement>('.signal-archive-index-list')!;
+	await user.keyboard('{ArrowDown}');
+	for (const modifier of ['Alt', 'Control', 'Meta', 'Shift']) {
+		await user.keyboard(`{${modifier}>}{ArrowDown}{ArrowUp}{/${modifier}}`);
+		expect(list.scrollTop).toBe(72);
+	}
+});

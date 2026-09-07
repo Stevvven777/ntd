@@ -270,8 +270,6 @@ test('compact landscape hides home metadata and contains the signal compendium',
 	const beforeBlurredScroll = await indexList.evaluate((element) => element.scrollTop);
 	await page.keyboard.press('ArrowDown');
 	await expect.poll(() => indexList.evaluate((element) => element.scrollTop)).toBe(beforeBlurredScroll + 72);
-	await page.keyboard.press('Alt+ArrowDown');
-	expect(await indexList.evaluate((element) => element.scrollTop)).toBe(beforeBlurredScroll + 72);
 	expect(await indexHeading.evaluate((element) => element.getBoundingClientRect().top)).toBe(headingTop);
 	expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
 });
