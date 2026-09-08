@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import en from '../packages/web-shared/src/i18n/locales/en.json';
+
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -30,7 +32,7 @@ afterEach(() => {
 describe('mobile fullscreen button', () => {
 	it('stays hidden without supported mobile fullscreen', () => {
 		render(<MobileFullscreenButton />);
-		expect(screen.queryByRole('button', { name: 'Enter fullscreen' })).toBeNull();
+		expect(screen.queryByRole('button', { name: en['levelSelect.enterFullscreen'] })).toBeNull();
 	});
 
 	it('attempts orientation even when fullscreen fails and reports both errors', async () => {
@@ -61,11 +63,11 @@ describe('mobile fullscreen button', () => {
 		const user = userEvent.setup();
 		render(<MobileFullscreenButton />);
 
-		await user.click(screen.getByRole('button', { name: 'Enter fullscreen' }));
+		await user.click(screen.getByRole('button', { name: en['levelSelect.enterFullscreen'] }));
 
 		await waitFor(() => expect(lock).toHaveBeenCalledWith('landscape'));
 		expect(requestFullscreen).toHaveBeenCalledTimes(1);
-		expect(screen.getByRole('alert').textContent).toContain('Fullscreen could not be started.');
-		expect(screen.getByRole('alert').textContent).toContain('Landscape orientation could not be enabled.');
+		expect(screen.getByRole('alert').textContent).toContain(en['levelSelect.fullscreenError']);
+		expect(screen.getByRole('alert').textContent).toContain(en['levelSelect.orientationError']);
 	});
 });

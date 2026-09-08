@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import en from '../packages/web-shared/src/i18n/locales/en.json';
+
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -19,10 +21,10 @@ describe('game header', () => {
 
 		render(<GameHeader engine={engine} snapshot={snapshot} onExit={() => undefined} />);
 
-		const settings = screen.getByRole('button', { name: 'Settings' });
+		const settings = screen.getByRole('button', { name: en['settings.title'] });
 		expect(settings.getAttribute('disabled')).toBeNull();
 		await user.click(settings);
-		expect(screen.getByRole('dialog', { name: 'Settings' })).toBeTruthy();
+		expect(screen.getByRole('dialog', { name: en['settings.title'] })).toBeTruthy();
 	});
 
 	it('turns the co-op launch action into an enabled cancel-ready action', async () => {
@@ -37,15 +39,15 @@ describe('game header', () => {
 				onExit={() => undefined}
 				onLaunch={onLaunch}
 				launchReady
-				launchReadyLabel="Ready"
-				launchCancelLabel="Cancel ready"
+				launchReadyLabel={en['coop.ready']}
+				launchCancelLabel={en['coop.cancelReady']}
 			/>,
 		);
 
-		const cancel = screen.getByRole('button', { name: 'Cancel ready' });
+		const cancel = screen.getByRole('button', { name: en['coop.cancelReady'] });
 		expect(cancel.getAttribute('disabled')).toBeNull();
 		expect(cancel.getAttribute('data-ready')).toBe('true');
-		expect(cancel.textContent).toContain('Cancel ready');
+		expect(cancel.textContent).toContain(en['coop.cancelReady']);
 		await user.click(cancel);
 		expect(onLaunch).toHaveBeenCalledOnce();
 	});

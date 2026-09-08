@@ -54,6 +54,25 @@ expect(condensed.damage).toBeGreaterThan(base.damage);
 
 The relation is the module's contract. The resulting damage is tuning.
 
+## Derive UI expectations from locale resources
+
+Localized copy is authored content too. Import the locale JSON used by the screen when matching accessible names, labels, placeholders, or displayed text in component and browser tests. Use the exact key the component renders, even when several keys currently have the same wording. For interpolated English strings, `tests/helpers/translate.ts` uses the application's i18next dependency and locale resource. For partial regular-expression matches, `tests/helpers/text.ts` escapes the resource text so punctuation remains literal.
+
+Playwright defaults to English explicitly; language-switching assertions should read the target locale. Do not repeat translations as English literals, Unicode escapes, or hardcoded pinyin search queries. Search-algorithm tests can own small text fixtures; integration tests should derive their search input from resources or supply a test-owned translation fixture.
+
+Keep test-owned inputs (such as player names), protocol values, and formatting assertions independent of translation resources. Tests should detect broken behavior while allowing valid copy edits.
+
+`pnpm lint` enforces `test-locale/no-hardcoded-copy` in `tests/`, `e2e/`, and `e2e-coop/`. The rule loads every locale JSON and checks text locators, role `name` options, Playwright text/accessibility assertions, and ordinary assertions whose input reads DOM text or a textual attribute. It recognizes literals, regular expressions (including Unicode escapes), template strings, arrays, and local `const` aliases. Exact translated strings and interpolated results are rejected; regex/template fragments also match sufficiently long portions of resource text.
+
+This is a heuristic, not a proof: removed or unknown translations and values hidden behind arbitrary helper calls may escape detection. Program IDs, test titles, CSS selectors, and ordinary data assertions are outside the check. If a test deliberately owns an input that coincides with production copy, use a narrow exception and explain why:
+
+```ts
+// eslint-disable-next-line test-locale/no-hardcoded-copy -- This label is a test-owned component prop.
+expect(button.textContent).toBe('Test fixture label');
+```
+
+The rule offers no automatic replacement because several locale keys can share wording; choose the key the target component actually renders.
+
 ## When an exact value is a contract
 
 An exact numeric assertion is appropriate when at least one of these is true:

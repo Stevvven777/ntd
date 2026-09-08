@@ -55,17 +55,20 @@ describe('module localization values', () => {
 	});
 
 	it('formats computed values before interpolating module details', () => {
-		const definition = registry.require('starfire-matrix');
+		const base = registry.require('starfire-matrix');
+		const values = { direct: 22, damage: 2.8 / 0.4, ticks: 8, duration: 0.1 + 0.2 };
+		const definition = { ...base, meta: { ...base.meta, text: { detail: values } } };
 
-		expect(moduleDetail(i18n.t, definition)).toContain('7×8 starfire damage');
-		expect(moduleDetail(i18n.t, definition)).not.toContain('6.999999999999999');
+		expect(moduleDetail(i18n.t, definition)).toBe(
+			i18n.t('modules.starfire-matrix.detail', { ...values, damage: 7, duration: 0.3 }),
+		);
 	});
 
-	it('describes Resonant Trail cadence in seconds instead of engine ticks', () => {
-		const detail = moduleDetail(i18n.t, registry.require('resonant-trail'));
-
-		expect(detail).toContain('Pulses every 0.26 seconds');
-		expect(detail).not.toContain('trail ticks');
+	it('interpolates configured Resonant Trail cadence', () => {
+		const definition = registry.require('resonant-trail');
+		expect(moduleDetail(i18n.t, definition)).toBe(
+			i18n.t('modules.resonant-trail.detail', definition.meta.text?.detail),
+		);
 	});
 
 	it('falls back to English when a translated value is null', async () => {

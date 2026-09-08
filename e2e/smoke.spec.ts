@@ -1,3 +1,8 @@
+import { translate } from '../tests/helpers/translate';
+
+import en from '../packages/web-shared/src/i18n/locales/en.json' with { type: 'json' };
+import zhCN from '../packages/web-shared/src/i18n/locales/zh-CN.json' with { type: 'json' };
+import { textPattern } from '../tests/helpers/text';
 import { expect, test, type Page } from '@playwright/test';
 import {
 	DEFAULT_LEVEL_ID,
@@ -45,7 +50,7 @@ async function prepareReturningPlayer(page: Page): Promise<void> {
 }
 
 async function clickBattlefieldAt(page: Page, point: Point): Promise<void> {
-	const canvas = page.getByRole('img', { name: 'Tower-defense battlefield' });
+	const canvas = page.getByRole('img', { name: en['canvas.aria'] });
 	const bounds = await canvas.boundingBox();
 	if (!bounds) {
 		throw new Error('Expected the battlefield canvas to have bounds');
@@ -60,28 +65,31 @@ test('first visit offers the tutorial and remembers a final choice', async ({ pa
 	await page.goto('/');
 	const offer = page.locator('.tutorial-offer');
 	await expect(offer).toBeVisible();
-	await expect(offer).toHaveAccessibleName('Would you like a guided start?');
-	await offer.getByRole('button', { name: 'Settings' }).click();
-	await page.getByRole('button', { name: '\u4e2d\u6587' }).click();
-	await expect(
-		offer.getByRole('heading', { name: '\u9700\u8981\u5148\u5b8c\u6210\u64cd\u4f5c\u6559\u7a0b\u5417\uff1f' }),
-	).toBeVisible();
-	await page.getByRole('button', { name: 'English' }).click();
-	await page.getByRole('button', { name: 'Close settings' }).click();
+	await expect(offer).toHaveAccessibleName(en['tutorialOffer.title']);
+	await offer.getByRole('button', { name: en['settings.title'] }).click();
+	await page.getByRole('button', { name: zhCN['lang.name'] }).click();
+	await expect(offer.getByRole('heading', { name: zhCN['tutorialOffer.title'] })).toBeVisible();
+	await page.getByRole('button', { name: en['lang.name'] }).click();
+	await page.getByRole('button', { name: en['settings.close'] }).click();
 
-	await offer.getByRole('button', { name: /Start Launch Elbow/ }).click();
-	await expect(page.getByRole('heading', { name: 'Launch Elbow T-0', level: 1 })).toBeVisible();
-	const tutorial = page.getByRole('region', { name: 'Launch Elbow tutorial' });
-	await expect(tutorial.getByRole('heading', { name: 'Welcome to Launch Elbow' })).toBeVisible();
-	await tutorial.getByRole('button', { name: 'Skip tutorial' }).click();
-	await page.getByRole('button', { name: 'Return to level selection' }).click();
+	await offer.getByRole('button', { name: textPattern(en['tutorialOffer.accept']) }).click();
+	await expect(
+		page.getByRole('heading', {
+			name: `${en['levels.starter-elbow.name']} ${tutorialLevel.sector.replace('SECTOR ', '')}`,
+			level: 1,
+		}),
+	).toBeVisible();
+	const tutorial = page.getByRole('region', { name: en['tutorial.aria'] });
+	await expect(tutorial.getByRole('heading', { name: en['tutorial.steps.welcome.title'] })).toBeVisible();
+	await tutorial.getByRole('button', { name: en['tutorial.skip'] }).click();
+	await page.getByRole('button', { name: en['header.exit'] }).click();
 	await page.reload();
 	await expect(offer).toHaveCount(0);
 
 	await page.evaluate((key) => localStorage.removeItem(key), TUTORIAL_OFFER_STORAGE_KEY);
 	await page.reload();
 	await expect(offer).toBeVisible();
-	await offer.getByRole('button', { name: 'No, thanks' }).click();
+	await offer.getByRole('button', { name: en['tutorialOffer.decline'] }).click();
 	await page.reload();
 	await expect(offer).toHaveCount(0);
 });
@@ -92,13 +100,15 @@ test('setup and battlefield work in a real browser', async ({ page }) => {
 	await prepareReturningPlayer(page);
 	await page.goto('/');
 
-	const standardDifficulty = page.getByRole('radio', { name: /Standard/ });
+	const standardDifficulty = page.getByRole('radio', { name: textPattern(en['difficulties.normal.name']) });
 	await standardDifficulty.focus();
 	await page.keyboard.press('ArrowDown');
-	await expect(page.getByRole('radio', { name: /^Hard/ })).toHaveAttribute('aria-checked', 'true');
+	await expect(
+		page.getByRole('radio', { name: textPattern(en['difficulties.hard.name'], { start: true }) }),
+	).toHaveAttribute('aria-checked', 'true');
 
-	await page.getByRole('button', { name: /Start deployment/ }).click();
-	const canvas = page.getByRole('img', { name: 'Tower-defense battlefield' });
+	await page.getByRole('button', { name: textPattern(en['levelSelect.startAction']) }).click();
+	const canvas = page.getByRole('img', { name: en['canvas.aria'] });
 	await expect(canvas).toBeVisible();
 	const battlefield = page.locator('section').filter({ has: canvas });
 	await expect(battlefield).toHaveCSS('border-top-width', '0px');
@@ -108,18 +118,26 @@ test('setup and battlefield work in a real browser', async ({ page }) => {
 	expect(size?.height ?? 0).toBeGreaterThan(300);
 	await expect(page.getByRole('alert')).toHaveCount(0);
 
-	const draft = page.getByRole('region', { name: 'Choose initial modules' });
-	const skip = draft.getByRole('button', { name: /Skip all/ });
-	await expect(skip).toHaveText(`Skip all · ${defaultLevel.moduleDraft.skipLimit} left`);
+	const draft = page.getByRole('region', { name: en['reward.initialAria'] });
+	const skip = draft.getByRole('button', {
+		name: translate('reward.skip', { count: defaultLevel.moduleDraft.skipLimit }),
+	});
+	await expect(skip).toHaveText(translate('reward.skip', { count: defaultLevel.moduleDraft.skipLimit }));
 	await skip.click();
-	await expect(draft.getByText('QUALITY BASELINE RAISED')).toBeVisible();
-	await expect(skip).toBeDisabled();
+	await expect(draft.getByText(en['reward.boosted'])).toBeVisible();
+	await expect(
+		draft.getByRole('button', {
+			name: translate('reward.skip', { count: defaultLevel.moduleDraft.skipLimit - 1 }),
+		}),
+	).toBeDisabled();
 	for (let round = 1; round < defaultLevel.moduleDraft.initialPicks; round += 1) {
 		await draft.locator('.reward-choose').first().click();
 	}
 	await expect(draft).toHaveCount(0);
 	await clickBattlefieldAt(page, towerPad(defaultLevel, 1));
-	await expect(page.getByLabel('Tower module workshop').locator('.tower-id')).toHaveText('Node 02');
+	await expect(page.getByLabel(en['workshop.aria']).locator('.tower-id')).toHaveText(
+		translate('tower.nodeNumber', { id: '02' }),
+	);
 	expect(pageErrors).toEqual([]);
 });
 
@@ -129,19 +147,19 @@ test('thought index plays real scenes and returns to deployment', async ({ page 
 	await prepareReturningPlayer(page);
 	await page.goto('/');
 
-	const entry = page.getByRole('button', { name: 'Open the thought index' });
+	const entry = page.getByRole('button', { name: en['thoughtIndex.entryAria'] });
 	await entry.click();
-	const index = page.getByRole('main', { name: 'Thought Index' });
+	const index = page.getByRole('main', { name: en['thoughtIndex.title'] });
 	await expect(index).toBeVisible();
-	await expect(index.getByRole('img', { name: 'Live combat demonstration' })).toBeVisible();
+	await expect(index.getByRole('img', { name: en['thoughtIndex.canvasAria'] })).toBeVisible();
 	await expect(index.locator('.thought-module-badge')).toBeVisible();
-	await expect(index.getByRole('button', { name: 'Previous' })).toHaveCSS('opacity', '1');
-	await index.getByRole('button', { name: 'Play' }).click();
-	await expect(index.getByRole('button', { name: 'Pause' })).toBeVisible();
+	await expect(index.getByRole('button', { name: en['thoughtIndex.previous'] })).toHaveCSS('opacity', '1');
+	await index.getByRole('button', { name: en['thoughtIndex.play'] }).click();
+	await expect(index.getByRole('button', { name: en['thoughtIndex.pause'] })).toBeVisible();
 	await index.locator('button[data-thought-id="frost"]').click();
 	await expect(index.locator('.thought-stage')).toHaveAttribute('data-thought-id', 'frost');
 	await index.locator('.thought-progress > button').nth(7).click();
-	await index.getByRole('button', { name: 'Play' }).click();
+	await index.getByRole('button', { name: en['thoughtIndex.play'] }).click();
 	await index.locator('[data-thought-scene-overlay][data-cue="replace-area-carrier"]').waitFor();
 	await expect(index.locator('[data-thought-loadout-module][data-transition="incoming"]')).toHaveCSS(
 		'display',
@@ -212,7 +230,7 @@ test('thought index plays real scenes and returns to deployment', async ({ page 
 	expect(activeHighlightStyle.boxShadow).not.toBe('none');
 	await index.locator('.thought-transcript summary').click();
 	await expect(index.locator('.thought-transcript li').first()).toBeVisible();
-	await index.getByRole('button', { name: 'Return to deployment' }).click();
+	await index.getByRole('button', { name: en['thoughtIndex.backMenu'] }).click();
 	await expect(entry).toBeFocused();
 	expect(pageErrors).toEqual([]);
 });
@@ -221,28 +239,30 @@ test('mobile setup keeps primary controls reachable', async ({ page }) => {
 	await prepareReturningPlayer(page);
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto('/');
-	const modeGroup = page.getByRole('group', { name: 'Game mode' });
-	await expect(modeGroup.getByRole('button', { name: /Standard/ })).toBeVisible();
-	await expect(modeGroup.getByRole('button', { name: /Creative/ })).toBeVisible();
-	await expect(page.getByRole('button', { name: /Start deployment/ })).toBeVisible();
-	await modeGroup.getByRole('button', { name: /Creative/ }).click();
-	await expect(page.getByRole('button', { name: /Creative .* Start deployment/ })).toBeVisible();
-	await page.getByRole('button', { name: 'Settings' }).click();
-	await page.getByRole('button', { name: '\u4e2d\u6587' }).click();
+	const modeGroup = page.getByRole('group', { name: en['levelSelect.modeLabel'] });
+	await expect(modeGroup.getByRole('button', { name: textPattern(en['levelSelect.standardTitle']) })).toBeVisible();
+	await expect(modeGroup.getByRole('button', { name: textPattern(en['levelSelect.creativeTitle']) })).toBeVisible();
+	await expect(page.getByRole('button', { name: textPattern(en['levelSelect.startAction']) })).toBeVisible();
+	await modeGroup.getByRole('button', { name: textPattern(en['levelSelect.creativeTitle']) }).click();
+	await expect(page.getByRole('button', { name: textPattern(en['levelSelect.startAction']) })).toContainText(
+		en['levelSelect.creativeTitle'],
+	);
+	await page.getByRole('button', { name: en['settings.title'] }).click();
+	await page.getByRole('button', { name: zhCN['lang.name'] }).click();
 	await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
-	await expect(page.getByRole('button', { name: /\u5f00\u59cb\u90e8\u7f72/ })).toBeVisible();
+	await expect(page.getByRole('button', { name: textPattern(zhCN['levelSelect.startAction']) })).toBeVisible();
 });
 
 test('compact landscape hides home metadata and contains the signal compendium', async ({ page }) => {
 	await prepareReturningPlayer(page);
 	await page.setViewportSize({ width: 1133, height: 744 });
 	await page.goto('/');
-	await page.getByRole('button', { name: /Creative/ }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.creativeTitle']) }).click();
 
 	await expect(page.locator('.home-meta')).toBeHidden();
 	expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
-	await page.getByRole('button', { name: 'Open signal compendium' }).click();
-	await expect(page.getByRole('heading', { name: 'Signal Compendium' })).toBeVisible();
+	await page.getByRole('button', { name: en['signalArchive.entryAria'] }).click();
+	await expect(page.getByRole('heading', { name: en['signalArchive.title'] })).toBeVisible();
 	expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
 	const indexHeading = page.locator('.signal-archive-index-head');
 	const indexList = page.locator('.signal-archive-index-list');
@@ -278,11 +298,11 @@ test('compact landscape gives workshop module cards readable widths', async ({ p
 	await prepareReturningPlayer(page);
 	await page.setViewportSize({ width: 1133, height: 744 });
 	await page.goto('/');
-	await page.getByRole('button', { name: /Creative/ }).click();
-	await page.getByRole('button', { name: /Start deployment/ }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.creativeTitle']) }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.startAction']) }).click();
 	await clickBattlefieldAt(page, towerPad(defaultLevel, 0));
 
-	const grid = page.getByLabel('Tower module workshop').locator('.module-grid.all-modules');
+	const grid = page.getByLabel(en['workshop.aria']).locator('.module-grid.all-modules');
 	const columnCount = await grid.evaluate(
 		(element) => getComputedStyle(element).gridTemplateColumns.split(' ').length,
 	);
@@ -294,20 +314,20 @@ test('compact portrait keeps the creative orchestration controls inside the work
 	await prepareReturningPlayer(page);
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto('/');
-	await page.getByRole('button', { name: /Creative/ }).click();
-	await page.getByRole('button', { name: /Start deployment/ }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.creativeTitle']) }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.startAction']) }).click();
 	await clickBattlefieldAt(page, towerPad(defaultLevel, 0));
 
-	const workshop = page.getByLabel('Tower module workshop');
+	const workshop = page.getByLabel(en['workshop.aria']);
 	const actions = workshop.locator('.orchestration-actions');
-	const importButton = actions.getByRole('button', { name: 'Import' });
+	const importButton = actions.getByRole('button', { name: en['workshop.import'] });
 	await expect(importButton).toBeVisible();
-	await expect(actions.getByRole('button', { name: 'Export' })).toBeVisible();
+	await expect(actions.getByRole('button', { name: en['workshop.export'] })).toBeVisible();
 	await expect(importButton).toHaveCSS('border-top-width', '2px');
 	await expect(importButton).toHaveCSS('background-color', 'rgb(255, 255, 255)');
 	await importButton.hover();
 	await expect(importButton).toHaveCSS('background-color', 'rgb(255, 212, 71)');
-	const clearButton = actions.getByRole('button', { name: 'Clear' });
+	const clearButton = actions.getByRole('button', { name: en['workshop.clear'] });
 	await clearButton.hover();
 	await expect(clearButton).toHaveCSS('background-color', 'rgb(255, 99, 122)');
 	const actionBounds = await actions.boundingBox();
@@ -318,19 +338,24 @@ test('compact portrait keeps the creative orchestration controls inside the work
 test('the multi-entrance sector renders its route tree and all battlefield entrances', async ({ page }) => {
 	await prepareReturningPlayer(page);
 	await page.goto('/');
-	await page.getByRole('button', { name: 'Show next levels' }).click();
-	await page.getByRole('button', { name: 'Show next levels' }).click();
-	const triune = page.getByRole('radio', { name: /Triune Delta/ });
+	await page.getByRole('button', { name: en['levelSelect.nextLevels'] }).click();
+	await page.getByRole('button', { name: en['levelSelect.nextLevels'] }).click();
+	const triune = page.getByRole('radio', { name: textPattern(en['levels.triune-delta.name']) });
 	await expect(triune).toBeVisible();
-	await expect(triune.getByText(`${triuneLevel.waves.length} waves`)).toBeVisible();
+	await expect(triune.getByText(translate('levelSelect.waves', { count: triuneLevel.waves.length }))).toBeVisible();
 	await expect(triune.locator('[data-route-edge]')).toHaveCount(triuneLevel.graph.edges.length);
 	const junctionCount = [...triuneLevel.graph.nodes.values()].filter((node) => node.children.length > 1).length;
 	await expect(triune.locator('[data-route-junction]')).toHaveCount(junctionCount);
 	await triune.click();
-	await page.getByRole('button', { name: /Creative/ }).click();
-	await page.getByRole('button', { name: /Start deployment/ }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.creativeTitle']) }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.startAction']) }).click();
 
-	await expect(page.getByRole('heading', { name: 'Triune Delta D-6', level: 1 })).toBeVisible();
+	await expect(
+		page.getByRole('heading', {
+			name: `${en['levels.triune-delta.name']} ${triuneLevel.sector.replace('SECTOR ', '')}`,
+			level: 1,
+		}),
+	).toBeVisible();
 	await expect(page.locator('[data-battlefield-spawn]')).toHaveCount(triuneLevel.graph.entrances.length);
 	for (const [type, count] of configuredSignalCounts(triuneLevel, 0)) {
 		const preview = page.locator(`[data-signal-preview] button:has([data-signal-type="${type}"])`);
@@ -342,25 +367,25 @@ test('the multi-entrance sector renders its route tree and all battlefield entra
 test('signal compendium exposes every signal profile from its own entry', async ({ page }) => {
 	await prepareReturningPlayer(page);
 	await page.goto('/');
-	await page.getByRole('button', { name: 'Open signal compendium' }).click();
-	await expect(page.getByRole('heading', { name: 'Signal Compendium' })).toBeVisible();
+	await page.getByRole('button', { name: en['signalArchive.entryAria'] }).click();
+	await expect(page.getByRole('heading', { name: en['signalArchive.title'] })).toBeVisible();
 	expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
-	const index = page.getByRole('navigation', { name: 'Signal index' });
+	const index = page.getByRole('navigation', { name: en['signalArchive.indexAria'] });
 	const consoleFrame = page.locator('.signal-archive-console');
 	const initialFrameHeight = await consoleFrame.evaluate((element) => element.getBoundingClientRect().height);
 	await expect(index.getByRole('button')).toHaveCount(signalTypes.length);
 	await expect(page.locator('.signal-archive-seal b')).toHaveText(archiveNumber('spark'));
-	await index.getByRole('button', { name: /Surge/ }).click();
-	await expect(page.getByRole('heading', { name: 'Surge' })).toBeVisible();
+	await index.getByRole('button', { name: textPattern(en['signals.surge']) }).click();
+	await expect(page.getByRole('heading', { name: en['signals.surge'] })).toBeVisible();
 	await expect(page.locator('.signal-archive-seal b')).toHaveText(archiveNumber('surge'));
-	await expect(page.getByText('Waveform surge')).toBeVisible();
+	await expect(page.getByText(en['signalArchive.abilities.waveAdvance'])).toBeVisible();
 	await expect(page.locator('[data-stat="speed"] strong')).toHaveText(
-		`${formatValue(signalRegistry.require('surge').stats.speed)} u/s`,
+		translate('signalArchive.units.speed', { value: formatValue(signalRegistry.require('surge').stats.speed) }),
 	);
-	await index.getByRole('button', { name: /Prism Crown/ }).click();
-	await expect(page.getByRole('heading', { name: 'Prism Crown' })).toBeVisible();
+	await index.getByRole('button', { name: textPattern(en['signals.crown']) }).click();
+	await expect(page.getByRole('heading', { name: en['signals.crown'] })).toBeVisible();
 	await expect(page.locator('.signal-archive-seal b')).toHaveText(archiveNumber('crown'));
-	await expect(page.getByText('Regenerating shield lattice')).toBeVisible();
+	await expect(page.getByText(en['signalArchive.abilities.shield'])).toBeVisible();
 	await expect(page.locator('.signal-archive-specimen')).toHaveAttribute('data-has-shield', 'true');
 	expect(
 		await page
@@ -373,11 +398,11 @@ test('signal compendium exposes every signal profile from its own entry', async 
 	).toBe(true);
 	await page.waitForTimeout(1_400);
 	await expect(page.locator('.signal-archive-specimen')).toHaveAttribute('data-projectile-visible', 'true');
-	await index.getByRole('button', { name: /Fracture Star/ }).click();
-	await expect(page.getByRole('heading', { name: 'Fracture Star' })).toBeVisible();
+	await index.getByRole('button', { name: textPattern(en['signals.fracture']) }).click();
+	await expect(page.getByRole('heading', { name: en['signals.fracture'] })).toBeVisible();
 	await expect(page.locator('.signal-archive-specimen')).toHaveAttribute('data-specimen-count', '1');
-	await page.getByRole('button', { name: 'Show fragments' }).click();
-	await expect(page.getByRole('heading', { name: 'Fracture Fragments' })).toBeVisible();
+	await page.getByRole('button', { name: en['signalArchive.fragments.show'] }).click();
+	await expect(page.getByRole('heading', { name: en['signalArchive.fragments.name'] })).toBeVisible();
 	const fracture = signalRegistry.require('fracture');
 	const split = getSignalCapability(fracture, 'split-on-death');
 	if (!split) {
@@ -388,33 +413,35 @@ test('signal compendium exposes every signal profile from its own entry', async 
 		formatValue(Math.max(1, Math.round(fracture.stats.health * split.healthScale))),
 	);
 	await expect(page.locator('[data-stat="speed"] strong')).toHaveText(
-		`${formatValue(fracture.stats.speed * split.speedScale)} u/s`,
+		translate('signalArchive.units.speed', { value: formatValue(fracture.stats.speed * split.speedScale) }),
 	);
 	await expect(page.locator('[data-stat="reward"] strong')).toHaveText(
-		`${formatValue(Math.max(1, Math.round(fracture.stats.reward * split.rewardScale)))} ◇`,
+		translate('signalArchive.units.reward', {
+			value: formatValue(Math.max(1, Math.round(fracture.stats.reward * split.rewardScale))),
+		}),
 	);
 	await expect(page.locator('[data-stat="coreDamage"] strong')).toHaveText(
 		formatValue(Math.max(1, Math.round(fracture.stats.coreDamage * split.coreDamageScale))),
 	);
-	await page.getByRole('button', { name: 'Restore core' }).click();
-	await expect(page.getByRole('heading', { name: 'Fracture Star' })).toBeVisible();
+	await page.getByRole('button', { name: en['signalArchive.fragments.restore'] }).click();
+	await expect(page.getByRole('heading', { name: en['signals.fracture'] })).toBeVisible();
 	await expect(page.locator('.signal-archive-specimen')).toHaveAttribute('data-specimen-count', '1');
-	await index.getByRole('button', { name: /Prism Anvil/ }).click();
-	await expect(page.getByRole('heading', { name: 'Prism Anvil' })).toBeVisible();
+	await index.getByRole('button', { name: textPattern(en['signals.anvil']) }).click();
+	await expect(page.getByRole('heading', { name: en['signals.anvil'] })).toBeVisible();
 	await expect(page.locator('.signal-archive-seal b')).toHaveText(archiveNumber('anvil'));
-	await expect(page.getByText('Layered armor')).toBeVisible();
+	await expect(page.getByText(en['signalArchive.abilities.layeredArmor'])).toBeVisible();
 	await expect(page.locator('[data-stat="health"] strong')).toHaveText(
 		formatValue(signalRegistry.require('anvil').stats.health),
 	);
 	await expect(page.locator('[data-stat="speed"] strong')).toHaveText(
-		`${formatValue(signalRegistry.require('anvil').stats.speed)} u/s`,
+		translate('signalArchive.units.speed', { value: formatValue(signalRegistry.require('anvil').stats.speed) }),
 	);
-	await index.getByRole('button', { name: /Radiant Lag Ring/ }).click();
-	await expect(page.getByRole('heading', { name: 'Radiant Lag Ring' })).toBeVisible();
+	await index.getByRole('button', { name: textPattern(en['signals.radiant']) }).click();
+	await expect(page.getByRole('heading', { name: en['signals.radiant'] })).toBeVisible();
 	await expect(page.locator('.signal-archive-seal b')).toHaveText(archiveNumber('radiant'));
 	await expect(page.locator('.signal-archive-specimen')).toHaveAttribute('data-suppressed-tower', 'false');
-	await page.getByRole('button', { name: 'Suppress tower' }).click();
-	await expect(page.getByRole('heading', { name: 'Suppressed Tower' })).toBeVisible();
+	await page.getByRole('button', { name: en['signalArchive.suppressedTower.show'] }).click();
+	await expect(page.getByRole('heading', { name: en['signalArchive.suppressedTower.name'] })).toBeVisible();
 	await expect(page.locator('.signal-archive-specimen')).toHaveAttribute('data-suppressed-tower', 'true');
 	const aura = getSignalCapability(signalRegistry.require('radiant'), 'tower-suppression-aura');
 	if (!aura) {
@@ -427,16 +454,18 @@ test('signal compendium exposes every signal profile from its own entry', async 
 		`${Math.round(aura.energyRegenMultiplier * 100)}%`,
 	);
 	await expect(page.locator('[data-stat="health"]')).toHaveCount(0);
-	await page.getByRole('button', { name: 'Return to signal' }).click();
-	await expect(page.getByRole('heading', { name: 'Radiant Lag Ring' })).toBeVisible();
+	await page.getByRole('button', { name: en['signalArchive.suppressedTower.restore'] }).click();
+	await expect(page.getByRole('heading', { name: en['signals.radiant'] })).toBeVisible();
 	const longNameFrameHeight = await consoleFrame.evaluate((element) => element.getBoundingClientRect().height);
 	expect(longNameFrameHeight).toBeCloseTo(initialFrameHeight, 0);
-	await page.getByRole('button', { name: 'Settings' }).click();
-	await page.getByRole('button', { name: '\u4e2d\u6587' }).click();
-	await expect(page.getByRole('heading', { name: /\u4fe1\u53f7\u56fe\u9274/ })).toBeVisible();
-	await page.getByRole('button', { name: '\u5173\u95ed\u8bbe\u7f6e' }).click();
-	await page.getByRole('button', { name: /\u8fd4\u56de\u9632\u533a\u9009\u62e9/ }).click();
-	await expect(page.getByRole('region', { name: /\u9009\u62e9\u9632\u5fa1\u533a/ })).toBeVisible();
+	await page.getByRole('button', { name: en['settings.title'] }).click();
+	await page.getByRole('button', { name: zhCN['lang.name'] }).click();
+	await expect(page.getByRole('heading', { name: textPattern(zhCN['signalArchive.entry']) })).toBeVisible();
+	await page.getByRole('button', { name: zhCN['settings.close'] }).click();
+	await page.getByRole('button', { name: textPattern(zhCN['signalArchive.back']) }).click();
+	await expect(
+		page.getByRole('region', { name: textPattern(zhCN['levelSelect.sectorSelectionHeading']) }),
+	).toBeVisible();
 });
 
 test('defense archive reads, filters, details, and clears IndexedDB records', async ({ page }) => {
@@ -497,13 +526,13 @@ test('defense archive reads, filters, details, and clears IndexedDB records', as
 		database.close();
 	});
 
-	await page.getByRole('button', { name: 'Open defense archive' }).click();
-	await expect(page.getByRole('heading', { name: 'Defense Archive' })).toBeVisible();
+	await page.getByRole('button', { name: en['defenseArchive.entryAria'] }).click();
+	await expect(page.getByRole('heading', { name: en['defenseArchive.title'] })).toBeVisible();
 	expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
-	await expect(page.getByText('Defense sectors')).toBeVisible();
+	await expect(page.getByText(en['defenseArchive.tab.sectors'])).toBeVisible();
 	await expect(page.locator('[data-defense-metric="defenses"] strong')).toHaveText('1');
-	await page.getByRole('tab', { name: 'Defense sectors' }).click();
-	await expect(page.getByRole('heading', { name: 'White Prism' })).toBeVisible();
+	await page.getByRole('tab', { name: en['defenseArchive.tab.sectors'] }).click();
+	await expect(page.getByRole('heading', { name: en['levels.white-prism.name'] })).toBeVisible();
 	expect(
 		await page
 			.locator('.sector-archive-record')
@@ -513,79 +542,86 @@ test('defense archive reads, filters, details, and clears IndexedDB records', as
 			),
 	).toBe(true);
 	expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
-	await expect(page.getByText('Wave performance')).toBeVisible();
-	await expect(page.getByText('Signal outcomes recorded only in this sector')).toBeVisible();
-	await page.getByRole('tab', { name: 'Achievements' }).click();
-	await page.getByRole('tab', { name: /Defense records/ }).click();
-	await page.getByLabel('Difficulty').selectOption('hard');
-	await page.getByRole('button', { name: /White Prism/ }).click();
+	await expect(page.getByText(en['defenseArchive.sectors.waveAnalysis'])).toBeVisible();
+	await expect(page.getByText(en['defenseArchive.sectors.signalStatsDetail'])).toBeVisible();
+	await page.getByRole('tab', { name: en['defenseArchive.tab.achievements'] }).click();
+	await page.getByRole('tab', { name: textPattern(en['defenseArchive.tab.history']) }).click();
+	await page.getByLabel(en['defenseArchive.filter.difficulty']).selectOption('hard');
+	await page.getByRole('button', { name: textPattern(en['levels.white-prism.name']) }).click();
 	await expect(page.getByText('e2e1234 · 2026-08-31')).toBeVisible();
-	await expect(page.getByText('Final module inventory')).toBeVisible();
+	await expect(page.getByText(en['defenseArchive.detail.inventory'])).toBeVisible();
 	expect(await page.locator('[data-defense-detail]').evaluate((element) => getComputedStyle(element).overflowY)).toBe(
 		'auto',
 	);
 	expect(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1)).toBe(true);
-	await page.getByRole('button', { name: 'Settings' }).click();
-	const settings = page.getByRole('dialog', { name: 'Settings' });
-	await settings.getByRole('tab', { name: 'Storage' }).click();
-	await settings.getByRole('button', { name: 'Clear archive' }).click();
-	await expect(page.getByRole('dialog', { name: 'Clear the defense archive?' })).toHaveCount(0);
-	await settings.getByRole('button', { name: 'Click again to clear everything' }).click();
-	await expect(settings.getByRole('button', { name: 'Defense archive cleared' })).toBeVisible();
-	await settings.getByRole('button', { name: 'Close settings' }).click();
-	await expect(page.getByRole('tab', { name: /Defense records/ })).toContainText('0');
+	await page.getByRole('button', { name: en['settings.title'] }).click();
+	const settings = page.getByRole('dialog', { name: en['settings.title'] });
+	await settings.getByRole('tab', { name: en['settings.categories.storage'] }).click();
+	await settings.getByRole('button', { name: en['defenseArchive.clear'] }).click();
+	await expect(page.getByRole('dialog')).toHaveCount(1);
+	await settings.getByRole('button', { name: en['settings.clearDefenseArchiveAgain'] }).click();
+	await expect(settings.getByRole('button', { name: en['settings.defenseArchiveCleared'] })).toBeVisible();
+	await settings.getByRole('button', { name: en['settings.close'] }).click();
+	await expect(page.getByRole('tab', { name: textPattern(en['defenseArchive.tab.history']) })).toContainText('0');
 });
 
 test('creative economy and signal controls are independent from the workshop', async ({ page }) => {
 	await prepareReturningPlayer(page);
 	await page.goto('/');
-	await page.getByRole('button', { name: /Creative/ }).click();
-	await expect(page.getByRole('spinbutton', { name: 'Core stability' })).toBeVisible();
-	await expect(page.getByRole('button', { name: /Creative .* Start deployment/ })).toBeVisible();
-	await page.getByRole('spinbutton', { name: 'Core stability' }).fill('35');
-	await page.getByRole('spinbutton', { name: 'Wave count' }).fill('5');
-	await page.getByRole('button', { name: /Start deployment/ }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.creativeTitle']) }).click();
+	await expect(page.getByRole('spinbutton', { name: en['levelSelect.coreStability'] })).toBeVisible();
+	await expect(page.getByRole('button', { name: textPattern(en['levelSelect.startAction']) })).toContainText(
+		en['levelSelect.creativeTitle'],
+	);
+	await page.getByRole('spinbutton', { name: en['levelSelect.coreStability'] }).fill('35');
+	await page.getByRole('spinbutton', { name: en['levelSelect.waveCount'] }).fill('5');
+	await page.getByRole('button', { name: textPattern(en['levelSelect.startAction']) }).click();
 
 	await expect(page.getByText('∞', { exact: true })).toBeVisible();
 	await expect(page.locator('.core-metric strong')).toHaveText('35/35');
 	await expect(page.locator('.wave-metric strong')).toHaveText('0/5');
-	const signalButton = page.getByRole('button', { name: 'Signal console' });
+	const signalButton = page.getByRole('button', { name: en['battlefield.signalConsole'] });
 	await expect(signalButton).toBeVisible();
 	await signalButton.click();
-	const signalConsole = page.getByRole('dialog', { name: 'Creative Signal Console' });
+	const signalConsole = page.getByRole('dialog', { name: en['creativeLab.title'] });
 	await expect(signalConsole).toBeVisible();
 	await page.locator('[data-battlefield-state]').click();
 	await expect(signalConsole).toHaveCount(0);
 
 	await signalButton.click();
-	await page.getByRole('button', { name: 'Close signal console' }).click();
+	await page.getByRole('button', { name: en['creativeLab.close'] }).click();
 	await expect(signalConsole).toHaveCount(0);
 
 	await clickBattlefieldAt(page, towerPad(defaultLevel, 0));
-	await expect(page.getByLabel('Tower module workshop').locator('.creative-lab')).toHaveCount(0);
+	await expect(page.getByLabel(en['workshop.aria']).locator('.creative-lab')).toHaveCount(0);
 });
 
 test('level carousel keeps three cards visible and launches the beginner map', async ({ page }) => {
 	test.slow();
 	await prepareReturningPlayer(page);
 	await page.goto('/');
-	const levelGroup = page.getByRole('radiogroup', { name: 'Choose defense sector' });
+	const levelGroup = page.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] });
 	await expect(levelGroup.getByRole('radio')).toHaveCount(3);
-	await expect(page.getByRole('radio', { name: /Launch Elbow/ })).toBeVisible();
+	await expect(page.getByRole('radio', { name: textPattern(en['levels.starter-elbow.name']) })).toBeVisible();
 
-	await page.getByRole('button', { name: 'Show next levels' }).click();
+	await page.getByRole('button', { name: en['levelSelect.nextLevels'] }).click();
 	await expect(levelGroup.getByRole('radio')).toHaveCount(3);
-	await expect(page.getByRole('radio', { name: /Verdant Fold/ })).toBeVisible();
-	await page.getByRole('button', { name: 'Show previous levels' }).click();
+	await expect(page.getByRole('radio', { name: textPattern(en['levels.verdant-fold.name']) })).toBeVisible();
+	await page.getByRole('button', { name: en['levelSelect.previousLevels'] }).click();
 
-	await page.getByRole('radio', { name: /Launch Elbow/ }).click();
-	await page.getByRole('button', { name: /Start deployment/ }).click();
-	await expect(page.getByRole('heading', { name: 'Launch Elbow T-0', level: 1 })).toBeVisible();
-	const tutorial = page.getByRole('region', { name: 'Launch Elbow tutorial' });
-	await expect(tutorial.getByRole('heading', { name: 'Welcome to Launch Elbow' })).toBeVisible();
+	await page.getByRole('radio', { name: textPattern(en['levels.starter-elbow.name']) }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.startAction']) }).click();
+	await expect(
+		page.getByRole('heading', {
+			name: `${en['levels.starter-elbow.name']} ${tutorialLevel.sector.replace('SECTOR ', '')}`,
+			level: 1,
+		}),
+	).toBeVisible();
+	const tutorial = page.getByRole('region', { name: en['tutorial.aria'] });
+	await expect(tutorial.getByRole('heading', { name: en['tutorial.steps.welcome.title'] })).toBeVisible();
 	const tutorialCard = tutorial.locator('[data-tutorial-panel]');
 	const initialCardBox = await tutorialCard.boundingBox();
-	const dragHandleBox = await tutorial.getByRole('button', { name: 'Move tutorial panel' }).boundingBox();
+	const dragHandleBox = await tutorial.getByRole('button', { name: en['tutorial.dragAria'] }).boundingBox();
 	if (!initialCardBox || !dragHandleBox) {
 		throw new Error('Expected a draggable tutorial card');
 	}
@@ -602,7 +638,7 @@ test('level carousel keeps three cards visible and launches the beginner map', a
 	await expect.poll(async () => (await tutorialCard.boundingBox())?.x ?? 0).toBeCloseTo(initialCardBox.x, 0);
 	const movedCardBox = await tutorialCard.boundingBox();
 	expect(movedCardBox?.y ?? Number.POSITIVE_INFINITY).toBeLessThan(initialCardBox.y - 30);
-	await tutorial.getByRole('button', { name: 'Begin calibration' }).click();
+	await tutorial.getByRole('button', { name: en['tutorial.steps.welcome.continue'] }).click();
 	await expect
 		.poll(async () => {
 			const box = await tutorialCard.boundingBox();
@@ -615,25 +651,25 @@ test('level carousel keeps three cards visible and launches the beginner map', a
 	}
 	expect(viewport.width - cornerCardBox.x - cornerCardBox.width).toBeCloseTo(20, 0);
 	expect(viewport.height - cornerCardBox.y - cornerCardBox.height).toBeCloseTo(20, 0);
-	await tutorial.getByRole('button', { name: 'Click the highlighted tower' }).click();
-	let workshop = page.getByLabel('Tower module workshop');
+	await tutorial.getByRole('button', { name: en['tutorial.steps.tower.instruction'] }).click();
+	let workshop = page.getByLabel(en['workshop.aria']);
 	await expect(tutorial.locator('[data-tutorial-spotlight="source"]')).toHaveCount(1);
 	await expect(tutorial.locator('[data-tutorial-spotlight="destination"]')).toHaveCount(1);
 	await workshop.locator('[data-tutorial-module="frost"]').dragTo(workshop.locator('[data-tutorial-slot="0"]'));
-	await expect(tutorial.getByRole('heading', { name: 'Drag Pulse into slot 2' })).toBeVisible();
+	await expect(tutorial.getByRole('heading', { name: en['tutorial.steps.pulse-drag-first.title'] })).toBeVisible();
 	await workshop.locator('[data-tutorial-module="pulse"]').dragTo(workshop.locator('[data-tutorial-slot="1"]'));
-	await tutorial.getByRole('button', { name: 'Got it' }).click();
-	await tutorial.getByRole('button', { name: 'Click the close button in the workshop header' }).click();
-	await expect(page.getByLabel('Tower module workshop')).toHaveCount(0);
-	await tutorial.getByRole('button', { name: 'Click the highlighted empty node to build' }).click();
-	workshop = page.getByLabel('Tower module workshop');
-	await expect(tutorial.getByRole('heading', { name: 'Install Pulse in the new tower' })).toBeVisible();
+	await tutorial.getByRole('button', { name: en['tutorial.steps.first-program.continue'] }).click();
+	await tutorial.getByRole('button', { name: en['tutorial.steps.close-first-workshop.instruction'] }).click();
+	await expect(page.getByLabel(en['workshop.aria'])).toHaveCount(0);
+	await tutorial.getByRole('button', { name: en['tutorial.steps.build-second-tower.instruction'] }).click();
+	workshop = page.getByLabel(en['workshop.aria']);
+	await expect(tutorial.getByRole('heading', { name: en['tutorial.steps.second-pulse-drag.title'] })).toBeVisible();
 	await workshop.locator('[data-tutorial-module="pulse"]').dragTo(workshop.locator('[data-tutorial-slot="0"]'));
-	await tutorial.getByRole('button', { name: 'Click the close button in the workshop header' }).click();
-	await tutorial.getByRole('button', { name: 'Click “Launch signal”' }).click();
+	await tutorial.getByRole('button', { name: en['tutorial.steps.close-second-workshop.instruction'] }).click();
+	await tutorial.getByRole('button', { name: en['tutorial.steps.launch-one.instruction'] }).click();
 
-	await expect(page.getByText('Observe the module combination')).toBeVisible();
-	await expect(tutorialCard).toContainText('Observe the module combination');
+	await expect(page.getByText(en['tutorial.steps.wait-first-wave.title'])).toBeVisible();
+	await expect(tutorialCard).toContainText(en['tutorial.steps.wait-first-wave.title']);
 	const waveCardBox = await tutorialCard.boundingBox();
 	if (!waveCardBox) {
 		throw new Error('Expected the standard tutorial card during wave one');
@@ -642,33 +678,35 @@ test('level carousel keeps three cards visible and launches the beginner map', a
 	expect(viewport.height - waveCardBox.y - waveCardBox.height).toBeCloseTo(20, 0);
 	await page.getByRole('button', { name: '2×' }).click();
 	await clickBattlefieldAt(page, towerPad(tutorialLevel, 1));
-	await expect(workshop.locator('.tower-id')).toHaveText('Node 02');
+	await expect(workshop.locator('.tower-id')).toHaveText(translate('tower.nodeNumber', { id: '02' }));
 	await expect(page.locator('[data-battlefield-live]')).not.toHaveAttribute('data-combat', 'true');
-	await page.getByRole('button', { name: 'Close workshop' }).click();
-	await expect(tutorial.getByRole('heading', { name: 'Reopen the tutorial tower' })).toBeVisible({ timeout: 45_000 });
-	await clickBattlefieldAt(page, towerPad(tutorialLevel, 1));
-	await expect(tutorial.getByRole('heading', { name: 'This is not the tutorial tower' })).toBeVisible({
+	await page.getByRole('button', { name: en['workshop.close'] }).click();
+	await expect(tutorial.getByRole('heading', { name: en['tutorial.steps.ensure-tower.title'] })).toBeVisible({
 		timeout: 45_000,
 	});
-	await tutorial.getByRole('button', { name: 'Close the current Arc Workshop' }).click();
-	await expect(tutorial.getByRole('heading', { name: 'Reopen the tutorial tower' })).toBeVisible();
-	await tutorial.getByRole('button', { name: 'Click the highlighted starting tower' }).click();
-	workshop = page.getByLabel('Tower module workshop');
-	await expect(tutorial.getByRole('heading', { name: 'Move Pulse from slot 2 to slot 3' })).toBeVisible();
+	await clickBattlefieldAt(page, towerPad(tutorialLevel, 1));
+	await expect(tutorial.getByRole('heading', { name: en['tutorial.steps.ensure-wrong-tower.title'] })).toBeVisible({
+		timeout: 45_000,
+	});
+	await tutorial.getByRole('button', { name: en['tutorial.steps.ensure-wrong-tower.instruction'] }).click();
+	await expect(tutorial.getByRole('heading', { name: en['tutorial.steps.ensure-tower.title'] })).toBeVisible();
+	await tutorial.getByRole('button', { name: en['tutorial.steps.ensure-tower.instruction'] }).click();
+	workshop = page.getByLabel(en['workshop.aria']);
+	await expect(tutorial.getByRole('heading', { name: en['tutorial.steps.move-pulse.title'] })).toBeVisible();
 	await workshop.locator('[data-tutorial-slot="1"]').dragTo(workshop.locator('[data-tutorial-slot="2"]'));
-	await expect(tutorial.getByRole('heading', { name: 'Drag Impact into slot 2' })).toBeVisible();
+	await expect(tutorial.getByRole('heading', { name: en['tutorial.steps.trigger-drag.title'] })).toBeVisible();
 	await workshop
 		.locator('[data-tutorial-module="impact-trigger"]')
 		.dragTo(workshop.locator('[data-tutorial-slot="1"]'));
-	await expect(tutorial.getByRole('heading', { name: 'Drag Mine into slot 4' })).toBeVisible();
+	await expect(tutorial.getByRole('heading', { name: en['tutorial.steps.static-drag.title'] })).toBeVisible();
 	await workshop
 		.locator('[data-tutorial-module="proximity-mine"]')
 		.dragTo(workshop.locator('[data-tutorial-slot="3"]'));
-	await tutorial.getByRole('button', { name: 'Ready' }).click();
-	await tutorial.getByRole('button', { name: 'Click the close button in the workshop header' }).click();
-	await expect(page.getByLabel('Tower module workshop')).toHaveCount(0);
+	await tutorial.getByRole('button', { name: en['tutorial.steps.final-program.continue'] }).click();
+	await tutorial.getByRole('button', { name: en['tutorial.steps.close-final-workshop.instruction'] }).click();
+	await expect(page.getByLabel(en['workshop.aria'])).toHaveCount(0);
 	await page.evaluate((key) => localStorage.removeItem(key), TUTORIAL_OFFER_STORAGE_KEY);
-	await tutorial.getByRole('button', { name: 'Click “Launch signal” to finish the tutorial' }).click();
+	await tutorial.getByRole('button', { name: en['tutorial.steps.launch-two.instruction'] }).click();
 	await expect(tutorial).toHaveCount(0);
 	await expect.poll(() => page.evaluate((key) => localStorage.getItem(key), TUTORIAL_OFFER_STORAGE_KEY)).toBe('1');
 });

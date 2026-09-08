@@ -1,5 +1,10 @@
 // @vitest-environment jsdom
 
+import { translate } from './helpers/translate';
+
+import en from '../packages/web-shared/src/i18n/locales/en.json';
+import { textPattern } from './helpers/text';
+
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -37,31 +42,31 @@ describe('level selection accessibility', () => {
 		});
 		const user = userEvent.setup();
 		render(<App />);
-		await user.click(screen.getByRole('button', { name: 'No, thanks' }));
+		await user.click(screen.getByRole('button', { name: en['tutorialOffer.decline'] }));
 		const selectedLevel = () => document.querySelector('[data-level-grid] [aria-checked="true"]')?.textContent;
 		await user.keyboard('{ArrowRight}');
-		expect(selectedLevel()).toContain('Rose Circuit');
-		await user.click(screen.getByRole('button', { name: 'Open signal compendium' }));
+		expect(selectedLevel()).toContain(en['levels.rose-circuit.name']);
+		await user.click(screen.getByRole('button', { name: en['signalArchive.entryAria'] }));
 		const signals = Array.from(document.querySelectorAll<HTMLButtonElement>('.signal-archive-index-list button'));
 		await user.keyboard('{ArrowRight}');
 		expect(signals[0]?.getAttribute('aria-current')).toBe('true');
 		(document.activeElement as HTMLElement).blur();
 		await user.keyboard('{ArrowRight}');
 		expect(signals[0]?.getAttribute('aria-current')).toBe('true');
-		await user.click(screen.getByRole('button', { name: 'Back to sector selection' }));
+		await user.click(screen.getByRole('button', { name: en['signalArchive.back'] }));
 		await user.keyboard('{ArrowLeft}');
-		expect(selectedLevel()).toContain('White Prism');
-		await user.click(screen.getByRole('button', { name: 'Open the thought index' }));
+		expect(selectedLevel()).toContain(en['levels.white-prism.name']);
+		await user.click(screen.getByRole('button', { name: en['thoughtIndex.entryAria'] }));
 		const thoughts = Array.from(document.querySelectorAll<HTMLButtonElement>('.thought-records button'));
 		await user.keyboard('{ArrowRight}');
 		expect(document.activeElement).toBe(thoughts[1]);
-		expect(selectedLevel()).toContain('White Prism');
-		await user.click(screen.getByRole('button', { name: 'Return to deployment' }));
+		expect(selectedLevel()).toContain(en['levels.white-prism.name']);
+		await user.click(screen.getByRole('button', { name: en['thoughtIndex.backMenu'] }));
 		await user.keyboard('{ArrowRight}');
-		expect(selectedLevel()).toContain('Rose Circuit');
-		await user.click(screen.getByRole('button', { name: 'Settings' }));
+		expect(selectedLevel()).toContain(en['levels.rose-circuit.name']);
+		await user.click(screen.getByRole('button', { name: en['settings.title'] }));
 		await user.keyboard('{ArrowRight}');
-		expect(selectedLevel()).toContain('Rose Circuit');
+		expect(selectedLevel()).toContain(en['levels.rose-circuit.name']);
 	});
 
 	it.each([false, true])(
@@ -78,8 +83,8 @@ describe('level selection accessibility', () => {
 			);
 			const user = userEvent.setup();
 			render(<App />);
-			await user.click(screen.getByRole('button', { name: 'No, thanks' }));
-			const group = () => screen.getByRole('radiogroup', { name: 'Choose defense sector' });
+			await user.click(screen.getByRole('button', { name: en['tutorialOffer.decline'] }));
+			const group = () => screen.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] });
 			const firstVisible = within(group()).getAllByRole('radio')[0]!;
 			const firstIndex = compact ? 1 : 0;
 			await user.click(firstVisible);
@@ -99,8 +104,8 @@ describe('level selection accessibility', () => {
 	it('selects visible edge cards without moving the carousel', async () => {
 		const user = userEvent.setup();
 		render(<App />);
-		await user.click(screen.getByRole('button', { name: 'No, thanks' }));
-		const group = screen.getByRole('radiogroup', { name: 'Choose defense sector' });
+		await user.click(screen.getByRole('button', { name: en['tutorialOffer.decline'] }));
+		const group = screen.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] });
 		const cards = within(group).getAllByRole('radio');
 		for (const card of [cards[2]!, cards[0]!]) {
 			await user.click(card);
@@ -121,14 +126,16 @@ describe('level selection accessibility', () => {
 		});
 		const user = userEvent.setup();
 		render(<App />);
-		await user.click(screen.getByRole('button', { name: 'No, thanks' }));
+		await user.click(screen.getByRole('button', { name: en['tutorialOffer.decline'] }));
 
-		const difficultyGroup = screen.getByRole('radiogroup', { name: 'Choose difficulty' });
+		const difficultyGroup = screen.getByRole('radiogroup', { name: en['levelSelect.chooseDifficulty'] });
 		await user.click(difficultyGroup.querySelectorAll('[role="radio"]')[3] as HTMLElement);
 		await user.click(
-			within(screen.getByRole('group', { name: 'Game mode' })).getByRole('button', { name: /Creative/ }),
+			within(screen.getByRole('group', { name: en['levelSelect.modeLabel'] })).getByRole('button', {
+				name: textPattern(en['levelSelect.creativeTitle']),
+			}),
 		);
-		await user.click(screen.getByRole('radio', { name: /Rose Circuit/ }));
+		await user.click(screen.getByRole('radio', { name: textPattern(en['levels.rose-circuit.name']) }));
 
 		expect(JSON.parse(globalThis.localStorage.getItem(LEVEL_SELECTION_STORAGE_KEY) ?? '{}')).toEqual({
 			levelId: 'rose-circuit',
@@ -139,74 +146,84 @@ describe('level selection accessibility', () => {
 		cleanup();
 		render(<App />);
 		expect(
-			within(screen.getByRole('group', { name: 'Game mode' }))
-				.getByRole('button', { name: /Creative/ })
+			within(screen.getByRole('group', { name: en['levelSelect.modeLabel'] }))
+				.getByRole('button', { name: textPattern(en['levelSelect.creativeTitle']) })
 				.getAttribute('aria-pressed'),
 		).toBe('true');
-		expect(screen.queryByRole('radiogroup', { name: 'Choose difficulty' })).toBeNull();
+		expect(screen.queryByRole('radiogroup', { name: en['levelSelect.chooseDifficulty'] })).toBeNull();
 		await user.click(
-			within(screen.getByRole('group', { name: 'Game mode' })).getByRole('button', { name: /Standard/ }),
+			within(screen.getByRole('group', { name: en['levelSelect.modeLabel'] })).getByRole('button', {
+				name: textPattern(en['levelSelect.standardTitle']),
+			}),
 		);
 		expect(
-			screen.getByRole('radiogroup', { name: 'Choose difficulty' }).querySelector('[aria-checked="true"]')
-				?.textContent,
-		).toContain('Hard');
+			screen
+				.getByRole('radiogroup', { name: en['levelSelect.chooseDifficulty'] })
+				.querySelector('[aria-checked="true"]')?.textContent,
+		).toContain(en['difficulties.hard.name']);
 		const restoredLevelCards = screen
-			.getByRole('radiogroup', { name: 'Choose defense sector' })
+			.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] })
 			.querySelectorAll('[role="radio"]');
 		expect(restoredLevelCards[1]?.getAttribute('aria-checked')).toBe('true');
-		expect(restoredLevelCards[1]?.textContent).toContain('Rose Circuit');
+		expect(restoredLevelCards[1]?.textContent).toContain(en['levels.rose-circuit.name']);
 	});
 
 	it('exposes mode state and supports arrow-key radio selection', async () => {
 		const user = userEvent.setup();
 		render(<App />);
-		await user.click(screen.getByRole('button', { name: 'No, thanks' }));
+		await user.click(screen.getByRole('button', { name: en['tutorialOffer.decline'] }));
 
-		const modeGroup = screen.getByRole('group', { name: 'Game mode' });
-		const standardMode = within(modeGroup).getByRole('button', { name: /Standard/ });
-		const creativeMode = within(modeGroup).getByRole('button', { name: /Creative/ });
+		const modeGroup = screen.getByRole('group', { name: en['levelSelect.modeLabel'] });
+		const standardMode = within(modeGroup).getByRole('button', {
+			name: textPattern(en['levelSelect.standardTitle']),
+		});
+		const creativeMode = within(modeGroup).getByRole('button', {
+			name: textPattern(en['levelSelect.creativeTitle']),
+		});
 		expect(standardMode.getAttribute('aria-pressed')).toBe('true');
 		await user.click(creativeMode);
 		expect(creativeMode.getAttribute('aria-pressed')).toBe('true');
-		expect(screen.queryByRole('radiogroup', { name: 'Choose difficulty' })).toBeNull();
-		expect(screen.getByRole('spinbutton', { name: 'Core stability' })).toBeTruthy();
+		expect(screen.queryByRole('radiogroup', { name: en['levelSelect.chooseDifficulty'] })).toBeNull();
+		expect(screen.getByRole('spinbutton', { name: en['levelSelect.coreStability'] })).toBeTruthy();
 		await user.click(standardMode);
 
-		const difficultyGroup = screen.getByRole('radiogroup', { name: 'Choose difficulty' });
+		const difficultyGroup = screen.getByRole('radiogroup', { name: en['levelSelect.chooseDifficulty'] });
 		const selectedDifficulty = difficultyGroup.querySelector<HTMLElement>('[aria-checked="true"]');
-		expect(selectedDifficulty?.textContent).toContain('Standard');
+		expect(selectedDifficulty?.textContent).toContain(en['difficulties.normal.name']);
 		selectedDifficulty?.focus();
 		await user.keyboard('{ArrowDown}');
-		expect(difficultyGroup.querySelector('[aria-checked="true"]')?.textContent).toContain('Hard');
+		expect(difficultyGroup.querySelector('[aria-checked="true"]')?.textContent).toContain(
+			en['difficulties.hard.name'],
+		);
 
-		const levelGroup = screen.getByRole('radiogroup', { name: 'Choose defense sector' });
+		const levelGroup = screen.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] });
 		const selectedLevel = levelGroup.querySelector<HTMLElement>('[aria-checked="true"]');
-		expect(selectedLevel?.textContent).toContain('White Prism');
+		expect(selectedLevel?.textContent).toContain(en['levels.white-prism.name']);
 		selectedLevel?.focus();
 		await user.keyboard('{ArrowRight}');
 		expect(
-			screen.getByRole('radiogroup', { name: 'Choose defense sector' }).querySelector('[aria-checked="true"]')
-				?.textContent,
-		).toContain('Rose Circuit');
+			screen
+				.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] })
+				.querySelector('[aria-checked="true"]')?.textContent,
+		).toContain(en['levels.rose-circuit.name']);
 	});
 
 	it('shows three level cards at a time and pages with arrow controls', async () => {
 		const user = userEvent.setup();
 		render(<App />);
-		await user.click(screen.getByRole('button', { name: 'No, thanks' }));
+		await user.click(screen.getByRole('button', { name: en['tutorialOffer.decline'] }));
 
-		let group = screen.getByRole('radiogroup', { name: 'Choose defense sector' });
+		let group = screen.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] });
 		expect(group.querySelectorAll('[role="radio"]')).toHaveLength(3);
-		expect(group.textContent).toContain('Launch Elbow');
-		expect(group.textContent).not.toContain('Verdant Fold');
+		expect(group.textContent).toContain(en['levels.starter-elbow.name']);
+		expect(group.textContent).not.toContain(en['levels.verdant-fold.name']);
 
-		await user.click(screen.getByRole('button', { name: 'Show next levels' }));
-		group = screen.getByRole('radiogroup', { name: 'Choose defense sector' });
+		await user.click(screen.getByRole('button', { name: en['levelSelect.nextLevels'] }));
+		group = screen.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] });
 		expect(group.querySelectorAll('[role="radio"]')).toHaveLength(3);
 		expect(group.getAttribute('data-carousel-direction')).toBe('next');
-		expect(group.textContent).not.toContain('Launch Elbow');
-		expect(group.textContent).toContain('Verdant Fold');
+		expect(group.textContent).not.toContain(en['levels.starter-elbow.name']);
+		expect(group.textContent).toContain(en['levels.verdant-fold.name']);
 	});
 
 	it('shows one selected level card at a time at 949px wide', async () => {
@@ -229,24 +246,24 @@ describe('level selection accessibility', () => {
 		);
 		const user = userEvent.setup();
 		render(<App />);
-		await user.click(screen.getByRole('button', { name: 'No, thanks' }));
+		await user.click(screen.getByRole('button', { name: en['tutorialOffer.decline'] }));
 
-		let group = screen.getByRole('radiogroup', { name: 'Choose defense sector' });
+		let group = screen.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] });
 		expect(group.querySelectorAll('[role="radio"]')).toHaveLength(1);
-		expect(group.textContent).toContain('White Prism');
+		expect(group.textContent).toContain(en['levels.white-prism.name']);
 
-		await user.click(screen.getByRole('button', { name: 'Show next levels' }));
-		group = screen.getByRole('radiogroup', { name: 'Choose defense sector' });
+		await user.click(screen.getByRole('button', { name: en['levelSelect.nextLevels'] }));
+		group = screen.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] });
 		expect(group.querySelectorAll('[role="radio"]')).toHaveLength(1);
-		expect(group.textContent).toContain('Rose Circuit');
+		expect(group.textContent).toContain(en['levels.rose-circuit.name']);
 	});
 
 	it('switches the complete interface language and updates the document locale', async () => {
 		const user = userEvent.setup();
 		render(<App />);
-		await user.click(screen.getByRole('button', { name: 'No, thanks' }));
+		await user.click(screen.getByRole('button', { name: en['tutorialOffer.decline'] }));
 
-		await user.click(screen.getByRole('button', { name: 'Settings' }));
+		await user.click(screen.getByRole('button', { name: en['settings.title'] }));
 		await user.click(screen.getByRole('button', { name: zhCN['lang.name'] }));
 
 		expect(document.documentElement.lang).toBe('zh-CN');
@@ -259,18 +276,22 @@ describe('level selection accessibility', () => {
 	it('opens the selected next-wave signal in the compendium and returns to the same run', async () => {
 		const user = userEvent.setup();
 		render(<App />);
-		await user.click(screen.getByRole('button', { name: 'No, thanks' }));
-		await user.click(screen.getByRole('button', { name: /Start deployment/ }));
+		await user.click(screen.getByRole('button', { name: en['tutorialOffer.decline'] }));
+		await user.click(screen.getByRole('button', { name: textPattern(en['levelSelect.startAction']) }));
 
-		const draft = screen.getByRole('region', { name: 'Choose initial modules' });
-		await user.click(within(draft).getAllByRole('button', { name: 'Choose module' })[0]);
+		const draft = screen.getByRole('region', { name: en['reward.initialAria'] });
+		await user.click(within(draft).getAllByRole('button', { name: en['reward.choose'] })[0]);
 		expect(within(draft).getByText('2 / 3')).toBeTruthy();
 
-		await user.click(screen.getByRole('button', { name: 'Open Prism Crown in the signal compendium' }));
-		expect(screen.getByRole('heading', { name: 'Prism Crown' })).toBeTruthy();
+		await user.click(
+			screen.getByRole('button', {
+				name: translate('battlefield.openSignalArchive', { signal: en['signals.crown'] }),
+			}),
+		);
+		expect(screen.getByRole('heading', { name: en['signals.crown'] })).toBeTruthy();
 
-		await user.click(screen.getByRole('button', { name: 'Return to current battlefield' }));
-		expect(screen.getByRole('region', { name: 'Choose initial modules' })).toBeTruthy();
+		await user.click(screen.getByRole('button', { name: en['signalArchive.backToBattlefield'] }));
+		expect(screen.getByRole('region', { name: en['reward.initialAria'] })).toBeTruthy();
 		expect(screen.getByText('2 / 3')).toBeTruthy();
 	});
 });

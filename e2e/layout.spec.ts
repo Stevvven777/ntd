@@ -1,3 +1,5 @@
+import en from '../packages/web-shared/src/i18n/locales/en.json' with { type: 'json' };
+import { textPattern } from '../tests/helpers/text';
 import { expect, test, type Page } from '@playwright/test';
 
 async function expectViewportFrame(page: Page, selector: string): Promise<void> {
@@ -26,13 +28,13 @@ for (const viewport of [
 		await page.goto('/');
 		await expectViewportFrame(page, '[data-level-select-frame]');
 		const modeOptionHeights = await page
-			.getByRole('group', { name: 'Game mode' })
+			.getByRole('group', { name: en['levelSelect.modeLabel'] })
 			.getByRole('button')
 			.evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
 		expect(Math.max(...modeOptionHeights)).toBeLessThanOrEqual(84);
 		await expect(page.locator('.home-meta')).toHaveCount(0);
 		if (viewport.height > 600) {
-			const artwork = page.getByRole('button', { name: 'Remix the geometric composition' });
+			const artwork = page.getByRole('button', { name: en['levelSelect.remixComposition'] });
 			await expect(artwork).toBeVisible();
 			const colors = artwork.locator('.home-composition-grid--color');
 			await expect(colors).toHaveCSS('opacity', '0');
@@ -47,17 +49,17 @@ for (const viewport of [
 			await page.keyboard.press('Enter');
 			expect(await note.getAttribute('fill')).not.toEqual(before);
 		}
-		await page.getByRole('button', { name: 'Settings', exact: true }).click();
+		await page.getByRole('button', { name: en['settings.title'], exact: true }).click();
 		await page.keyboard.press('Escape');
 		const initial = await page.locator('[data-level-select-frame]').boundingBox();
 		const setup = await page.locator('[data-mission-controls]').boundingBox();
 		await page
-			.getByRole('group', { name: 'Game mode' })
-			.getByRole('button', { name: /Creative/ })
+			.getByRole('group', { name: en['levelSelect.modeLabel'] })
+			.getByRole('button', { name: textPattern(en['levelSelect.creativeTitle']) })
 			.click();
 		expect(await page.locator('[data-level-select-frame]').boundingBox()).toEqual(initial);
 		expect(await page.locator('[data-mission-controls]').boundingBox()).toEqual(setup);
-		await expect(page.getByRole('spinbutton', { name: 'Core stability' })).toBeVisible();
+		await expect(page.getByRole('spinbutton', { name: en['levelSelect.coreStability'] })).toBeVisible();
 		const calibration = await page.locator('[data-creative-setup]').boundingBox();
 		const rules = await page.locator('[data-setup-rules]').boundingBox();
 		const scales = await page.locator('[data-setup-scales]').boundingBox();
@@ -67,9 +69,9 @@ for (const viewport of [
 		expect(
 			Math.abs(scales!.y + scales!.height / 2 - (calibration!.y + calibration!.height / 2)),
 		).toBeLessThanOrEqual(4);
-		await expect(page.getByRole('slider', { name: 'Speed multiplier' })).toBeInViewport();
+		await expect(page.getByRole('slider', { name: en['levelSelect.speedScale'] })).toBeInViewport();
 		expect(await page.locator('[data-mission-controls]').boundingBox()).toEqual(setup);
-		await expect(page.getByRole('spinbutton', { name: 'Wave count' })).toBeInViewport();
+		await expect(page.getByRole('spinbutton', { name: en['levelSelect.waveCount'] })).toBeInViewport();
 		const scrollable = await page.locator('[data-level-select-frame] *').evaluateAll((elements) =>
 			elements
 				.filter((element) => {
@@ -87,7 +89,7 @@ for (const viewport of [
 		await expectViewportFrame(page, '.signal-archive-console');
 		await expect(page.locator('.archive-back')).toBeInViewport();
 		await page.locator('.archive-back').click();
-		await page.getByRole('button', { name: 'Open defense archive' }).click();
+		await page.getByRole('button', { name: en['defenseArchive.entryAria'] }).click();
 		await expectViewportFrame(page, '[data-defense-archive-frame]');
 		await page.locator('.archive-back').click();
 		await page.locator('[data-thought-index-entry]').click();

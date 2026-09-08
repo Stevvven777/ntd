@@ -2,6 +2,15 @@ import eslint from '@eslint/js';
 import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import { readFileSync, readdirSync } from 'node:fs';
+import { createTestLocaleCopyRule } from './build/eslint/test-locale-copy.mjs';
+
+const localeDirectory = new URL('./packages/web-shared/src/i18n/locales/', import.meta.url);
+const localeResources = Object.fromEntries(
+	readdirSync(localeDirectory)
+		.filter((name) => name.endsWith('.json'))
+		.map((name) => [name.slice(0, -5), JSON.parse(readFileSync(new URL(name, localeDirectory), 'utf8'))]),
+);
 
 export default tseslint.config(
 	{
@@ -9,6 +18,11 @@ export default tseslint.config(
 	},
 	eslint.configs.recommended,
 	...tseslint.configs.recommended,
+	{
+		files: ['tests/**/*.{ts,tsx}', 'e2e/**/*.{ts,tsx}', 'e2e-coop/**/*.{ts,tsx}'],
+		plugins: { 'test-locale': { rules: { 'no-hardcoded-copy': createTestLocaleCopyRule(localeResources) } } },
+		rules: { 'test-locale/no-hardcoded-copy': 'error' },
+	},
 	{
 		rules: {
 			curly: ['error', 'all'],

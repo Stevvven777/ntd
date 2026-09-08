@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
 
+import en from '../packages/web-shared/src/i18n/locales/en.json';
+import { textPattern } from './helpers/text';
+
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -268,14 +271,14 @@ describe('defense archive interface', () => {
 		};
 		render(<DefenseArchive repository={repository as never} onBack={() => undefined} />);
 
-		expect(await screen.findByText('Completed defenses')).toBeTruthy();
+		expect(await screen.findByText(en['defenseArchive.metric.defenses'])).toBeTruthy();
 		expect(document.querySelector('[data-defense-archive-mark]')?.textContent).toBe('');
 		expect(document.querySelector('.signal-ledger-grid .signal-icon')).toBeTruthy();
 		await user.keyboard('{ArrowRight}');
-		expect(document.activeElement).toBe(screen.getByRole('tab', { name: 'Defense sectors' }));
-		expect(screen.getByRole('heading', { name: 'White Prism' })).toBeTruthy();
-		expect(screen.getByText('Wave performance')).toBeTruthy();
-		expect(screen.getByText('Signal outcomes recorded only in this sector')).toBeTruthy();
+		expect(document.activeElement).toBe(screen.getByRole('tab', { name: en['defenseArchive.tab.sectors'] }));
+		expect(screen.getByRole('heading', { name: en['levels.white-prism.name'] })).toBeTruthy();
+		expect(screen.getByText(en['defenseArchive.sectors.waveAnalysis'])).toBeTruthy();
+		expect(screen.getByText(en['defenseArchive.sectors.signalStatsDetail'])).toBeTruthy();
 		expect(document.querySelector('.sector-ledger-section .signal-ledger-grid')).toBeTruthy();
 		const sectors = Array.from(document.querySelectorAll<HTMLButtonElement>('.sector-archive-index button'));
 		await user.click(sectors[0]!);
@@ -285,11 +288,11 @@ describe('defense archive interface', () => {
 			expect(document.activeElement).toBe(selected);
 			expect(selected.getAttribute('aria-current')).toBe('true');
 		}
-		await user.click(screen.getByRole('tab', { name: 'Achievements' }));
-		expect(screen.getByText('Field training')).toBeTruthy();
-		await user.click(screen.getByRole('tab', { name: /Defense records/ }));
-		expect(screen.getByLabelText('Result')).toBeTruthy();
-		await user.click(screen.getByRole('button', { name: /White Prism/ }));
+		await user.click(screen.getByRole('tab', { name: en['defenseArchive.tab.achievements'] }));
+		expect(screen.getByText(en['defenseArchive.category.tutorial'])).toBeTruthy();
+		await user.click(screen.getByRole('tab', { name: textPattern(en['defenseArchive.tab.history']) }));
+		expect(screen.getByLabelText(en['defenseArchive.filter.result'])).toBeTruthy();
+		await user.click(screen.getByRole('button', { name: textPattern(en['levels.white-prism.name']) }));
 		const selectedRecord = document.activeElement;
 		await user.keyboard('{ArrowDown}');
 		expect(document.activeElement).not.toBe(selectedRecord);
@@ -297,7 +300,7 @@ describe('defense archive interface', () => {
 		await user.keyboard('{ArrowUp}');
 		expect(document.activeElement).toBe(selectedRecord);
 		expect(selectedRecord?.getAttribute('aria-pressed')).toBe('true');
-		expect(screen.getByText('Final module inventory')).toBeTruthy();
+		expect(screen.getByText(en['defenseArchive.detail.inventory'])).toBeTruthy();
 		expect(document.querySelector('[data-defense-inventory] .module-icon')).toBeTruthy();
 		expect(screen.getByText('abc1234 · 2026-08-31')).toBeTruthy();
 	});
@@ -307,16 +310,16 @@ describe('defense archive interface', () => {
 		const clearAll = vi.fn(async () => undefined);
 		render(<SettingsPanel defenseArchiveRepository={{ clearAll } as never} />);
 
-		await user.click(screen.getByRole('button', { name: 'Settings' }));
-		await user.click(screen.getByRole('tab', { name: 'Storage' }));
-		await user.click(screen.getByRole('button', { name: 'Clear archive' }));
+		await user.click(screen.getByRole('button', { name: en['settings.title'] }));
+		await user.click(screen.getByRole('tab', { name: en['settings.categories.storage'] }));
+		await user.click(screen.getByRole('button', { name: en['defenseArchive.clear'] }));
 		expect(clearAll).not.toHaveBeenCalled();
-		expect(screen.queryByRole('dialog', { name: 'Clear the defense archive?' })).toBeNull();
-		await user.click(screen.getByRole('button', { name: 'Click again to clear everything' }));
+		expect(screen.getAllByRole('dialog')).toHaveLength(1);
+		await user.click(screen.getByRole('button', { name: en['settings.clearDefenseArchiveAgain'] }));
 		await waitFor(() => expect(clearAll).toHaveBeenCalledOnce());
-		expect((screen.getByRole('button', { name: 'Defense archive cleared' }) as HTMLButtonElement).disabled).toBe(
-			true,
-		);
+		expect(
+			(screen.getByRole('button', { name: en['settings.defenseArchiveCleared'] }) as HTMLButtonElement).disabled,
+		).toBe(true);
 	});
 });
 

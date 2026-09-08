@@ -11,6 +11,7 @@ export default defineConfig({
 	retries: 0,
 	reporter: 'line',
 	use: {
+		locale: 'en-US',
 		baseURL: 'http://127.0.0.1:4273',
 		browserName: 'chromium',
 		headless: true,

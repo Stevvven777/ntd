@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
 
+import en from '../packages/web-shared/src/i18n/locales/en.json';
+import { textPattern } from './helpers/text';
+
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -60,8 +63,8 @@ describe('thought index entry points', () => {
 		expect(previous).toHaveBeenCalledOnce();
 		next.mockRestore();
 		previous.mockRestore();
-		const search = screen.getByPlaceholderText('Module name, short name, or summary');
-		await user.type(search, 'Pulse Round');
+		const search = screen.getByPlaceholderText(en['thoughtIndex.searchPlaceholder']);
+		await user.type(search, en['thoughts.pulse.title']);
 		await user.keyboard('{ArrowLeft}');
 		expect(document.activeElement).toBe(search);
 		const onlyRecord = document.querySelector<HTMLButtonElement>('.thought-records button')!;
@@ -75,42 +78,53 @@ describe('thought index entry points', () => {
 		render(<ThoughtIndex onBack={vi.fn()} />);
 
 		expect(document.querySelector('.thought-index-header .thought-index-seal')?.textContent).toBe('');
-		const searchBox = screen.getByPlaceholderText('Module name, short name, or summary');
-		await user.type(searchBox, 'Pulse Round');
+		const searchBox = screen.getByPlaceholderText(en['thoughtIndex.searchPlaceholder']);
+		await user.type(searchBox, en['thoughts.pulse.title']);
 
 		expect(document.querySelectorAll('.thought-records [data-thought-id]')).toHaveLength(1);
 		expect(document.querySelector('.thought-records [data-thought-id="pulse"]')).not.toBeNull();
 
 		await user.clear(searchBox);
-		await user.type(searchBox, 'Frost');
+		await user.type(searchBox, en['modules.frost.short']);
 		const shortNameMatch = document.querySelector('.thought-records [data-thought-id="frost"]');
 		expect(shortNameMatch).not.toBeNull();
-		expect(shortNameMatch?.textContent).not.toContain('Frost');
+		expect(shortNameMatch?.textContent).not.toContain(en['modules.frost.short']);
 	});
 
 	it('searches Chinese record names and summaries by pinyin', async () => {
 		await i18n.changeLanguage('zh-CN');
-		const user = userEvent.setup();
-		render(<ThoughtIndex onBack={vi.fn()} />);
-		const searchBox = screen.getByPlaceholderText(zhCN['thoughtIndex.searchPlaceholder']);
+		// Own the phonetic inputs so module copy can change independently of this behavior test.
+		i18n.addResources('zh-CN', 'translation', {
+			'thoughts.frost.title': String.fromCodePoint(0x6d4b, 0x8bd5),
+			'thoughts.pulse.summary': String.fromCodePoint(0x793a, 0x4f8b),
+		});
+		try {
+			const user = userEvent.setup();
+			render(<ThoughtIndex onBack={vi.fn()} />);
+			const searchBox = screen.getByPlaceholderText(zhCN['thoughtIndex.searchPlaceholder']);
 
-		await user.type(searchBox, 'lntj');
-		expect(document.querySelectorAll('.thought-records [data-thought-id]')).toHaveLength(1);
-		expect(document.querySelector('.thought-records [data-thought-id="frost"]')).not.toBeNull();
+			await user.type(searchBox, 'cs');
+			expect(document.querySelector('.thought-records [data-thought-id="frost"]')).not.toBeNull();
 
-		await user.clear(searchBox);
-		await user.type(searchBox, 'mingzhongdian');
-		expect(document.querySelector('.thought-records [data-thought-id="pulse"]')).not.toBeNull();
+			await user.clear(searchBox);
+			await user.type(searchBox, 'shili');
+			expect(document.querySelector('.thought-records [data-thought-id="pulse"]')).not.toBeNull();
+		} finally {
+			i18n.addResources('zh-CN', 'translation', {
+				'thoughts.frost.title': zhCN['thoughts.frost.title'],
+				'thoughts.pulse.summary': zhCN['thoughts.pulse.summary'],
+			});
+		}
 	});
 
 	it('opens from deployment and returns to the mounted selection screen', async () => {
 		const user = userEvent.setup();
 		render(<App />);
-		await user.click(screen.getByRole('button', { name: 'Open the thought index' }));
-		expect(screen.getByRole('main', { name: 'Thought Index' })).toBeTruthy();
+		await user.click(screen.getByRole('button', { name: en['thoughtIndex.entryAria'] }));
+		expect(screen.getByRole('main', { name: en['thoughtIndex.title'] })).toBeTruthy();
 		expect(document.querySelector('.thought-module-badge')).toBeTruthy();
 		expect(document.querySelector('[data-thought-scene-overlay]')).toBeTruthy();
-		const timeline = screen.getByRole('navigation', { name: 'Thought timeline' });
+		const timeline = screen.getByRole('navigation', { name: en['thoughtIndex.progress'] });
 		const units = within(timeline).getAllByRole('button');
 		const beats = thoughtRegistry.require('pulse').beats;
 		expect(units).toHaveLength(beats.length);
@@ -121,8 +135,8 @@ describe('thought index entry points', () => {
 		}
 		await user.click(target);
 		expect(target.getAttribute('aria-current')).toBe('step');
-		await user.click(screen.getByRole('button', { name: 'Return to deployment' }));
-		expect(screen.getByRole('heading', { name: 'Prism Bastion' })).toBeTruthy();
+		await user.click(screen.getByRole('button', { name: en['thoughtIndex.backMenu'] }));
+		expect(screen.getByRole('heading', { name: en['levelSelect.gameTitle'] })).toBeTruthy();
 	});
 
 	it('renders authored indefinite waits as square timeline markers', async () => {
@@ -134,7 +148,7 @@ describe('thought index entry points', () => {
 			throw new Error('Expected an authored indefinite wait');
 		}
 		render(<App />);
-		await user.click(screen.getByRole('button', { name: 'Open the thought index' }));
+		await user.click(screen.getByRole('button', { name: en['thoughtIndex.entryAria'] }));
 		const record = document.querySelector<HTMLElement>(`[data-thought-id="${definition.id}"]`);
 		if (!record) {
 			throw new Error('Expected the thought record');
@@ -158,11 +172,11 @@ describe('thought index entry points', () => {
 		const rendered = render(
 			<Workshop engine={engine} tower={tower} view={engine.getViewSnapshot()} onOpenThought={openThought} />,
 		);
-		await user.click(screen.getByRole('button', { name: 'View thought' }));
+		await user.click(screen.getByRole('button', { name: en['thoughtIndex.viewThought'] }));
 		expect(openThought).toHaveBeenCalledWith('pulse');
 
-		await user.click(screen.getByRole('button', { name: /Arcbolt/ }));
-		const arcboltThought = rendered.queryByRole('button', { name: 'View thought' });
+		await user.click(screen.getByRole('button', { name: textPattern(en['modules.arcbolt.short']) }));
+		const arcboltThought = rendered.queryByRole('button', { name: en['thoughtIndex.viewThought'] });
 		expect(arcboltThought).not.toBeNull();
 		await user.click(arcboltThought!);
 		expect(openThought).toHaveBeenCalledWith('arcbolt');
@@ -206,11 +220,13 @@ describe('thought index entry points', () => {
 				onOpenThought={openThought}
 			/>,
 		);
-		const panel = screen.getByRole('region', { name: 'Choose initial modules' });
-		expect(within(panel).getAllByRole('button', { name: 'Choose module' })).toHaveLength(4);
+		const panel = screen.getByRole('region', { name: en['reward.initialAria'] });
+		expect(within(panel).getAllByRole('button', { name: en['reward.choose'] })).toHaveLength(4);
 		await user.click(panel.querySelector('.reward-card') as HTMLElement);
 		expect(engine.getSnapshot().draft).toEqual(before);
-		await user.click(within(panel).getAllByRole('button', { name: 'View thought' })[0] as HTMLElement);
+		await user.click(
+			within(panel).getAllByRole('button', { name: en['thoughtIndex.viewThought'] })[0] as HTMLElement,
+		);
 		expect(openThought).toHaveBeenCalledOnce();
 		expect(engine.getSnapshot().draft).toEqual(before);
 	});
@@ -227,7 +243,7 @@ describe('thought index entry points', () => {
 				onOpenThought={openThought}
 			/>,
 		);
-		await user.click(screen.getByRole('button', { name: 'Show why' }));
+		await user.click(screen.getByRole('button', { name: en['thoughtIndex.explainDiagnostic'] }));
 		expect(openThought).toHaveBeenCalledWith('impact-trigger');
 	});
 });

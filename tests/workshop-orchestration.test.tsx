@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import en from '../packages/web-shared/src/i18n/locales/en.json';
+
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -44,7 +46,7 @@ describe('workshop orchestration transfer', () => {
 		setClipboard({ writeText });
 		const { tower, onToast } = renderWorkshop();
 
-		await user.click(screen.getByRole('button', { name: 'Export' }));
+		await user.click(screen.getByRole('button', { name: en['workshop.export'] }));
 
 		expect(writeText).toHaveBeenCalledWith(
 			encodeOrchestration({
@@ -62,7 +64,7 @@ describe('workshop orchestration transfer', () => {
 		setClipboard({ readText: vi.fn<() => Promise<string>>().mockResolvedValue(`  ${token}\n`) });
 		const { tower, onToast } = renderWorkshop();
 
-		await user.click(screen.getByRole('button', { name: 'Import' }));
+		await user.click(screen.getByRole('button', { name: en['workshop.import'] }));
 
 		await waitFor(() => expect(tower.slots.slice(0, 2)).toEqual(['frost', 'pulse']));
 		expect(tower.slots.slice(2).every((slot) => slot === null)).toBe(true);
@@ -80,7 +82,7 @@ describe('workshop orchestration transfer', () => {
 		const { tower, onToast } = renderWorkshop();
 		const before = { slots: [...tower.slots], targeting: tower.targeting };
 
-		await user.click(screen.getByRole('button', { name: 'Import' }));
+		await user.click(screen.getByRole('button', { name: en['workshop.import'] }));
 
 		expect(tower.slots).toEqual(before.slots);
 		expect(tower.targeting).toBe(before.targeting);
@@ -91,13 +93,13 @@ describe('workshop orchestration transfer', () => {
 		const user = userEvent.setup();
 		setClipboard({});
 		const { onToast } = renderWorkshop();
-		await user.click(screen.getByRole('button', { name: 'Import' }));
+		await user.click(screen.getByRole('button', { name: en['workshop.import'] }));
 		expect(onToast).toHaveBeenCalledWith(expect.stringContaining('Clipboard access failed'), 'warn');
 
 		cleanup();
 		renderWorkshop('standard');
-		expect(screen.queryByRole('button', { name: 'Import' })).toBeNull();
-		expect(screen.queryByRole('button', { name: 'Export' })).toBeNull();
+		expect(screen.queryByRole('button', { name: en['workshop.import'] })).toBeNull();
+		expect(screen.queryByRole('button', { name: en['workshop.export'] })).toBeNull();
 	});
 
 	it('routes workshop feedback through the session Toast', async () => {
@@ -119,9 +121,9 @@ describe('workshop orchestration transfer', () => {
 			/>,
 		);
 
-		await user.click(screen.getByRole('button', { name: 'Export' }));
+		await user.click(screen.getByRole('button', { name: en['workshop.export'] }));
 
-		await waitFor(() => expect(screen.getByRole('status').textContent).toBe('Orchestration copied'));
+		await waitFor(() => expect(screen.getByRole('status').textContent).toBe(en['workshop.exportSuccess']));
 		expect(document.querySelector('.orchestration-notice')).toBeNull();
 	});
 });

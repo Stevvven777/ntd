@@ -1,3 +1,5 @@
+import en from '../packages/web-shared/src/i18n/locales/en.json' with { type: 'json' };
+import { textPattern } from '../tests/helpers/text';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_LEVEL_ID, getLevel } from '../packages/game-core/src/game/config';
 
@@ -8,10 +10,10 @@ const prepare = async (page: import('@playwright/test').Page) => {
 
 test('module selection follows repeated moves and pointer changes in the workshop', async ({ page }) => {
 	await prepare(page);
-	await page.getByRole('radio', { name: /White Prism/ }).click();
-	await page.getByRole('button', { name: /Creative/ }).click();
-	await page.getByRole('button', { name: /Start deployment/ }).click();
-	const canvas = page.getByRole('img', { name: 'Tower-defense battlefield' });
+	await page.getByRole('radio', { name: textPattern(en['levels.white-prism.name']) }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.creativeTitle']) }).click();
+	await page.getByRole('button', { name: textPattern(en['levelSelect.startAction']) }).click();
+	const canvas = page.getByRole('img', { name: en['canvas.aria'] });
 	const bounds = await canvas.boundingBox();
 	if (!bounds) {
 		throw new Error('Expected a battlefield');
@@ -24,7 +26,7 @@ test('module selection follows repeated moves and pointer changes in the worksho
 			y: (bounds.height - 650 * scale) / 2 + pad.y * scale,
 		},
 	});
-	const workshop = page.getByLabel('Tower module workshop');
+	const workshop = page.getByLabel(en['workshop.aria']);
 	await workshop.locator('.orchestration-clear').click();
 	await workshop.locator('[data-tutorial-module="pulse"]').dblclick();
 	await workshop.locator('[data-tutorial-module="frost"]').dblclick();
@@ -38,14 +40,14 @@ test('module selection follows repeated moves and pointer changes in the worksho
 		await page.keyboard.press(key);
 		await expect(slot(destination)).toBeFocused();
 		await expect(slot(destination)).toHaveAttribute('aria-pressed', 'true');
-		await expect(slot(destination)).toContainText('Pulse');
+		await expect(slot(destination)).toContainText(en['modules.pulse.short']);
 		await expect(workshop.locator('.module-card.selected')).toHaveCount(0);
 	}
 	await slot(0).click();
 	await page.keyboard.press('Alt+ArrowRight');
 	await expect(slot(1)).toBeFocused();
 	await expect(slot(1)).toHaveAttribute('aria-pressed', 'true');
-	await expect(slot(1)).toContainText('Frost');
+	await expect(slot(1)).toContainText(en['modules.frost.short']);
 	expect(await slot(1).evaluate((element) => getComputedStyle(element).outlineStyle)).toBe('none');
 	expect(await slot(1).evaluate((element) => getComputedStyle(element).boxShadow)).toContain('inset');
 });

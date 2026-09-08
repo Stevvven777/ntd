@@ -1,4 +1,8 @@
 // @vitest-environment jsdom
+
+import { translate } from './helpers/translate';
+
+import en from '../packages/web-shared/src/i18n/locales/en.json';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
@@ -39,26 +43,30 @@ it('migrates index arrow bindings to step keys that leave page navigation availa
 it('records combinations, rejects conflicts, cancels without closing, clears and restores', async () => {
 	const user = userEvent.setup();
 	const { unmount } = render(<SettingsPanel />);
-	await user.click(screen.getByRole('button', { name: 'Settings' }));
-	await user.click(screen.getByRole('tab', { name: 'Key bindings' }));
-	await user.click(screen.getByRole('button', { name: 'Pause / resume', exact: true }));
+	await user.click(screen.getByRole('button', { name: en['settings.title'] }));
+	await user.click(screen.getByRole('tab', { name: en['settings.categories.controls'] }));
+	await user.click(screen.getByRole('button', { name: en['settings.keys.pause'], exact: true }));
 	fireEvent.keyDown(window, { key: 'n' });
-	expect(screen.getByText(/Already assigned to Launch wave/)).toBeTruthy();
+	expect(screen.getByText(translate('settings.keys.conflict', { action: en['settings.keys.launch'] }))).toBeTruthy();
 	fireEvent.keyDown(window, { key: 'p', ctrlKey: true, shiftKey: true });
 	expect(getKeybindings().pause).toBe('Ctrl+Shift+P');
 	expect(JSON.parse(localStorage.getItem(KEYBINDINGS_STORAGE_KEY)!)).toMatchObject({ pause: 'Ctrl+Shift+P' });
-	await user.click(screen.getByRole('button', { name: 'Pause / resume', exact: true }));
+	await user.click(screen.getByRole('button', { name: en['settings.keys.pause'], exact: true }));
 	fireEvent.keyDown(window, { key: 'Escape' });
 	expect(screen.getByRole('dialog')).toBeTruthy();
 	expect(getKeybindings().pause).toBe('Ctrl+Shift+P');
 	unmount();
 	render(<SettingsPanel />);
-	await user.click(screen.getByRole('button', { name: 'Settings' }));
-	await user.click(screen.getByRole('tab', { name: 'Key bindings' }));
-	expect(screen.getByRole('button', { name: 'Pause / resume', exact: true }).textContent).toBe('Ctrl+Shift+P');
-	await user.click(screen.getByRole('button', { name: 'Clear binding: Pause / resume' }));
+	await user.click(screen.getByRole('button', { name: en['settings.title'] }));
+	await user.click(screen.getByRole('tab', { name: en['settings.categories.controls'] }));
+	expect(screen.getByRole('button', { name: en['settings.keys.pause'], exact: true }).textContent).toBe(
+		'Ctrl+Shift+P',
+	);
+	await user.click(
+		screen.getByRole('button', { name: translate('settings.keys.clear', { action: en['settings.keys.pause'] }) }),
+	);
 	expect(getKeybindings().pause).toBeNull();
-	await user.click(screen.getByRole('button', { name: 'Restore default bindings' }));
+	await user.click(screen.getByRole('button', { name: en['settings.keys.reset'] }));
 	expect(getKeybindings()).toEqual(defaultKeybindings);
 });
 
@@ -76,7 +84,7 @@ it('uses rebound gameplay keys and ignores old keys, repeats, inputs and setting
 	document.body.append(input);
 	fireEvent.keyDown(input, { key: 'p' });
 	input.remove();
-	await userEvent.click(screen.getByRole('button', { name: 'Settings' }));
+	await userEvent.click(screen.getByRole('button', { name: en['settings.title'] }));
 	fireEvent.keyDown(window, { key: 'p' });
 	expect(toggle).toHaveBeenCalledTimes(1);
 });
@@ -125,57 +133,61 @@ it('recovers from malformed storage and rejects conflicting persisted bindings',
 it('switches icon tabs with keyboard navigation and cancels recording when leaving controls', async () => {
 	const user = userEvent.setup();
 	render(<SettingsPanel />);
-	await user.click(screen.getByRole('button', { name: 'Settings' }));
-	const general = screen.getByRole('tab', { name: 'General' });
+	await user.click(screen.getByRole('button', { name: en['settings.title'] }));
+	const general = screen.getByRole('tab', { name: en['settings.categories.general'] });
 	expect(document.activeElement).toBe(general);
 	await user.keyboard('{ArrowLeft}');
 	expect(document.activeElement).toBe(general);
-	expect(screen.queryByRole('button', { name: 'Pause / resume', exact: true })).toBeNull();
+	expect(screen.queryByRole('button', { name: en['settings.keys.pause'], exact: true })).toBeNull();
 	await user.keyboard('{ArrowRight}');
 	expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe(
-		screen.getByRole('tab', { name: 'Key bindings' }).id,
+		screen.getByRole('tab', { name: en['settings.categories.controls'] }).id,
 	);
-	await user.click(screen.getByRole('button', { name: 'Pause / resume', exact: true }));
-	await user.click(screen.getByRole('tab', { name: 'Storage' }));
+	await user.click(screen.getByRole('button', { name: en['settings.keys.pause'], exact: true }));
+	await user.click(screen.getByRole('tab', { name: en['settings.categories.storage'] }));
 	fireEvent.keyDown(window, { key: 'p' });
 	expect(getKeybindings().pause).toBe('Space');
-	expect(screen.getByRole('button', { name: 'Clear archive' })).toBeTruthy();
+	expect(screen.getByRole('button', { name: en['defenseArchive.clear'] })).toBeTruthy();
 	await user.keyboard('{End}');
 	const lastTab = document.activeElement;
 	await user.keyboard('{ArrowRight}');
 	expect(document.activeElement).toBe(lastTab);
 	await user.keyboard('{Home}');
 	expect(document.activeElement).toBe(general);
-	expect(screen.queryByRole('button', { name: 'Clear archive' })).toBeNull();
+	expect(screen.queryByRole('button', { name: en['defenseArchive.clear'] })).toBeNull();
 });
 
 it('navigates categories from content controls and scrolls with vertical arrows', async () => {
 	const user = userEvent.setup();
 	render(<SettingsPanel />);
-	await user.click(screen.getByRole('button', { name: 'Settings' }));
-	await user.click(screen.getByRole('tab', { name: 'Key bindings' }));
+	await user.click(screen.getByRole('button', { name: en['settings.title'] }));
+	await user.click(screen.getByRole('tab', { name: en['settings.categories.controls'] }));
 	const content = screen.getByRole('tabpanel');
-	const reset = screen.getByRole('button', { name: 'Restore default bindings' });
+	const reset = screen.getByRole('button', { name: en['settings.keys.reset'] });
 	reset.focus();
 	fireEvent.keyDown(reset, { key: 'ArrowDown' });
 	expect(content.scrollTop).toBe(72);
 	fireEvent.keyDown(reset, { key: 'ArrowUp' });
 	expect(content.scrollTop).toBe(0);
 	fireEvent.keyDown(reset, { key: 'ArrowRight' });
-	expect(screen.getByRole('tab', { name: 'Storage' }).getAttribute('aria-selected')).toBe('true');
+	expect(screen.getByRole('tab', { name: en['settings.categories.storage'] }).getAttribute('aria-selected')).toBe(
+		'true',
+	);
 	expect(Object.values(defaultKeybindings).some((key) => /^F\d+$/.test(key))).toBe(false);
 });
 
 it('captures arrow bindings without switching categories or scrolling', async () => {
 	const user = userEvent.setup();
 	render(<SettingsPanel />);
-	await user.click(screen.getByRole('button', { name: 'Settings' }));
-	await user.click(screen.getByRole('tab', { name: 'Key bindings' }));
-	const pause = screen.getByRole('button', { name: 'Pause / resume', exact: true });
+	await user.click(screen.getByRole('button', { name: en['settings.title'] }));
+	await user.click(screen.getByRole('tab', { name: en['settings.categories.controls'] }));
+	const pause = screen.getByRole('button', { name: en['settings.keys.pause'], exact: true });
 	await user.click(pause);
 	fireEvent.keyDown(pause, { key: 'ArrowRight' });
 	expect(getKeybindings().pause).toBe('ArrowRight');
-	expect(screen.getByRole('tab', { name: 'Key bindings' }).getAttribute('aria-selected')).toBe('true');
+	expect(screen.getByRole('tab', { name: en['settings.categories.controls'] }).getAttribute('aria-selected')).toBe(
+		'true',
+	);
 	await user.click(pause);
 	fireEvent.keyDown(pause, { key: 'ArrowDown' });
 	expect(getKeybindings().pause).toBe('ArrowDown');

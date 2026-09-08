@@ -1,3 +1,4 @@
+import en from '../packages/web-shared/src/i18n/locales/en.json' with { type: 'json' };
 import { expect, test } from '@playwright/test';
 
 const prepare = async (page: import('@playwright/test').Page) => {
@@ -7,7 +8,7 @@ const prepare = async (page: import('@playwright/test').Page) => {
 
 test('pointer and keyboard selection keep one persistent level indicator', async ({ page }) => {
 	await prepare(page);
-	const cards = page.getByRole('radiogroup', { name: 'Choose defense sector' }).getByRole('radio');
+	const cards = page.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] }).getByRole('radio');
 	await cards.nth(2).click();
 	await expect
 		.poll(() => cards.nth(2).evaluate((element) => getComputedStyle(element).boxShadow))
@@ -33,7 +34,7 @@ test('pointer and keyboard selection keep one persistent level indicator', async
 
 test('home selection stops at either end', async ({ page }) => {
 	await prepare(page);
-	const cards = page.getByRole('radiogroup', { name: 'Choose defense sector' }).getByRole('radio');
+	const cards = page.getByRole('radiogroup', { name: en['levelSelect.chooseLevel'] }).getByRole('radio');
 	await cards.first().click();
 	await page.keyboard.press('ArrowLeft');
 	await expect(cards.first()).toHaveAttribute('aria-checked', 'true');

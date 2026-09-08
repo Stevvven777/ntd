@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import en from '../packages/web-shared/src/i18n/locales/en.json';
+
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import '@prism-bastion/web-shared/i18n';
@@ -20,7 +22,7 @@ describe('tower loadout overlay', () => {
 
 		render(<TowerLoadoutOverlay engine={engine} towers={[tower]} />);
 
-		const loadout = screen.getByRole('group', { name: 'Installed modules' });
+		const loadout = screen.getByRole('group', { name: en['thoughtIndex.installedModules'] });
 		expect(
 			[...loadout.querySelectorAll('[data-module-id]')].map((element) => [
 				element.getAttribute('data-module-id'),
@@ -30,8 +32,8 @@ describe('tower loadout overlay', () => {
 			['frost', '0'],
 			['pulse', '2'],
 		]);
-		expect(screen.getByRole('img', { name: 'Condensing Lens' })).not.toBeNull();
-		expect(screen.getByRole('img', { name: 'Pulse Round' })).not.toBeNull();
+		expect(screen.getByRole('img', { name: en['modules.frost.name'] })).not.toBeNull();
+		expect(screen.getByRole('img', { name: en['modules.pulse.name'] })).not.toBeNull();
 	});
 
 	it('matches the canvas world transform when the viewport is letterboxed', () => {

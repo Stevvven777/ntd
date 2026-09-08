@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import en from '../packages/web-shared/src/i18n/locales/en.json';
+
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import '@prism-bastion/web-shared/i18n';
@@ -19,7 +21,7 @@ describe('co-op reinforcement notice', () => {
 			/>,
 		);
 
-		expect(screen.getByRole('status', { name: 'Reinforcement phase' })).not.toBeNull();
+		expect(screen.getByRole('status', { name: en['coop.reinforcementNoticeTitle'] })).not.toBeNull();
 		expect(screen.getByTitle('Spark × 2')).not.toBeNull();
 		expect(screen.getByTitle('Prism Crown × 1')).not.toBeNull();
 		expect(screen.queryByRole('button')).toBeNull();

@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import en from '../packages/web-shared/src/i18n/locales/en.json';
+
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import '@prism-bastion/web-shared/i18n';
@@ -58,12 +60,12 @@ describe('signal wave preview', () => {
 		const { rerender } = render(
 			<Battlefield engine={engine} view={engine.getViewSnapshot()} onOpenArchive={onOpenArchive} />,
 		);
-		expect(screen.getByText('Next-wave signals')).toBeTruthy();
+		expect(screen.getByText(en['battlefield.nextWave'])).toBeTruthy();
 
 		engine.startWave();
 		rerender(<Battlefield engine={engine} view={engine.getViewSnapshot()} onOpenArchive={onOpenArchive} />);
 
-		expect(screen.getByText('Current-wave signals')).toBeTruthy();
+		expect(screen.getByText(en['battlefield.currentWave'])).toBeTruthy();
 	});
 
 	it.each(['won', 'lost'] as const)('shows no signals after the run is %s', (status) => {
@@ -77,7 +79,7 @@ describe('signal wave preview', () => {
 			/>,
 		);
 
-		expect(screen.getByText('No signals')).toBeTruthy();
+		expect(screen.getByText(en['battlefield.noSignals'])).toBeTruthy();
 		expect(container.querySelector('[data-signal-preview]')).toBeNull();
 	});
 });
