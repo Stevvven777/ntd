@@ -1,8 +1,6 @@
 # Contributor Guides
 
-> Document type: **Overview** — use this page to select one task-focused workflow.
-
-Each guide assumes the existing architecture and gives the shortest safe path for one kind of change.
+Task workflows and contributor constraints:
 
 - [Development workflow](development-workflow.md): install, run, validate, and hand off a change.
 - [Co-op development server](co-op-development.md): run and share the two-player LAN development build.
@@ -17,4 +15,4 @@ Each guide assumes the existing architecture and gives the shortest safe path fo
 - [Create stylesheets](creating-stylesheets.md): add or migrate component CSS without leaking class names across UI boundaries.
 - [Rendering performance](rendering-performance.md): review hot paths and validate optimization work.
 
-For explanations of why the runtime behaves as it does, use the [internals index](../internals/README.md).
+For subsystem behavior and invariants, use [System contracts](../internals/README.md).

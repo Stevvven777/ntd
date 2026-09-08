@@ -1,7 +1,5 @@
 # Testing Boundaries
 
-> Document type: **Guide** — use this page to decide what a test should protect and which values it should deliberately leave free to change.
-
 Tests protect software contracts. They do not approve or preserve balance decisions.
 
 Prism Bastion keeps authored balance data in configuration: signal health and speed, module energy and rarity, tower stat ranges, level geometry, wave composition, reward quantities, and similar tuning. Designers must be able to change those values without rewriting unrelated tests.
@@ -62,16 +60,12 @@ Playwright defaults to English explicitly; language-switching assertions should 
 
 Keep test-owned inputs (such as player names), protocol values, and formatting assertions independent of translation resources. Tests should detect broken behavior while allowing valid copy edits.
 
-`pnpm lint` enforces `test-locale/no-hardcoded-copy` in `tests/`, `e2e/`, and `e2e-coop/`. The rule loads every locale JSON and checks text locators, role `name` options, Playwright text/accessibility assertions, and ordinary assertions whose input reads DOM text or a textual attribute. It recognizes literals, regular expressions (including Unicode escapes), template strings, arrays, and local `const` aliases. Exact translated strings and interpolated results are rejected; regex/template fragments also match sufficiently long portions of resource text.
-
-This is a heuristic, not a proof: removed or unknown translations and values hidden behind arbitrary helper calls may escape detection. Program IDs, test titles, CSS selectors, and ordinary data assertions are outside the check. If a test deliberately owns an input that coincides with production copy, use a narrow exception and explain why:
+`pnpm lint` enforces `test-locale/no-hardcoded-copy` in `tests/`, `e2e/`, and `e2e-coop/`. It is a heuristic, not proof of correct resource use, and cannot choose between keys with identical wording. A test-owned input that coincides with production copy may use a narrow, explained exception:
 
 ```ts
 // eslint-disable-next-line test-locale/no-hardcoded-copy -- This label is a test-owned component prop.
 expect(button.textContent).toBe('Test fixture label');
 ```
-
-The rule offers no automatic replacement because several locale keys can share wording; choose the key the target component actually renders.
 
 ## When an exact value is a contract
 
@@ -91,15 +85,3 @@ Similarly, an exact content sequence is a contract only when the product explici
 `pnpm balance:report` and other analysis outputs help humans compare tuning. Test the report generator for determinism, finite results, complete configured coverage, and internally consistent totals. Do not turn today's report rows into snapshots or pass/fail thresholds unless the team has explicitly adopted a stable non-balance constraint.
 
 If a tuning change produces surprising results, review the report as design evidence. Do not make the unit suite enforce the previous baseline.
-
-## Review checklist
-
-Before adding or updating an assertion, ask:
-
-- Would a valid balance pass require editing this test?
-- Is the failure identifying broken behavior, or merely changed authored content?
-- Can the expectation be derived from configuration?
-- Can a property or relation express the contract more directly?
-- If an exact number is necessary, is it owned by the test or by a stable external contract?
-
-If a test mixes mechanics and balance, split the concern: keep a small mechanics test with test-owned fixtures, and leave tuning evaluation to reports and playtesting.

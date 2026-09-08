@@ -1,9 +1,5 @@
 # Cross-Cutting Combat Mechanics
 
-> Document type: **Internals** — read this page for combat rules whose behavior crosses modules, signals, damage, and spatial queries.
-
-This page preserves the cross-cutting mechanics that the previous architecture document treated as non-obvious. Ordinary entity update code is intentionally left to the source.
-
 ## Target-effect propagation
 
 Modules never receive `GameEngine`. Their runtime hooks use `ModuleCombatApi` for target queries, damage, slows, statuses, retargeting, and route displacement.
@@ -24,11 +20,9 @@ If the shield absorbs the full hit, the projectile expires before `onHit`, healt
 
 ## Persistent spatial index
 
-`SignalSpatialIndex` stores each live signal in a grid cell and remembers its slot inside that cell. Spawn, death, splitting, reset, and cross-cell movement update the index incrementally. Removal swaps the last cell entry into the removed slot instead of shifting the rest of the bucket.
+Range, splash, trigger, and projectile-segment queries share a persistent `SignalSpatialIndex`. Spawn, death, splitting, reset, and movement must keep it synchronized with live signals. Query results may use reusable buffers; callers must not retain them across queries.
 
-Range, splash, trigger, and projectile-segment queries share this index. Hot callers pass reusable result arrays; nearest-target operations have dedicated scans and do not sort a full candidate list.
-
-`selectTowerTarget()` performs one comparison scan after the range query. Health, tower distance, density, and core-distance strategies are plain data modes on `Tower.targeting`. Core ordering uses remaining physical route distance, so signals on different route branches can be compared before they merge.
+Tower targeting supports health, tower distance, density, and core distance. Cross-branch ordering uses [remaining physical route distance](route-graphs.md#shared-ordering-across-branches). See [Rendering performance](../guides/rendering-performance.md) for hot-path implementation practices.
 
 ## Configured signal mechanics
 

@@ -1,7 +1,5 @@
 # Module Draft
 
-> Document type: **Internals** — read this page to understand adaptive module quality, compatibility weighting, and draft skipping.
-
 Standard-mode module offers draw four unique definitions from one weighted pool. Tutorial levels provide fixed modules and Creative mode exposes the full library, so neither uses this process.
 
 ## Quality center

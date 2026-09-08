@@ -1,7 +1,5 @@
 # Defense Archive
 
-> Document type: **Internals** — read this page to understand how completed defenses become local statistics and achievements.
-
 ## Boundary and lifecycle
 
 `GameEngine` owns combat truth. It counts actual signal spawns, defeats, core arrivals, and the bodies still active when a loss occurs. Fracture children use a separate persisted variant so their bodies reconcile without inventing another configured signal type.

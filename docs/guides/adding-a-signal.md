@@ -1,7 +1,5 @@
 # Adding a Signal
 
-> Document type: **Guide** — follow this page to add a signal across simulation, visuals, the compendium, and localization.
-
 Signal definitions are declarative vertical slices under `packages/game-core/src/signals/`. The ordered registry is the only source used by the engine, Creative mode, the compendium, wave previews, the defense archive, and spectrum achievements.
 
 ## 1. Define and register the signal
@@ -9,7 +7,7 @@ Signal definitions are declarative vertical slices under `packages/game-core/src
 1. Create `packages/game-core/src/signals/<id>.ts` with `defineSignal`.
 2. Declare its base stats, text keys, visual geometry, capability list, variants, and compendium entry.
 3. Import the definition into `packages/game-core/src/signals/registry.ts` and place it in the intended presentation order.
-4. Add `signals.<id>` and the three `signalArchive.signals.<id>.*` keys to both locale files.
+4. Add `signals.<id>` and the three `signalArchive.signals.<id>.*` keys through the [localization workflow](localization.md#change-or-add-a-string).
 
 `SignalId` and `SignalVariantId` are derived from the registry. Do not add parallel ID unions or presentation lists.
 
@@ -35,7 +33,7 @@ New geometry or compendium demo primitives follow the same rule: extend the shar
 
 ## 4. Put the signal in a level
 
-Add it to one or more wave groups in `packages/game-core/src/game/config.ts`. An entry without an entrance is broadcast to every lane. Ordinary and elite signals follow the same entrance rules. Set `stats.elite` for an elite signal. Signals included in the spectrum achievement must appear in at least one non-tutorial Standard defense.
+Add it to one or more wave groups in `packages/game-core/src/game/config.ts`. Follow the shared [entrance rules](../internals/route-graphs.md#multi-entrance-waves). Set `stats.elite` for an elite signal. Signals included in the spectrum achievement must appear in at least one non-tutorial Standard defense.
 
 ## 5. Verify
 

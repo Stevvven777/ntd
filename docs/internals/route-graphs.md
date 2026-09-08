@@ -1,7 +1,5 @@
 # Route Graphs
 
-> Document type: **Internals** — read this page when route construction, multi-entrance spawning, or cross-branch targeting is unclear.
-
 Maps use a rooted tree directed toward the core. A node's `parent` is its next node toward the root; `children` are derived in the opposite direction. Entrances are leaf nodes, and the single node with a `null` parent is the root.
 
 ## Construction and validation

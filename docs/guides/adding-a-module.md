@@ -1,7 +1,5 @@
 # Adding a Module
 
-> Document type: **Guide** — follow this page to add a module across the runtime and browser presentation registries.
-
 Use an existing module of the same kind as the starting template. A module has two matching files with the same ID:
 
 - `packages/game-core/src/modules/<id>.ts` contains deterministic values, compilation, tags, and combat hooks.
@@ -36,7 +34,7 @@ export const ionModule: ModuleRuntimeDefinition = {
     color: '#00c2ff',
     energy: 9,
     rarity: 'uncommon',
-    text: { detail: { speed: 20 } },
+    text: { detail: { speed: Math.round((ionStats.speedMultiplier - 1) * 100) } },
   },
   compile: (context) => context.modifyNext({ speedMultiplier: ionStats.speedMultiplier }),
 };

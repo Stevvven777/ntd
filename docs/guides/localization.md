@@ -1,7 +1,5 @@
 # Localization
 
-> Document type: **Guide** — follow this page to add or change user-facing text while preserving the locale contract.
-
 All interface copy, tutorial text, engine toasts, module presentation, level presentation, signal names, and Canvas labels must resolve through the shared i18next instance.
 
 ## Change or add a string

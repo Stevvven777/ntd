@@ -1,7 +1,5 @@
 # Module Compiler
 
-> Document type: **Internals** — read this page when a slot sequence, trigger tree, or runtime module effect is hard to infer from the source locally.
-
 The module system has two phases. Compilation converts tower slots into immutable data; execution casts that data and invokes the participating modules' runtime hooks. This prevents projectile flight from repeatedly interpreting the tower layout.
 
 ## Compilation state
@@ -9,8 +7,6 @@ The module system has two phases. Compilation converts tower slots into immutabl
 `compileProgram()` scans the slot array from left to right. Modifier, trail, and logic modules update a short-lived pending state through `modifyNext()` or `wrapNext()`. The state holds multiplicative and additive projectile patches, energy contributions, participating module IDs, and at most one trigger.
 
 Module definitions also declare capability tags. After a projectile is emitted, the compiler compares its tags with the pending modules through the data-driven rules in `compatibility.ts`. Ineffective combinations produce warnings, and runtime hook/render dispatch skips the ineffective module; new modules opt into a rule by declaring the matching tag rather than editing the compiler or UI.
-
-Tags may also opt a tower into a shared renderer capability. For example, `rift-space` enables the masked rift-space shader only while at least one fielded tower has a matching module installed and a live rift exists.
 
 A projectile module calls `emitProjectile()`. The compiler applies the pending patches, records every participating module ID, creates a `ShotBlueprint`, and resets the pending state. The blueprint retains the resolved damage multiplier separately from rounded projectile damage so attached continuous systems can scale their own authored damage. A later projectile therefore starts with a clean state unless new modules modify it.
 
@@ -45,12 +41,10 @@ Static modules use the same blueprint type but include a `StaticProjectileSpec`.
 
 Compilation can report unknown modules, root-level static payloads, conflicting triggers, missing root projectiles, unresolved modifiers, and missing payloads. The UI reads structured diagnostics as well as their messages.
 
-Before returning, the compiler recursively freezes module lists, payload lists, blueprints, diagnostics, and the `TowerProgram`. `ModuleRegistry` caches programs by the JSON representation of the slot array and evicts the oldest entry after the cache reaches its limit. This makes repeated tower updates cheap and prevents execution from mutating compiled data.
+Programs, blueprints, module/payload lists, and diagnostics are recursively immutable. Cached programs may be shared between towers; execution must not mutate them.
 
 ## Runtime dispatch
 
-Each projectile copies its blueprint's module IDs. `ModuleRegistry` uses those IDs to dispatch `onCast`, `onTrail`, `onHit`, `onDeploy`, and `onTrigger`, and to compose projectile rendering. Runtime hooks receive an `EffectEngine` plus a restricted `ModuleCombatApi`, not `GameEngine`.
-
-Modifier effects that should follow indirect damage or static areas use `targetEffect`. Carriers publish affected targets through the `damage` or `static` channel; the registry then invokes subscribed modifier effects. This avoids direct coupling between every carrier and every modifier.
+Participating module IDs determine `onCast`, `onTrail`, `onHit`, `onDeploy`, and `onTrigger` dispatch. Hooks use the restricted `ModuleCombatApi` and semantic visual cues; browser effects and painters belong to presentation definitions. Indirect damage and static areas propagate modifiers through [target-effect channels](combat-runtime.md#target-effect-propagation).
 
 The companion [module guide](../guides/adding-a-module.md) turns these concepts into an extension workflow.

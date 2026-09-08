@@ -1,7 +1,5 @@
 # Rendering Pipeline
 
-> Document type: **Internals** — read this page to understand how scene drawing, effects, bloom, distortion, and fallback compose one frame.
-
 The visible battlefield combines a Canvas 2D scene with an optional WebGL2 post-process. React owns the canvas element and animation-frame lifecycle but does not draw individual game entities.
 
 ## Scene canvas

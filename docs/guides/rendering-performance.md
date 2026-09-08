@@ -1,7 +1,5 @@
 # Rendering Performance
 
-> Document type: **Guide** — use this checklist when adding or optimizing per-frame Canvas, effect, spatial-query, or post-processing work.
-
 The simulation runs at 120 Hz while rendering follows the display. Small allocations and state changes inside entity loops multiply quickly, so measure changes under dense combat rather than judging an isolated frame.
 
 ## Keep hot paths allocation-light
@@ -33,7 +31,7 @@ An offscreen canvas is valuable only when it replaces more work than its draw an
 
 ## Treat WebGL as a bounded post-process
 
-The current pipeline uploads the Canvas scene and a lower-resolution emissive canvas, performs two blur passes, and composites bounded distortion arrays. An active rift adds one lower-resolution reveal-mask upload; its shared moving filament field is generated directly in the composite shader. Mask work and the shader branch are gated by the module-owned `rift-space` tag and the presence of a live rift. Preserve those bounds and inactive paths when adding a new uniform array, texture, or distortion family.
+Preserve the [rendering pipeline](../internals/rendering-pipeline.md)'s bounded distortion arrays, lower-resolution targets, and inactive paths. Measure upload and fill-rate cost before increasing resolution or adding textures.
 
 Every important shape and contrast cue must remain visible in Canvas fallback. Bloom should enhance feedback, not carry the only readable representation. Check context loss and resize paths when changing WebGL resources.
 

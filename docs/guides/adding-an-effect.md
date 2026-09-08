@@ -1,7 +1,5 @@
 # Adding an Effect
 
-> Document type: **Guide** — follow this page to add short-lived visual feedback without coupling it to simulation state.
-
 Use an `EffectDefinition` for transient geometry such as sparks, rings, muzzle flashes, and deployment pulses. Use entity rendering instead when the visual must persist for the full lifetime of a signal or projectile.
 
 ## Define the effect

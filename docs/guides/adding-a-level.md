@@ -1,7 +1,5 @@
 # Adding a Level
 
-> Document type: **Guide** — follow this page to add a map, routes, tower pads, and waves without tracing the engine.
-
 Levels are data entries in `packages/game-core/src/game/config.ts`. The UI, engine, route renderer, wave preview, and Creative mode discover them through `LEVELS`.
 
 ## 1. Choose route geometry
@@ -28,7 +26,7 @@ graph: createRouteMap([
 ], ['north', 'south']),
 ```
 
-Use unique, stable node IDs. Provide exactly one root, make every declared entrance a leaf, and avoid zero-length edges. Authored levels currently use only horizontal, vertical, and 45-degree edges; the level configuration test enforces that visual language.
+Use unique, stable node IDs and satisfy the [route graph invariants](../internals/route-graphs.md#construction-and-validation). Authored levels currently use only horizontal, vertical, and 45-degree edges; the level configuration test enforces that visual language.
 
 The game world is `1160 × 650`. Existing maps place entrances slightly off the left edge and the core near the right edge so signals enter and leave cleanly.
 
@@ -47,9 +45,7 @@ waves: [
 ],
 ```
 
-An entry without an entrance is copied to every entrance queue. On a three-entrance map, `['spark', 6]` therefore produces six Sparks per entrance. An explicit entrance restricts the entry to that lane. Ordinary and elite signals follow the same rule; use explicit entrances to control elite placement and counts.
-
-Each entrance has an independent spawn timer, so lane queues advance in parallel rather than sharing one global delay.
+Follow the [multi-entrance wave rules](../internals/route-graphs.md#multi-entrance-waves): omitted entrances broadcast to every lane, including for elites. Use explicit entrances to restrict placement.
 
 ## 4. Complete the level entry
 
@@ -63,11 +59,11 @@ Provide all `LevelDefinition` fields:
 - finite `qualityBias`, an `inventoryInfluence` from `0` to `1`, and a non-negative whole-run `skipLimit`;
 - required session setup and scale fields.
 
-Add matching `levels.<id>.name` and `levels.<id>.description` keys to both locale files. The UI uses those localized keys rather than the fallback strings in configuration.
+Add `levels.<id>.name` and `levels.<id>.description` through the [localization workflow](localization.md#change-or-add-a-string). The UI uses those localized keys rather than the fallback strings in configuration.
 
 ## 5. Verify discovery and geometry
 
-1. Update level-count assertions and add a focused case in `tests/level-config.test.ts`.
+1. Add structural coverage in `tests/level-config.test.ts` without freezing level counts or authored balance; see [Testing boundaries](testing-boundaries.md).
 2. Test root, entrance, confluence, pad, wave, and explicit-placement invariants that are specific to the new map.
 3. Run `pnpm check:locales` and the route/level tests.
 4. Play the map in Standard and Creative modes.

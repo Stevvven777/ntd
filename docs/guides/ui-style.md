@@ -1,24 +1,8 @@
 # UI Style
 
-> Document type: **Guide** — use this page to extend Prism Bastion's bright geometric interface without flattening it into a generic card-based application.
-
 Prism Bastion should feel like a playable abstract control surface: white paper, near-black construction lines, vivid color fields, and compact geometric signals. Its closest compositional reference is Mondrian rather than a dashboard template. Rectangles are not containers added around content after the fact; their shared edges describe how the player understands and operates the system.
 
-This guide documents the project's existing visual grammar. General advice about choosing an art direction, typography, motion, or copy belongs outside this project guide.
-
-## The visual thesis
-
-Build each screen as one large composition of unequal rectangles. Use saturated color to establish focus and identity, pale tints to group related work, and dark lines to make the structure legible. Add circles, diamonds, polygons, or orbital marks as signals inside that rectangular frame.
-
-The intended tension is:
-
-- **bright, not soft:** color fields are clean and high-chroma;
-- **geometric, not sterile:** asymmetry and unequal divisions create rhythm;
-- **flat, not weightless:** shared borders give every region physical presence;
-- **technical, not terminal-like:** monospace is reserved for values, IDs, and symbols;
-- **playful, not decorative:** color and shape communicate category, state, or subject.
-
-Avoid glass panels, blurred backdrops, soft gray card stacks, gradients used as atmosphere, pill-shaped controls, and interchangeable SaaS dashboard layouts. They erase the planar construction that makes the interface recognizable.
+Build each screen as one composition of unequal rectangles. Saturated colors identify focus and state; pale tints group related work. Avoid glass panels, blurred backdrops, soft card stacks, atmospheric gradients, and pill-shaped controls.
 
 ## Project palette and line system
 
@@ -63,73 +47,12 @@ Mouse clicks, Tab focus, and arrow navigation update the same selected option. S
 
 Use `usePageArrowNavigation` for this default. Covered or inert pages must ignore navigation, and modal dialogs and editable controls retain their own keys. Signal Compendium uses up/down to scroll the Signal Index by 72px without changing the selection, even when no list item has focus. Left/right does not select or scroll its vertical index. Other secondary vertical lists use up/down arrows when focused. Thought Index step controls use PageUp/PageDown by default; unmodified left/right arrows are reserved for browsing its records.
 
-## Divide rectangles by responsibility
+## Regions and ownership
 
-Start from the screen's operating model, then convert it into rectangles:
+Major rectangles represent navigation, persistent context, main work, or supporting detail. Related regions divide one parent with shared edges; nested bordered boxes require an independent interaction or data object. Main work receives flexible space, while rails and controls remain bounded and usable. Narrow layouts change reading order instead of shrinking the desktop composition.
 
-1. Name the primary object being manipulated or inspected.
-2. Separate navigation, persistent context, main work, and supporting detail.
-3. Give persistent context a fixed or bounded rail; give the main work `minmax(0, 1fr)`.
-4. Split the main work again only where the interaction model changes.
-5. Let related cells share edges and background fields instead of floating independently.
-6. At narrow widths, change the reading order; do not proportionally shrink the desktop diagram.
-
-Good asymmetry comes from information weight. A narrow index beside a large specimen is useful. A random narrow card beside three equal cards is decoration.
-
-Prefer dividing one parent rectangle directly over nesting multiple bordered boxes. Sibling regions should share the parent's grid and meet at single owned divider lines. Add a nested bordered rectangle only when it represents a genuinely independent interaction or data object; spacing, background tint, typography, or a shared divider should handle ordinary grouping. Before adding a wrapper, check whether the parent can express the same hierarchy with `grid-template-*`, named areas, or a pseudo-element divider.
-
-### Arc Workshop
-
-[`Workshop.tsx`](../../packages/web-shared/src/ui/Workshop.tsx) and [`Workshop.css`](../../packages/web-shared/src/ui/Workshop.css) organize one tower-programming task into a planar instrument:
-
-```text
-┌──────────────────────── yellow identity / close strip ───────────────────────┐
-├──────────── 360px tower rail ───────┬──────── flexible program workspace ─────┤
-│ tower identity │ energy             │ violet sequence header                  │
-├─────────────────────────────────────┼─────────────────────────────────────────┤
-│ 2 × 2 tower statistics              │ ordered slot strip                       │
-├──────────────────────┬──────────────┼─────────────────────────────────────────┤
-│ targeting control    │ upgrade      │ compiled program / trigger trace         │
-├──────────────────────┴──────────────┼─────────────────────────────────────────┤
-│ selected module inspector           │ mint library header / category filters   │
-│                                     ├─────────────────────────────────────────┤
-│                                     │ scrollable module matrix                 │
-└─────────────────────────────────────┴─────────────────────────────────────────┘
-```
-
-The outer split is not a generic sidebar. The left rail answers “what tower and module am I looking at?” while the right side answers “what program am I building?” Within the right side, the program is bounded and stable; the library receives the remaining height and owns scrolling.
-
-Preserve these practices when extending the Workshop:
-
-- add tower-level controls to the left rail, not as cards floating over the module library;
-- add sequence-level feedback to the violet program region;
-- add discovery and filtering controls to the mint library region;
-- keep the slot row as one continuous strip whose cells share two-pixel seams;
-- use module colors inside symbols, leading strips, selection tints, and kind filters rather than recoloring the whole workshop;
-- keep the main split explicit with one vertical ink boundary.
-
-At `620px` and below, the Workshop becomes a vertical document: tower context, program, then library. Slots become three columns and filters become a three-column control grid. This preserves the task sequence instead of compressing the 360-pixel rail into unusable fragments.
-
-### Signal Compendium
-
-[`SignalArchive.tsx`](../../apps/web-single/src/SignalArchive.tsx) and [`SignalArchive.css`](../../apps/web-single/src/SignalArchive.css) use a different rectangular hierarchy because the task is inspection rather than construction:
-
-```text
-┌─ back ─┬──────────── title ────────────┬─ language ─┬─ signal seal ─┐
-├──────────── 270px signal index ────────┼──────── selected record ───┤
-│ repeated signal rows                    │ specimen stage │ data sheet │
-│ selected row gains an accent edge      │ crosshair/grid │ title      │
-│                                        │ orbit + subject│ 2 × 2 stats │
-│                                        │                │ 2 analyses │
-│                                        │                │ sightings   │
-└────────────────────────────────────────┴────────────────┴────────────┘
-```
-
-Here the selected signal accent travels across the composition: index marker, specimen grid, orbit, seal, stat fills, and analysis tint. That repetition makes separate rectangles feel like one record without surrounding them in another decorative card.
-
-The specimen stage is the screen's one expressive exception. Crosshairs, a square grid, circular orbits, and the animated signal create a geometric “observation instrument” inside an otherwise rigid frame. Keep surrounding data panels quieter so this signature remains legible.
-
-The desktop record gives the specimen and data unequal flexible columns. At `760px`, the index becomes a horizontal strip and the record stacks; at `480px`, the stat matrix becomes one column. The identity travels through accent and borders even though the geometry changes.
+- **Arc Workshop:** the left rail owns tower controls and the selected-module inspector. The right side owns the violet program region and mint library. The program stays bounded; the library owns remaining height and scrolling. Slots form one continuous strip. Mobile order is tower context, program, then library.
+- **Signal Compendium:** an index selects a record containing a specimen and data sheet. The selected signal's accent connects the index marker, specimen, seal, and statistics. Crosshairs and orbits belong to the specimen; surrounding data stays quiet. Narrow layouts stack the record and turn the index into a horizontal strip.
 
 ## Shape grammar
 
@@ -147,11 +70,6 @@ Prefer flat state changes: replace a background, add an inset accent bar, revers
 ## Selection blocks and settings categories
 
 Use the home page's level options as the reference for selection blocks. The style is **flat geometric segmentation** within the larger Mondrian-inspired composition: square cells, shared ink dividers, paper backgrounds, pale accent tints, and a solid accent strip at the bottom. Selection changes the surface's color and edge, without suggesting height above the page.
-
-Source references:
-
-- [`LevelSelect.css`](../../apps/web-single/src/LevelSelect.css): `.level-grid` and `.level-card` establish the home-page pattern, with a contextual tint and an `8px` bottom selection strip.
-- [`SettingsPanel.css`](../../packages/web-shared/src/ui/SettingsPanel.css): `.settings-categories` adapts it to four equal icon cells with a violet tint and a `5px` bottom selection strip.
 
 Preserve these decisions when adding or revising selection blocks:
 
@@ -202,52 +120,6 @@ Use the existing geometry to show interaction state:
 
 Do not add a badge, tooltip, border, and background change for the same state. One strong signal plus one accessible semantic attribute (`aria-current`, `aria-pressed`, `aria-selected`, or `disabled`) is normally enough.
 
-## Implementation pattern
+## Stylesheet boundary
 
-Declare page ink, paper, and contextual accent at the component root. Pass object identity through a CSS custom property rather than generating per-entity class names:
-
-```tsx
-<article style={{ '--subject-accent': signal.color } as CSSProperties}>...</article>
-```
-
-```css
-.record {
-  --record-ink: #252134;
-  display: grid;
-  grid-template-columns: 270px minmax(0, 1fr);
-  border: 2px solid var(--record-ink);
-  background: #fff;
-}
-
-.record-index {
-  border-right: 2px solid var(--record-ink);
-}
-
-.record-detail {
-  min-width: 0;
-  background: color-mix(in srgb, var(--subject-accent) 12%, #fff);
-}
-```
-
-Use CSS Grid for the large composition and for repeated equal cells. Use Flexbox inside a cell when content flows on one axis. Add `min-width: 0` and `min-height: 0` at flexible grid boundaries; otherwise long translations or scroll regions can force the composition wider or taller than intended.
-
-Keep each component's structural styles in its same-named stylesheet. Shared primitives such as `Tag` should expose a small semantic palette, while page styles decide placement and surrounding geometry.
-
-## Review checklist
-
-- Does every major rectangle correspond to navigation, context, work, or detail?
-- Are related regions direct divisions of one parent instead of nested bordered boxes?
-- Can one border own each shared boundary without doubled seams?
-- Do peer divider lines use one consistent thickness?
-- Is the main work area flexible while rails and controls remain usable?
-- Does saturated color identify a role or state rather than fill empty space?
-- Is there one dominant expressive device, with quieter supporting panels?
-- Are internal cards square and flat, with any outer radius limited to the shell?
-- Do selection, disabled, hover, and focus states remain distinct without extra badges?
-- Does the mobile layout become a sensible reading sequence rather than a miniature desktop grid?
-- Are localized labels allowed to truncate or wrap without moving structural boundaries unpredictably?
-- Does primary/supporting text stay at or above `14px`/`13px`, or `12px`/`11px` on mobile?
-- Do interface icons use SVG rather than Unicode emoji or character glyphs?
-- Does the result still read clearly in the Canvas/WebGL-free UI layer and with reduced motion?
-
-The [rendering performance guide](rendering-performance.md) covers Canvas and effects. This page applies only to DOM interface composition and its visual language.
+Use Grid for page composition and equal cells, and Flexbox for one-axis flow within a cell. Flexible boundaries require `min-width: 0` and `min-height: 0`. Reduced motion must preserve readable states. Component structure belongs in its same-named stylesheet. CSS custom properties carry contextual identity across component boundaries; shared primitives expose semantic variants. See [Creating stylesheets](creating-stylesheets.md) for ownership and migration steps, and [Rendering performance](rendering-performance.md) for Canvas and effects.

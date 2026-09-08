@@ -1,7 +1,5 @@
 # Deploy the co-op server
 
-> Document type: **Guide** — use this page to build and operate one or more public co-op nodes behind a TLS reverse proxy.
-
 The browser client is static and belongs on the CDN. Each regional node runs only the in-memory WebSocket coordinator. Rooms never cross nodes, so both players must select the same server ID and a server restart ends every room on that node.
 
 ## Build the artifacts

@@ -1,7 +1,5 @@
 # Development Workflow
 
-> Document type: **Guide** — follow this page to run and validate a repository change without learning every subsystem first.
-
 ## Set up and run
 
 Use Node.js 22 or newer. Install the lockfile exactly, then start the development server:
@@ -17,18 +15,7 @@ Open <http://localhost:4173>. The development process watches TypeScript, CSS, a
 
 Run the narrowest relevant check while editing, then run the full check before handoff.
 
-| Command               | Use                                                                  |
-| --------------------- | -------------------------------------------------------------------- |
-| `pnpm lint`           | ESLint across the repository                                         |
-| `pnpm typecheck`      | Strict TypeScript checking without output                            |
-| `pnpm test`           | Vitest unit and component suite                                      |
-| `pnpm test:e2e`       | Playwright browser smoke tests                                       |
-| `pnpm format:locales` | Complete and canonically format locale resources                     |
-| `pnpm check:locales`  | Flat, aligned, formatted locale resources and module placeholders    |
-| `pnpm check:cjk`      | Source-language boundary outside docs and locales                    |
-| `pnpm perf:report`    | Spatial-index comparison workload                                    |
-| `pnpm build`          | Minified single-player assets in `apps/web-single/dist/`             |
-| `pnpm check`          | CJK, locale, lint, type, unit/component, and production-build checks |
+The [root command table](../../AGENTS.md#commands) lists common checks; [package.json](../../package.json) defines the full set. `pnpm check` runs static checks, unit/component tests, both production builds, and the co-op server smoke test. Browser E2E tests and formatting checks run separately.
 
 For one Vitest file, pass it through the script:
 
@@ -63,14 +50,7 @@ configure the Prettier editor extension to use the project's local installation.
 In VS Code, set `editor.insertSpaces` to `false`, `editor.tabSize` to `4`, and
 `editor.detectIndentation` to `false` if local settings override these defaults.
 
-## Match the repository boundaries
-
-- Put deterministic gameplay state and rules in `packages/game-core/src/game/`.
-- Split module runtime definitions under `packages/game-core/src/modules/` from browser presentation under `packages/web-shared/src/module-presentations/`.
-- Put reusable browser effect machinery in `packages/web-shared/src/effects/`.
-- Keep shared React components under `packages/web-shared/src/ui/`; single-only and co-op-only screens belong to their app workspace.
-- Resolve every user-facing string through i18next.
-- Add regression coverage beside the subsystem tests rather than relying only on a browser smoke test.
+For code ownership, see [System overview](../architecture.md); for user-facing copy, see [Localization](localization.md).
 
 ## Before handoff
 
@@ -79,5 +59,3 @@ In VS Code, set `editor.insertSpaces` to `false`, `editor.tabSize` to `4`, and
 3. Run `pnpm check`.
 4. For visual work, inspect both WebGL2 and Canvas fallback behavior at narrow and wide viewport sizes.
 5. State any check that could not run and why.
-
-Common mistakes are running only a production build, adding UI text before locale keys, and treating a passing unit test as proof that Canvas output has no visual regression.

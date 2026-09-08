@@ -1,7 +1,5 @@
 # System Overview
 
-> Document type: **Overview** — read this page to understand the major boundaries before following code paths.
-
 Prism Bastion separates deterministic simulation, co-op coordination, browser presentation, and deployable applications. The central rule is that `game-core` owns gameplay state changes while React and Canvas observe its neutral interfaces.
 
 ## Workspaces
@@ -19,11 +17,11 @@ Prism Bastion separates deterministic simulation, co-op coordination, browser pr
 
 `GameEngine` owns mutable combat state: towers, signals, projectiles, wave queues, inventory, and session status. It converts elapsed time into fixed simulation steps. It has no React, Canvas, i18n, WebSocket, or co-op dependency and compiles against the ES2022 library without DOM typings.
 
-At construction, the engine resolves an immutable `SessionRules` object. Product identity remains in `GameMode`; concrete behavior such as inventory limits, rewards, economy, waves, and scenario controls reads rules instead of branching on an external mode name. `GamePlan`, phase input/result types, and planning commands let a controller drive externally authoritative sessions without teaching the core about co-op.
+Session behavior is defined by immutable [session rules](internals/session-rules.md). Tower slots compile into immutable [programs](internals/module-compiler.md), and signals follow fixed entrance-to-core [routes](internals/route-graphs.md).
 
-Tower slot arrays are compiled into immutable `TowerProgram` trees. Runtime module definitions contain only compilation, numbers, and combat hooks. Browser icons, colors, effect definitions, and projectile painters live in the parallel presentation registry in `web-shared`.
+Runtime module definitions own compilation, values, and combat hooks. Browser icons, colors, effects, and projectile painters belong to the parallel presentation registry in `web-shared`.
 
-Route geometry is a rooted tree whose leaves are entrances and whose root is the core. Every signal receives one entrance ID at spawn time. Movement, interception, displacement, and core-distance targeting all use that signal's entrance-to-core route.
+`GamePlan`, phase input/results, and planning commands support externally authoritative sessions without a co-op dependency in the core.
 
 ## Presentation and application boundaries
 
@@ -44,5 +42,3 @@ game-core ◀── coop ◀── coop-server
 GameEngine ──▶ snapshots + GameNotice + semantic visual cues
 GameRenderer ──▶ RenderWorld + EffectEngine ──▶ Canvas/WebGL
 ```
-
-The focused explanations under [`internals/`](internals/) describe mechanisms; task-oriented changes belong under [`guides/`](guides/).

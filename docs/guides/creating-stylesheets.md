@@ -1,7 +1,5 @@
 # Creating Stylesheets
 
-> Document type: **Guide** — use this page to add component styles or move an existing stylesheet behind a local CSS boundary.
-
 Prism Bastion uses CSS Modules for component-owned styles and ordinary CSS for application-wide foundations. A module keeps short structural names such as `root`, `incoming`, or `activeControl` local to one file, so unrelated components cannot accidentally share their layout or animation rules.
 
 The visual choices still follow the [UI style guide](ui-style.md). This guide only describes stylesheet ownership and implementation.
@@ -112,7 +110,7 @@ Migrate one independent component or one tightly coupled component island at a t
 5. Rename the file to `ComponentName.module.css` and bind it as `styles`.
 6. Replace JSX class literals with values from the imported map.
 7. Convert boolean and enumerated state classes to semantic attributes where practical.
-8. Run the component tests, the production build, and browser smoke tests.
+8. Run component tests, `pnpm check`, and browser smoke tests for layout or animation changes.
 9. Inspect the affected screen at desktop and mobile breakpoints, including reduced motion when animation changed.
 
 Do not migrate only one side of a deliberate cross-component styling relationship. For example, Workshop currently customizes ModuleCard, ModuleSlot, ProgramReadout, TriggerNode, and Tag. Either expose explicit styling inputs first or migrate that group as one component island.
@@ -121,17 +119,6 @@ Do not migrate only one side of a deliberate cross-component styling relationshi
 
 - A top-level element selector such as `button` remains global. Scope it below a local class.
 - CSS custom property names are not localized. Treat shared properties as an explicit API and keep private names component-specific.
-- Runtime code and tests must not assume the readable development class name; production minification may shorten it.
 - Moving import statements can change cascade order even when all classes are local. Preserve the existing import graph during a mechanical migration.
 - `composes` is not a safe replacement for overlapping overrides. Composed rules from separate files have deliberately undefined ordering.
 - esbuild performs limited CSS validation. A successful build does not prove that every property value or selector is correct.
-
-## Validation checklist
-
-- The component imports exactly one same-named stylesheet.
-- Every component-owned class comes from the imported `styles` map.
-- No other component or test references a generated class name.
-- State uses semantic attributes or imported class tokens.
-- Global selectors and `:global(...)` uses are intentional and documented.
-- `pnpm check` passes.
-- `pnpm test:e2e` passes when the migrated styles affect browser layout or animation.

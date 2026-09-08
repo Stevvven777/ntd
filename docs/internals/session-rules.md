@@ -1,7 +1,5 @@
 # Session Rules
 
-> Document type: **Internals** — read this page to understand how a session identity becomes concrete engine behavior.
-
 `GameMode` identifies the product-facing kind of session. `SessionRules` describes the behavior that the engine and UI may perform during that session. Keeping these concerns separate prevents feature code from accumulating checks such as `mode === 'creative'` when it actually depends on unlimited inventory, configurable waves, or another specific capability.
 
 ## Resolution
@@ -38,4 +36,4 @@ Mode checks remain appropriate when code is presenting the session's identity, s
 
 ## Extension boundary
 
-New session types should compose or add explicit policies only when their behavior requires them. Campaign progression, unlock state, and Ponder-style demonstrations are not represented here yet; they should be modeled by their own data once those features exist, then select or derive the session rules needed to run an encounter.
+New session types compose or add policies only for behavior they require. Progression and unlock state need their own data. [Thought Index scenes](thought-index.md) use a separate session-free runtime boundary.

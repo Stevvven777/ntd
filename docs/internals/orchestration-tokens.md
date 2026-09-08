@@ -1,7 +1,5 @@
 # Orchestration Tokens
 
-> Document type: **Internals** — read this page when changing the Arc Workshop clipboard format or its compatibility rules.
-
 Creative sessions can transfer the selected tower's module sequence and targeting mode as one compact token. The clipboard contains only a case-sensitive Base62 string, using the alphabet `0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz` without separators. This keeps the token opaque at a glance and lets ordinary text editors treat it as one selectable word.
 
 ## Version 1 layout
